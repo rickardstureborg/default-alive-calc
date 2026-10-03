@@ -55,12 +55,17 @@ struct FormattingTests {
         (12_345_678, "$12.3M"),
         (2_500_000_000, "$2.5B"),
         (-130_000, "-$130k"),
+        // Exact ties round away from zero, the same as Math.round in design/model.js.
+        (1_250_000, "$1.3M"),
+        (2_500, "$2.5k"),
+        (999.5, "$1k"),
+        (100_500, "$101k"),
     ])
     func money(value: Double, expected: String) {
         #expect(formatMoney(value) == expected)
     }
 
-    @Test(arguments: [(18.0, "18.0 months"), (11.23, "11.2 months"), (0.04, "0.0 months")])
+    @Test(arguments: [(18.0, "18.0 months"), (11.23, "11.2 months"), (0.04, "0.0 months"), (12.25, "12.3 months")])
     func months(value: Double, expected: String) {
         #expect(formatMonths(value) == expected)
     }
