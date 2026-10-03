@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Default Alive Calculator · design preview</title>
+<style>
+  /* Tokens: same names and numbers as `enum Style` in CalculatorView.swift.
+     A design approved here ports to the app by copying these values across. */
+  :root {
+    --width: 320px;
+    --padding: 20px;
+    --row-spacing: 10px;
+    --label-size: 13px;
+    --field-size: 15px;
+    --field-width: 120px;
+    --field-radius: 6px;
+    --divider-spacing: 16px;
+    --verdict-size: 22px;
+    --detail-size: 12px;
+  }
+
+  /* What SwiftUI actually renders on macOS, measured from `make snapshot` pixels:
+     .quaternary fill and Divider are 10% label color, .secondary is 50% / 55%,
+     field text is textColor (100%), placeholder ~44%. */
+  .light {
+    color-scheme: light;
+    --bg: #ececec;
+    --label: rgba(0, 0, 0, .85);
+    --text: #000;
+    --secondary: rgba(0, 0, 0, .5);
+    --placeholder: rgba(0, 0, 0, .44);
+    --fill: rgba(0, 0, 0, .1);
+    --separator: rgba(0, 0, 0, .1);
+    --alive: rgb(40, 205, 65);
+    --dead: rgb(255, 59, 48);
+  }
+  .dark {
+    color-scheme: dark;
+    --bg: #323232;
+    --label: rgba(255, 255, 255, .85);
+    --text: #fff;
+    --secondary: rgba(255, 255, 255, .55);
+    --placeholder: rgba(255, 255, 255, .44);
+    --fill: rgba(255, 255, 255, .1);
+    --separator: rgba(255, 255, 255, .1);
+    --alive: rgb(50, 215, 75);
+    --dead: rgb(255, 69, 58);
+  }
+
+  /* ── The calculator (what ports to SwiftUI) ───────────────────────────────── */
+
+  .calc {
+    width: var(--width);
+    padding: var(--padding);
+    box-sizing: border-box;
+    background: var(--bg);
+    color: var(--label);
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Chrome's default smoothing matches AppKit's text weight; "antialiased" reads thinner. */
+    cursor: default;
+    user-select: none;
+  }
+  .rows { display: flex; flex-direction: column; gap: var(--row-spacing); }
+  .row { display: flex; align-items: center; justify-content: space-between; }
+  .row label { font-size: var(--label-size); }
+  .row input {
+    width: var(--field-width);
+    height: 28px;
+    box-sizing: border-box;
+    padding: 0 8px;
+    border: 0;
+    border-radius: var(--field-radius);
+    background: var(--fill);
+    /* TextField is AppKit underneath: it draws in NSColor.textColor (pure black/white),
+       not SwiftUI's 85% label color. */
+    color: var(--text);
+    font: inherit;
+    font-size: var(--field-size);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    outline: none;
+  }
+  .row input::placeholder { color: var(--placeholder); }
+  .row input.invalid { color: var(--dead); }
+  hr { border: 0; height: 1px; background: var(--separator); margin: var(--divider-spacing) 0; }
+  .result {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--detail-size);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.19;
+    color: var(--secondary);
+    white-space: pre;
+  }
+  .headline {
+    font-size: var(--verdict-size);
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding-bottom: 2px;
+  }
+  .tone-alive { color: var(--alive); }
+  .tone-dead { color: var(--dead); }
+
+  /* ── Page chrome (not part of the app) ────────────────────────────────────── */
+
+  body {
+    margin: 0;
+    padding: 32px;
+    background: #808080;
+    font: 13px -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
+  }
+  h2 { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; opacity: .8; margin: 0 0 12px; }
+  .note { opacity: .75; margin: 0 0 24px; }
+  code { font: 12px ui-monospace, Menlo, monospace; }
+  .live { display: flex; gap: 40px; align-items: flex-start; margin-bottom: 40px; }
+  .window {
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 0 .5px rgba(0, 0, 0, .35), 0 22px 60px rgba(0, 0, 0, .35);
+  }
+  .titlebar {
+    position: relative;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--label);
+    font-size: 13px;
+    font-weight: 600;
+    opacity: .9;
+  }
+  .lights { position: absolute; left: 9px; display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; }
+  .lights i:nth-child(1) { background: #ff5f57; }
+  .lights i:nth-child(2) { background: #febc2e; }
+  .lights i:nth-child(3) { background: #28c840; }
+  .keys { line-height: 1.8; opacity: .85; }
+  .keys kbd { font: 11px ui-monospace, Menlo, monospace; background: rgba(255, 255, 255, .18); padding: 1px 5px; border-radius: 4px; }
+  /* One row per preset; each design tile sits beside the app's rendering of the same state. */
+  .gallery { display: grid; grid-template-columns: auto repeat(4, var(--width)); gap: 16px; align-items: center; }
+  .gallery .name, .gallery .col { font: 12px ui-monospace, Menlo, monospace; opacity: .85; }
+  .gallery .name { text-align: right; }
+  .gallery input { pointer-events: none; }
+  .gallery .missing { width: var(--width); text-align: center; opacity: .7; font: 12px ui-monospace, Menlo, monospace; }
+</style>
+</head>
+<body>
+  <section class="live">
+    <div>
+      <h2>Live</h2>
+      <div class="window" id="live-window">
+        <div class="titlebar"><span class="lights"><i></i><i></i><i></i></span>Default Alive Calculator</div>
+        <div id="live"></div>
+      </div>
+    </div>
+    <div>
+      <h2>About this page</h2>
+      <p class="note">
+        Mock of the app for trying designs before porting them to SwiftUI.<br>
+        Math and text come from <code>model.js</code>, which <code>make test</code> keeps identical to the Swift core.<br>
+        The <b>app</b> columns are the real SwiftUI view (<code>build/snapshot.png</code>, refreshed by <code>make</code>).<br>
+        Reloads itself when anything in <code>design/</code> or the snapshot changes.
+      </p>
+      <div class="keys">
+        <kbd>Esc</kbd> <kbd>C</kbd> <kbd>⌘⌫</kbd> clear all · <kbd>Return</kbd> next field<br>
+        Live window follows the system appearance; inputs persist in this browser.
+      </div>
+    </div>
+  </section>
+
+  <h2>Gallery · design/presets.json · design vs app</h2>
+  <div class="gallery" id="gallery">
+    <span></span><span class="col">design · light</span><span class="col app">app · light</span><span class="col">design · dark</span><span class="col app">app · dark</span>
+  </div>
+
+<script type="module">
+import { readout, amountValue, growthValue } from "./model.js";
+
+const FIELDS = [
+  { key: "cash", label: "Cash in bank", prompt: "$1.2M", valid: amountValue },
+  { key: "expenses", label: "Monthly expenses", prompt: "80k", valid: amountValue },
+  { key: "revenue", label: "Monthly revenue", prompt: "20k", valid: amountValue },
+  { key: "growth", label: "Monthly growth", prompt: "8%", valid: growthValue },
+];
+
+// Builds one calculator into `host`. Mirrors CalculatorForm's structure.
+function calculator(host, values, { editable }) {
+  host.innerHTML = `
+    <div class="calc">
+      <div class="rows">
+        ${FIELDS.map((f) => `
+          <div class="row">
+            <label for="${f.key}">${f.label}</label>
+            <input name="${f.key}" placeholder="${f.prompt}" autocomplete="off" spellcheck="false" ${editable ? "" : "readonly tabindex=-1"}>
+          </div>`).join("")}
+      </div>
+      <hr>
+      <div class="result">
+        <div class="headline"></div><div class="line1"></div><div class="line2"></div>
+      </div>
+    </div>`;
+  const inputs = FIELDS.map((f) => host.querySelector(`input[name=${f.key}]`));
+  inputs.forEach((el, i) => (el.value = values[FIELDS[i].key] ?? ""));
+
+  const update = () => {
+    const raw = Object.fromEntries(FIELDS.map((f, i) => [f.key, inputs[i].value]));
+    inputs.forEach((el, i) => el.classList.toggle("invalid", el.value.trim() !== "" && FIELDS[i].valid(el.value) === null));
+    const r = readout(raw, new Date());
+    const headline = host.querySelector(".headline");
+    headline.textContent = r.headline;
+    headline.className = `headline tone-${r.tone}`;
+    // " " holds an empty line open, like the app, so the height never changes.
+    host.querySelector(".line1").textContent = r.line1 || " ";
+    host.querySelector(".line2").textContent = r.line2 || " ";
+    return raw;
+  };
+  update();
+  return { inputs, update };
+}
+
+// ── Live window: editable, follows system appearance, persists like @AppStorage ──
+
+const STORE = "default-alive-inputs";
+const liveWindow = document.getElementById("live-window");
+const scheme = matchMedia("(prefers-color-scheme: dark)");
+const applyScheme = () => (liveWindow.className = `window ${scheme.matches ? "dark" : "light"}`);
+scheme.addEventListener("change", applyScheme);
+applyScheme();
+
+const live = calculator(document.getElementById("live"), JSON.parse(localStorage.getItem(STORE) || "{}"), { editable: true });
+live.inputs.forEach((el, i) => {
+  el.addEventListener("input", () => localStorage.setItem(STORE, JSON.stringify(live.update())));
+  el.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") live.inputs[i + 1]?.focus();
+  });
+});
+live.inputs[0].focus();
+
+// Same keys as the app's NSEvent monitor: Esc, C (no ⌘/⌥/⌃), ⌘⌫.
+document.addEventListener("keydown", (e) => {
+  const c = e.key.toLowerCase() === "c" && !e.metaKey && !e.ctrlKey && !e.altKey;
+  const cmdDelete = e.key === "Backspace" && e.metaKey;
+  if (e.key !== "Escape" && !c && !cmdDelete) return;
+  e.preventDefault();
+  live.inputs.forEach((el) => (el.value = ""));
+  localStorage.setItem(STORE, JSON.stringify(live.update()));
+  live.inputs[0].focus();
+}, true);
+
+// ── Gallery: every preset, design next to app, light then dark ──
+
+// Crops tiles out of the contact sheet Snapshot.swift writes: `gap` px border, rows =
+// presets, columns = light | dark. Returns null if the sheet is missing or was made from
+// a different number of presets (stale), rather than showing mismatched rows.
+async function appTiles(count) {
+  const img = new Image();
+  img.src = `../build/snapshot.png?${Date.now()}`;
+  try { await img.decode(); } catch { return null; }
+  const gap = 16;
+  const tileW = (img.naturalWidth - 3 * gap) / 2;
+  const tileH = (img.naturalHeight - (count + 1) * gap) / count;
+  if (!Number.isInteger(tileW) || !Number.isInteger(tileH)) return null;
+  return (row, col) => {
+    const c = Object.assign(document.createElement("canvas"), { width: tileW, height: tileH });
+    c.style.width = "var(--width)";
+    c.style.aspectRatio = `${tileW} / ${tileH}`;
+    c.getContext("2d").drawImage(img, gap + col * (tileW + gap), gap + row * (tileH + gap), tileW, tileH, 0, 0, tileW, tileH);
+    return c;
+  };
+}
+
+const { presets } = await (await fetch("presets.json", { cache: "no-store" })).json();
+const appTile = await appTiles(presets.length);
+const gallery = document.getElementById("gallery");
+presets.forEach((p, row) => {
+  gallery.append(Object.assign(document.createElement("div"), { className: "name", textContent: p.name }));
+  ["light", "dark"].forEach((theme, col) => {
+    const tile = Object.assign(document.createElement("div"), { className: theme });
+    gallery.append(tile);
+    calculator(tile, p.input, { editable: false });
+    gallery.append(appTile?.(row, col) ??
+      Object.assign(document.createElement("div"), { className: "missing", textContent: "run make snapshot" }));
+  });
+});
+
+// ── Live reload: poll the served files; any change reloads the page ──
+
+if (location.protocol.startsWith("http")) {
+  const files = ["index.html", "model.js", "presets.json", "../build/snapshot.png"];
+  let seen = null;
+  setInterval(async () => {
+    try {
+      const stamps = await Promise.all(files.map(async (f) => {
+        const r = await fetch(f, { method: "HEAD", cache: "no-store" });
+        return `${r.headers.get("Last-Modified")}/${r.headers.get("Content-Length")}`;
+      }));
+      const key = stamps.join("|");
+      if (seen !== null && key !== seen) location.reload();
+      seen = key;
+    } catch { /* server restarting; try again next tick */ }
+  }, 700);
+}
+</script>
+</body>
+</html>
