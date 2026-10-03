@@ -12,8 +12,11 @@ all: test app
 # Same minus tests, for pure UI tweaks.
 app: bundle install
 
+# The node half checks design/model.js (the browser preview's math) against the same
+# presets spec as the Swift tests, so the preview can't drift from the app.
 test:
 	swift test
+	node --test design/model.test.mjs
 
 # SwiftPM builds the binary; the .app wrapper is just a folder with the binary and
 # Info.plist, so assembling it by hand avoids needing an Xcode project.

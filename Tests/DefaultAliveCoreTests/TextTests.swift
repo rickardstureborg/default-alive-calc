@@ -13,6 +13,7 @@ struct ParsingTests {
         (".5k", 500),
         ("2b", 2_000_000_000),
         ("$ 80k", 80_000),
+        ("5.", 5),
     ])
     func amounts(text: String, expected: Double) throws {
         let value = try #require(parseAmount(text))
@@ -74,5 +75,7 @@ struct FormattingTests {
         let start = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 15)))
         #expect(formatMonthYear(months: 3, from: start) == "Apr 2026")
         #expect(formatMonthYear(months: 27.25, from: start) == "Apr 2028")
+        let endOfJanuary = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 31)))
+        #expect(formatMonthYear(months: 1, from: endOfJanuary) == "Feb 2026")
     }
 }
