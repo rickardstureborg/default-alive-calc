@@ -45,10 +45,10 @@ struct CalculatorForm: View {
     var body: some View {
         VStack(spacing: 0) {
             VStack(spacing: Style.rowSpacing) {
-                row("Cash in bank", $cash, prompt: "$1.2M", field: .cash, valid: amount(cash) != nil)
-                row("Monthly expenses", $expenses, prompt: "80k", field: .expenses, valid: amount(expenses) != nil)
-                row("Monthly revenue", $revenue, prompt: "20k", field: .revenue, valid: amount(revenue) != nil)
-                row("Monthly growth", $growth, prompt: "8%", field: .growth, valid: percent(growth) != nil)
+                row("Cash in bank", $cash, prompt: "$1.2M", field: .cash, valid: amountValue(cash) != nil)
+                row("Monthly expenses", $expenses, prompt: "80k", field: .expenses, valid: amountValue(expenses) != nil)
+                row("Monthly revenue", $revenue, prompt: "20k", field: .revenue, valid: amountValue(revenue) != nil)
+                row("Monthly growth", $growth, prompt: "8%", field: .growth, valid: growthValue(growth) != nil)
             }
             Divider().padding(.vertical, Style.dividerSpacing)
             result
@@ -74,7 +74,7 @@ struct CalculatorForm: View {
                 .multilineTextAlignment(.trailing)
                 .font(.system(size: Style.fieldSize).monospacedDigit())
                 // Empty isn't an error, just incomplete; only flag text that can't be a number.
-                .foregroundStyle(valid || text.wrappedValue.isEmpty ? Color.primary : Style.dead)
+                .foregroundStyle(valid || text.wrappedValue.trimmingCharacters(in: .whitespaces).isEmpty ? Color.primary : Style.dead)
                 .focused($focus, equals: field)
                 .onSubmit { focus = next(after: field) }
                 .padding(.horizontal, 8)
@@ -89,74 +89,26 @@ struct CalculatorForm: View {
         return all.firstIndex(of: field).flatMap { $0 + 1 < all.count ? all[$0 + 1] : nil }
     }
 
-    private func amount(_ text: String) -> Double? {
-        parseAmount(text).flatMap { $0 >= 0 ? $0 : nil }
-    }
-
-    private func percent(_ text: String) -> Double? {
-        parsePercent(text).flatMap { $0 > -1 ? $0 : nil }
-    }
-
-    private var projection: Projection? {
-        guard let c = amount(cash), let e = amount(expenses), let r = amount(revenue), let g = percent(growth) else {
-            return nil
-        }
-        return project(Inputs(cash: c, monthlyExpenses: e, monthlyRevenue: r, monthlyGrowth: g))
-    }
-
     private var result: some View {
-        let s = Summary(projection, now: .now, filledIn: ![cash, expenses, revenue, growth].contains(""))
-        // Always three lines so the window never changes height as you type.
+        let r = readout(RawInputs(cash: cash, expenses: expenses, revenue: revenue, growth: growth), now: .now)
+        let color: Color = switch r.tone {
+        case .alive: Style.alive
+        case .dead: Style.dead
+        case .neutral: .secondary
+        }
+        // Always three lines (" " holds an empty one open) so the window never changes
+        // height as you type.
         return VStack(spacing: 4) {
-            Text(s.headline)
+            Text(r.headline)
                 .font(.system(size: Style.verdictSize, weight: .bold))
                 .tracking(1)
-                .foregroundStyle(s.color)
+                .foregroundStyle(color)
                 .padding(.bottom, 2)
-            Text(s.line1)
-            Text(s.line2)
+            Text(r.line1.isEmpty ? " " : r.line1)
+            Text(r.line2.isEmpty ? " " : r.line2)
         }
         .font(.system(size: Style.detailSize).monospacedDigit())
         .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity)
-    }
-}
-
-private struct Summary {
-    var headline = "—"
-    var color: Color = .secondary
-    var line1 = " "
-    var line2 = " "
-
-    init(_ projection: Projection?, now: Date, filledIn: Bool) {
-        guard let p = projection else {
-            line1 = filledIn ? "Check the numbers in red" : "Enter all four numbers"
-            return
-        }
-        let alive = p.verdict == .alive
-        headline = alive ? "DEFAULT ALIVE" : "DEFAULT DEAD"
-        color = alive ? Style.alive : Style.dead
-
-        if alive {
-            let T = p.monthsToProfitability ?? 0
-            if T == 0 {
-                line1 = "Already profitable"
-                line2 = "Revenue covers expenses"
-            } else {
-                line1 = "Profitable in \(formatMonths(T)) · \(formatMonthYear(months: T, from: now))"
-                line2 = "Needs \(formatMoney(p.capitalNeeded ?? 0)) · \(formatMoney(p.cushion ?? 0)) to spare"
-            }
-            return
-        }
-
-        let runway = p.runwayMonths ?? 0
-        line1 = runway == 0
-            ? "Out of cash now"
-            : "Out of cash in \(formatMonths(runway)) · \(formatMonthYear(months: runway, from: now))"
-        if let needed = p.capitalNeeded, let cushion = p.cushion {
-            line2 = "Needs \(formatMoney(needed)) · \(formatMoney(-cushion)) short"
-        } else {
-            line2 = "Never profitable at this growth"
-        }
     }
 }

@@ -1,4 +1,5 @@
 import AppKit
+import DefaultAliveCore
 import SwiftUI
 
 /// `DefaultAliveCalculator --snapshot design/presets.json out.png` renders every preset in
@@ -10,14 +11,19 @@ import SwiftUI
 /// permission, no focus stealing, and no reads or writes of the user's saved input.
 @MainActor
 enum Snapshot {
+    private struct PresetFile: Decodable {
+        var presets: [Preset]
+    }
+
     private struct Preset: Decodable {
         var name: String
-        var cash, expenses, revenue, growth: String
+        var input: RawInputs
     }
 
     static func run(presetsPath: String, outputPath: String) throws {
         _ = NSApplication.shared
-        let presets = try JSONDecoder().decode([Preset].self, from: Data(contentsOf: URL(fileURLWithPath: presetsPath)))
+        let data = try Data(contentsOf: URL(fileURLWithPath: presetsPath))
+        let presets = try JSONDecoder().decode(PresetFile.self, from: data).presets
         let appearances = [NSAppearance(named: .aqua)!, NSAppearance(named: .darkAqua)!]
         let tiles = presets.map { preset in appearances.map { render(preset, $0) } }
 
@@ -48,8 +54,8 @@ enum Snapshot {
 
     private static func render(_ preset: Preset, _ appearance: NSAppearance) -> NSBitmapImageRep {
         let form = CalculatorForm(
-            cash: .constant(preset.cash), expenses: .constant(preset.expenses),
-            revenue: .constant(preset.revenue), growth: .constant(preset.growth))
+            cash: .constant(preset.input.cash), expenses: .constant(preset.input.expenses),
+            revenue: .constant(preset.input.revenue), growth: .constant(preset.input.growth))
             .background(Color(nsColor: .windowBackgroundColor))
         let host = NSHostingView(rootView: form)
         let window = NSWindow(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)

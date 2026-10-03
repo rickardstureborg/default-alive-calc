@@ -1,8 +1,41 @@
-[
-  { "name": "alive",      "cash": "$1.2M", "expenses": "80k", "revenue": "20k", "growth": "8%" },
-  { "name": "dead",       "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
-  { "name": "never",      "cash": "$600k", "expenses": "80k", "revenue": "20k", "growth": "0%" },
-  { "name": "profitable", "cash": "$50k",  "expenses": "40k", "revenue": "45k", "growth": "5%" },
-  { "name": "invalid",    "cash": "$1.2M", "expenses": "80k", "revenue": "abc", "growth": "8%" },
-  { "name": "empty",      "cash": "",      "expenses": "",    "revenue": "",    "growth": ""   }
-]
+{
+  "about": "Gallery states for design/index.html and `make snapshot`, and the shared spec for the result text: Swift (PresetTests) and JS (model.test.mjs) must both produce `expect` from `input` at `now`. Change `expect` when the design changes on purpose.",
+  "now": "2026-01-10",
+  "presets": [
+    {
+      "name": "alive",
+      "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "20k", "growth": "8%" },
+      "expect": { "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $539k to spare" }
+    },
+    {
+      "name": "dead",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
+      "expect": { "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.6 months · Aug 2026", "line2": "Needs $661k · $261k short" }
+    },
+    {
+      "name": "never",
+      "input": { "cash": "$600k", "expenses": "80k", "revenue": "20k", "growth": "0%" },
+      "expect": { "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 10.0 months · Nov 2026", "line2": "Never profitable at this growth" }
+    },
+    {
+      "name": "broke",
+      "input": { "cash": "0", "expenses": "80k", "revenue": "20k", "growth": "8%" },
+      "expect": { "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash now", "line2": "Needs $661k · $661k short" }
+    },
+    {
+      "name": "profitable",
+      "input": { "cash": "$50k", "expenses": "40k", "revenue": "45k", "growth": "5%" },
+      "expect": { "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Already profitable", "line2": "Revenue covers expenses" }
+    },
+    {
+      "name": "invalid",
+      "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "abc", "growth": "8%" },
+      "expect": { "tone": "neutral", "headline": "—", "line1": "Check the numbers in red", "line2": "" }
+    },
+    {
+      "name": "empty",
+      "input": { "cash": "", "expenses": "", "revenue": "", "growth": "" },
+      "expect": { "tone": "neutral", "headline": "—", "line1": "Enter all four numbers", "line2": "" }
+    }
+  ]
+}
