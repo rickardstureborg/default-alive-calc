@@ -12,6 +12,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var keyMonitor: Any?
 
     static func main() {
+        let args = CommandLine.arguments
+        if let i = args.firstIndex(of: "--snapshot"), i + 2 < args.count {
+            do {
+                try Snapshot.run(presetsPath: args[i + 1], outputPath: args[i + 2])
+            } catch {
+                FileHandle.standardError.write(Data("snapshot failed: \(error)\n".utf8))
+                exit(1)
+            }
+            return
+        }
+
         let app = NSApplication.shared
         let delegate = AppDelegate()
         app.delegate = delegate

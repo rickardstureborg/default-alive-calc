@@ -4,7 +4,7 @@ EXEC      := DefaultAliveCalculator
 BUILT_APP := build/$(APP_NAME).app
 INSTALLED := $(HOME)/Applications/$(APP_NAME).app
 
-.PHONY: all app test bundle install uninstall clean
+.PHONY: all app test bundle install snapshot uninstall clean
 
 # The whole loop: test, build, swap the installed app, relaunch it.
 all: test app
@@ -33,6 +33,14 @@ install:
 	rm -rf "$(INSTALLED)"
 	cp -R "$(BUILT_APP)" "$(INSTALLED)"
 	open "$(INSTALLED)"
+
+# Every preset in design/presets.json through the real SwiftUI view, light | dark,
+# into build/snapshot.png. Doesn't launch the app or touch saved input.
+snapshot:
+	swift build -c release --product $(EXEC)
+	mkdir -p build
+	"$$(swift build -c release --show-bin-path)/$(EXEC)" --snapshot design/presets.json build/snapshot.png
+	@echo "→ build/snapshot.png"
 
 uninstall:
 	@pkill -x $(EXEC) || true

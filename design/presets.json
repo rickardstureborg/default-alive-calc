@@ -1,0 +1,8 @@
+[
+  { "name": "alive",      "cash": "$1.2M", "expenses": "80k", "revenue": "20k", "growth": "8%" },
+  { "name": "dead",       "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
+  { "name": "never",      "cash": "$600k", "expenses": "80k", "revenue": "20k", "growth": "0%" },
+  { "name": "profitable", "cash": "$50k",  "expenses": "40k", "revenue": "45k", "growth": "5%" },
+  { "name": "invalid",    "cash": "$1.2M", "expenses": "80k", "revenue": "abc", "growth": "8%" },
+  { "name": "empty",      "cash": "",      "expenses": "",    "revenue": "",    "growth": ""   }
+]
