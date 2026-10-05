@@ -66,7 +66,7 @@ preview-serve:
 # design without driving your browser. Light appearance; the gallery shows dark anyway.
 preview-shot: preview-serve
 	@"$(CHROME)" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 \
-		--window-size=1500,2400 --virtual-time-budget=3000 --user-data-dir="$${TMPDIR:-/tmp}/dac-chrome" \
+		--window-size=1600,2600 --virtual-time-budget=3000 --user-data-dir="$${TMPDIR:-/tmp}/dac-chrome" \
 		--screenshot="$(CURDIR)/build/preview.png" "$(PREVIEW)" 2>&1 | grep -o "written to.*" || true
 
 preview-stop:

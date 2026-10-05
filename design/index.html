@@ -7,16 +7,20 @@
   /* Tokens: same names and numbers as `enum Style` in CalculatorView.swift.
      A design approved here ports to the app by copying these values across. */
   :root {
-    --width: 320px;
+    --width: 400px;
     --padding: 20px;
     --row-spacing: 10px;
     --label-size: 13px;
     --field-size: 15px;
     --field-width: 120px;
     --field-radius: 6px;
+    --hint-width: 72px;
+    --hint-size: 12px;
+    --control-size: 12px;
     --divider-spacing: 16px;
     --verdict-size: 22px;
     --detail-size: 12px;
+    --chart-height: 120px;
   }
 
   /* What SwiftUI actually renders on macOS, measured from `make snapshot` pixels:
@@ -31,6 +35,8 @@
     --placeholder: rgba(0, 0, 0, .44);
     --fill: rgba(0, 0, 0, .1);
     --separator: rgba(0, 0, 0, .1);
+    --axis: rgba(0, 0, 0, .3);
+    --raised: #fff;
     --alive: rgb(40, 205, 65);
     --dead: rgb(255, 59, 48);
   }
@@ -43,6 +49,8 @@
     --placeholder: rgba(255, 255, 255, .44);
     --fill: rgba(255, 255, 255, .1);
     --separator: rgba(255, 255, 255, .1);
+    --axis: rgba(255, 255, 255, .3);
+    --raised: rgba(255, 255, 255, .28);
     --alive: rgb(50, 215, 75);
     --dead: rgb(255, 69, 58);
   }
@@ -60,9 +68,21 @@
     cursor: default;
     user-select: none;
   }
+
+  /* Period picker + column header. In SwiftUI: Picker(.segmented), which renders natively;
+     this only approximates it. */
+  .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .segmented { display: inline-flex; padding: 2px; gap: 2px; border-radius: 7px; background: var(--fill); }
+  .segmented button {
+    border: 0; border-radius: 5px; padding: 2px 12px; background: transparent; color: var(--label);
+    font: inherit; font-size: var(--control-size);
+  }
+  .segmented button[aria-pressed="true"] { background: var(--raised); box-shadow: 0 .5px 1.5px rgba(0, 0, 0, .25); }
+  .column-head { width: var(--hint-width); text-align: right; font-size: 11px; color: var(--secondary); }
+
   .rows { display: flex; flex-direction: column; gap: var(--row-spacing); }
-  .row { display: flex; align-items: center; justify-content: space-between; }
-  .row label { font-size: var(--label-size); }
+  .row { display: flex; align-items: center; gap: 10px; }
+  .row label { flex: 1; font-size: var(--label-size); }
   .row input {
     width: var(--field-width);
     height: 28px;
@@ -82,6 +102,18 @@
   }
   .row input::placeholder { color: var(--placeholder); }
   .row input.invalid { color: var(--dead); }
+  /* Single-lever breakeven: what this value would have to be, alone, to flip the verdict.
+     Secondary ink, not red/green: every hint is unmet when dead and met when alive (each
+     lever is monotone), so per-row color would only repeat the headline. */
+  .hint {
+    width: var(--hint-width);
+    text-align: right;
+    font-size: var(--hint-size);
+    font-variant-numeric: tabular-nums;
+    color: var(--secondary);
+    white-space: nowrap;
+  }
+
   hr { border: 0; height: 1px; background: var(--separator); margin: var(--divider-spacing) 0; }
   .result {
     display: flex;
@@ -102,6 +134,31 @@
   }
   .tone-alive { color: var(--alive); }
   .tone-dead { color: var(--dead); }
+
+  /* Chart toggle. In SwiftUI: a borderless Button. */
+  .disclosure {
+    display: block; margin: 10px auto 0; border: 0; background: none; padding: 2px 6px;
+    font: inherit; font-size: 11px; color: var(--secondary);
+  }
+
+  /* Cash-in-bank chart: one series, so no legend; the caption names it. Thin line, 10%
+     wash, hairline grid, one direct label at the moment that matters. */
+  .chart { position: relative; margin-top: 8px; }
+  .chart-caption { font-size: 11px; color: var(--secondary); margin-bottom: 4px; }
+  .chart svg { display: block; overflow: visible; }
+  .chart .grid { stroke: var(--separator); stroke-width: 1; }
+  .chart .zero { stroke: var(--axis); stroke-width: 1; }
+  .chart .tick { fill: var(--secondary); font-size: 10px; font-variant-numeric: tabular-nums; }
+  .chart .line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .chart .marker { stroke: var(--bg); stroke-width: 2; }
+  .chart .marker-label { fill: var(--secondary); font-size: 11px; }
+  .chart .crosshair { stroke: var(--axis); stroke-width: 1; }
+  .chart .tooltip {
+    position: absolute; pointer-events: none; padding: 4px 7px; border-radius: 6px; white-space: nowrap;
+    background: var(--bg); box-shadow: 0 0 0 .5px var(--axis), 0 4px 12px rgba(0, 0, 0, .2);
+    font-size: 11px; color: var(--secondary); font-variant-numeric: tabular-nums;
+  }
+  .chart .tooltip b { display: block; color: var(--label); font-size: 12px; }
 
   /* ── Page chrome (not part of the app) ────────────────────────────────────── */
 
@@ -141,11 +198,11 @@
   .keys { line-height: 1.8; opacity: .85; }
   .keys kbd { font: 11px ui-monospace, Menlo, monospace; background: rgba(255, 255, 255, .18); padding: 1px 5px; border-radius: 4px; }
   /* One row per preset; each design tile sits beside the app's rendering of the same state. */
-  .gallery { display: grid; grid-template-columns: auto repeat(4, var(--width)); gap: 16px; align-items: center; }
+  .gallery { display: grid; grid-template-columns: auto var(--width) auto var(--width) auto; gap: 16px; align-items: start; }
   .gallery .name, .gallery .col { font: 12px ui-monospace, Menlo, monospace; opacity: .85; }
-  .gallery .name { text-align: right; }
-  .gallery input { pointer-events: none; }
-  .gallery .missing { width: var(--width); text-align: center; opacity: .7; font: 12px ui-monospace, Menlo, monospace; }
+  .gallery .name { text-align: right; padding-top: 24px; }
+  .gallery .calc * { pointer-events: none; }
+  .gallery .missing { text-align: center; opacity: .7; font: 12px ui-monospace, Menlo, monospace; }
 </style>
 </head>
 <body>
@@ -167,77 +224,266 @@
       </p>
       <div class="keys">
         <kbd>Esc</kbd> <kbd>C</kbd> <kbd>⌘⌫</kbd> clear all · <kbd>Return</kbd> next field<br>
-        Live window follows the system appearance; inputs persist in this browser.
+        Live window follows the system appearance; inputs persist in this browser.<br>
+        <b>Alive if</b>: what that one value would need to be for default alive, the other three unchanged.
       </div>
     </div>
   </section>
 
   <h2>Gallery · design/presets.json · design vs app</h2>
   <div class="gallery" id="gallery">
-    <span></span><span class="col">design · light</span><span class="col app">app · light</span><span class="col">design · dark</span><span class="col app">app · dark</span>
+    <span></span><span class="col">design · light</span><span class="col">app · light</span><span class="col">design · dark</span><span class="col">app · dark</span>
   </div>
 
 <script type="module">
-import { readout, amountValue, growthValue } from "./model.js";
+import {
+  readout, amountValue, growthValue, monthlyInputs, breakevens, balanceCurve, UNITS,
+  amountToUnit, amountFromUnit, growthToUnit, growthFromUnit, formatMoney, formatPercent,
+  formatMonthYear, formatDuration,
+} from "./model.js";
 
 const FIELDS = [
-  { key: "cash", label: "Cash in bank", prompt: "$1.2M", valid: amountValue },
-  { key: "expenses", label: "Monthly expenses", prompt: "80k", valid: amountValue },
-  { key: "revenue", label: "Monthly revenue", prompt: "20k", valid: amountValue },
-  { key: "growth", label: "Monthly growth", prompt: "8%", valid: growthValue },
+  { key: "cash", label: () => "Cash in bank", prompt: "$1.2M", valid: amountValue, op: "≥" },
+  { key: "expenses", label: (u) => `${UNITS[u].adjective} expenses`, prompt: "80k", valid: amountValue, op: "≤" },
+  { key: "revenue", label: (u) => `${UNITS[u].adjective} revenue`, prompt: "20k", valid: amountValue, op: "≥" },
+  { key: "growth", label: (u) => `${UNITS[u].adjective} growth`, prompt: "8%", valid: growthValue, op: "≥" },
 ];
+const HINT_HELP = {
+  cash: "Default alive with at least this much cash, everything else unchanged",
+  expenses: "Default alive with expenses at or below this, everything else unchanged",
+  revenue: "Default alive with revenue at or above this, everything else unchanged",
+  growth: "Default alive with growth at or above this, everything else unchanged",
+};
+const SVG = "http://www.w3.org/2000/svg";
+const svg = (tag, attrs = {}) => {
+  const el = document.createElementNS(SVG, tag);
+  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+  return el;
+};
 
-// Builds one calculator into `host`. Mirrors CalculatorForm's structure.
-function calculator(host, values, { editable }) {
+// Rewrites typed flows from one period to another. Cash is a stock and never converts.
+function convertValues(values, from, to) {
+  const out = { ...values };
+  for (const key of ["expenses", "revenue"]) {
+    const v = amountValue(values[key]);
+    if (v !== null) out[key] = formatMoney(amountToUnit(amountFromUnit(v, from), to)).replace("$", "");
+  }
+  const g = growthValue(values.growth);
+  if (g !== null) out.growth = formatPercent(growthToUnit(growthFromUnit(g, from), to));
+  return out;
+}
+
+function hintText(key, value, unit) {
+  if (value === "never" || value === "any") return value;
+  if (key === "growth") return `≥ ${formatPercent(growthToUnit(value, unit))}`;
+  const op = FIELDS.find((f) => f.key === key).op;
+  return `${op} ${formatMoney(key === "cash" ? value : amountToUnit(value, unit))}`;
+}
+
+const niceStep = (range, count) => {
+  const raw = range / count;
+  const mag = 10 ** Math.floor(Math.log10(raw));
+  const n = raw / mag;
+  return mag * (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10);
+};
+
+// Cash in bank over time. Single series in the verdict color (a status: the headline
+// says ALIVE/DEAD in words), zero line slightly stronger than the grid because crossing
+// it is the whole question.
+function drawChart(host, inputs, unit, now) {
+  host.replaceChildren();
+  const caption = Object.assign(document.createElement("div"), { className: "chart-caption", textContent: "Cash in bank" });
+  host.append(caption);
+  const css = getComputedStyle(host);
+  const W = parseFloat(css.getPropertyValue("--width")) - 2 * parseFloat(css.getPropertyValue("--padding"));
+  const plotH = parseFloat(css.getPropertyValue("--chart-height"));
+  const left = 44, right = 8, top = 6, axisH = 18;
+  const root = svg("svg", { width: W, height: plotH + axisH + top, viewBox: `0 0 ${W} ${plotH + axisH + top}` });
+  host.append(root);
+  const curve = inputs && balanceCurve(inputs);
+  if (!curve) return;
+
+  const unitMonths = UNITS[unit].months;
+  const balances = curve.points.map((p) => p.balance);
+  const lo0 = Math.min(0, ...balances), hi0 = Math.max(...balances, 1);
+  const yStep = niceStep(hi0 - lo0, 3);
+  const lo = Math.floor(lo0 / yStep) * yStep, hi = Math.ceil(hi0 / yStep) * yStep;
+  const x = (t) => left + ((W - left - right) * t) / curve.horizon;
+  const y = (b) => top + (plotH * (hi - b)) / (hi - lo);
+
+  for (let v = lo; v <= hi + yStep / 2; v += yStep) {
+    root.append(svg("line", { class: Math.abs(v) < yStep / 1e6 ? "zero" : "grid", x1: left, x2: W - right, y1: y(v), y2: y(v) }));
+    const label = svg("text", { class: "tick", x: left - 6, y: y(v) + 3.5, "text-anchor": "end" });
+    label.textContent = formatMoney(v);
+    root.append(label);
+  }
+  const span = curve.horizon / unitMonths;
+  const xStep = niceStep(span, 4);
+  for (let v = 0; v <= span + 1e-9; v += xStep) {
+    const label = svg("text", { class: "tick", x: x(v * unitMonths), y: top + plotH + 14, "text-anchor": v === 0 ? "start" : "middle" });
+    label.textContent = v + xStep > span + 1e-9 ? `${+v.toFixed(2)} ${UNITS[unit].short}` : `${+v.toFixed(2)}`;
+    root.append(label);
+  }
+
+  const color = curve.verdict === "alive" ? "var(--alive)" : "var(--dead)";
+  const d = curve.points.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.balance).toFixed(1)}`).join("");
+  const last = curve.points.at(-1);
+  root.append(svg("path", { d: `${d}L${x(last.t)},${y(0)}L${x(0)},${y(0)}Z`, fill: color, "fill-opacity": 0.1, stroke: "none" }));
+  root.append(svg("path", { class: "line", d, stroke: color }));
+
+  if (curve.marker) {
+    const { t, balance, kind } = curve.marker;
+    const mx = x(t), my = y(balance);
+    root.append(svg("circle", { class: "marker", cx: mx, cy: my, r: 4, fill: color }));
+    const text = svg("text", { class: "marker-label" });
+    text.textContent = `${kind === "profitable" ? "Profitable" : "Out of cash"} · ${formatMonthYear(t, now)}`;
+    root.append(text);
+    // Profitable sits at the bottom of a dip, with clear air underneath. Out of cash ends a
+    // falling line, which always leaves the top-right corner empty; next to the marker the
+    // label would sit on the line.
+    const w = text.getComputedTextLength();
+    if (kind === "profitable") {
+      text.setAttribute("x", Math.min(Math.max(mx - w / 2, left + 2), W - right - w));
+      text.setAttribute("y", my + 18 <= top + plotH ? my + 16 : my - 9);
+    } else {
+      text.setAttribute("x", W - right - w);
+      text.setAttribute("y", top + 10);
+    }
+  }
+
+  // Hover: crosshair snaps to the nearest sample; the tooltip leads with the value.
+  const cross = svg("line", { class: "crosshair", y1: top, y2: top + plotH, visibility: "hidden" });
+  const dot = svg("circle", { class: "marker", r: 4, fill: color, visibility: "hidden" });
+  const hit = svg("rect", { x: left, y: 0, width: W - left - right, height: top + plotH, fill: "transparent" });
+  root.append(cross, dot, hit);
+  const tip = Object.assign(document.createElement("div"), { className: "tooltip" });
+  tip.style.visibility = "hidden";
+  host.append(tip);
+  hit.addEventListener("pointermove", (e) => {
+    const bounds = root.getBoundingClientRect();
+    const t = ((e.clientX - bounds.left - left) / (W - left - right)) * curve.horizon;
+    const p = curve.points.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
+    cross.setAttribute("x1", x(p.t)); cross.setAttribute("x2", x(p.t));
+    dot.setAttribute("cx", x(p.t)); dot.setAttribute("cy", y(p.balance));
+    tip.replaceChildren(Object.assign(document.createElement("b"), { textContent: formatMoney(p.balance) }),
+      document.createTextNode(`${formatMonthYear(p.t, now)} · ${formatDuration(p.t, unit)}`));
+    tip.style.left = `${Math.min(x(p.t) + 8, W - tip.offsetWidth)}px`;
+    tip.style.top = `${caption.offsetHeight + y(p.balance) - 40}px`;
+    for (const el of [cross, dot]) el.setAttribute("visibility", "visible");
+    tip.style.visibility = "visible";
+  });
+  hit.addEventListener("pointerleave", () => {
+    for (const el of [cross, dot]) el.setAttribute("visibility", "hidden");
+    tip.style.visibility = "hidden";
+  });
+}
+
+// Builds one calculator into `host` and returns its controller. Mirrors CalculatorForm.
+// state: { values, unit, chart, origin }. `origin` remembers what was actually typed
+// (and in which unit) until the next edit, so flipping week → month → week restores the
+// exact strings and the answer never drifts from rounding the converted display values.
+function calculator(host, state, { editable, onChange = () => {} }) {
   host.innerHTML = `
     <div class="calc">
+      <div class="controls">
+        <div class="segmented">${Object.keys(UNITS).map((u) => `<button data-unit="${u}">${u[0].toUpperCase() + u.slice(1)}</button>`).join("")}</div>
+        <div class="column-head">alive if</div>
+      </div>
       <div class="rows">
         ${FIELDS.map((f) => `
           <div class="row">
-            <label for="${f.key}">${f.label}</label>
+            <label for="${f.key}"></label>
             <input name="${f.key}" placeholder="${f.prompt}" autocomplete="off" spellcheck="false" ${editable ? "" : "readonly tabindex=-1"}>
+            <div class="hint" data-hint="${f.key}" title="${HINT_HELP[f.key]}"></div>
           </div>`).join("")}
       </div>
       <hr>
       <div class="result">
         <div class="headline"></div><div class="line1"></div><div class="line2"></div>
       </div>
+      <button class="disclosure">Chart</button>
+      <div class="chart"></div>
     </div>`;
   const inputs = FIELDS.map((f) => host.querySelector(`input[name=${f.key}]`));
-  inputs.forEach((el, i) => (el.value = values[FIELDS[i].key] ?? ""));
+  const labels = FIELDS.map((f) => host.querySelector(`label[for=${f.key}]`));
+  const segments = [...host.querySelectorAll(".segmented button")];
+  const disclosure = host.querySelector(".disclosure");
+  const chart = host.querySelector(".chart");
 
   const update = () => {
-    const raw = Object.fromEntries(FIELDS.map((f, i) => [f.key, inputs[i].value]));
+    FIELDS.forEach((f, i) => (labels[i].textContent = f.label(state.unit)));
+    segments.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.unit === state.unit)));
     inputs.forEach((el, i) => el.classList.toggle("invalid", el.value.trim() !== "" && FIELDS[i].valid(el.value) === null));
-    const r = readout(raw, new Date());
+
+    const source = state.origin ?? { values: state.values, unit: state.unit };
+    const r = readout(source.values, new Date(), source.unit, state.unit);
     const headline = host.querySelector(".headline");
     headline.textContent = r.headline;
     headline.className = `headline tone-${r.tone}`;
     // " " holds an empty line open, like the app, so the height never changes.
     host.querySelector(".line1").textContent = r.line1 || " ";
     host.querySelector(".line2").textContent = r.line2 || " ";
-    return raw;
+
+    const monthly = monthlyInputs(source.values, source.unit);
+    const b = monthly && breakevens(monthly);
+    for (const f of FIELDS) host.querySelector(`[data-hint=${f.key}]`).textContent = b ? hintText(f.key, b[f.key], state.unit) : "";
+
+    disclosure.setAttribute("aria-expanded", String(state.chart));
+    disclosure.textContent = state.chart ? "Hide chart" : "Show chart";
+    // Nothing to plot until all four numbers are usable; an empty frame reads as broken.
+    chart.hidden = !(state.chart && b);
+    if (!chart.hidden) drawChart(chart, monthly, state.unit, new Date());
+    onChange(state);
   };
+
+  inputs.forEach((el, i) => (el.value = state.values[FIELDS[i].key] ?? ""));
+  if (editable) {
+    inputs.forEach((el, i) => {
+      el.addEventListener("input", () => {
+        state.values = { ...state.values, [FIELDS[i].key]: el.value };
+        state.origin = null;
+        update();
+      });
+      el.addEventListener("keydown", (e) => { if (e.key === "Enter") inputs[i + 1]?.focus(); });
+    });
+    segments.forEach((btn) => btn.addEventListener("click", () => {
+      const to = btn.dataset.unit;
+      if (to === state.unit) return;
+      state.origin ??= { values: state.values, unit: state.unit };
+      state.values = to === state.origin.unit ? state.origin.values : convertValues(state.origin.values, state.origin.unit, to);
+      if (to === state.origin.unit) state.origin = null;
+      state.unit = to;
+      inputs.forEach((el, i) => (el.value = state.values[FIELDS[i].key] ?? ""));
+      update();
+    }));
+    disclosure.addEventListener("click", () => { state.chart = !state.chart; update(); });
+  }
   update();
-  return { inputs, update };
+  return {
+    inputs,
+    clear() {
+      state.values = { cash: "", expenses: "", revenue: "", growth: "" };
+      state.origin = null;
+      inputs.forEach((el) => (el.value = ""));
+      update();
+      inputs[0].focus();
+    },
+  };
 }
 
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
 
-const STORE = "default-alive-inputs";
+const STORE = "default-alive-state";
 const liveWindow = document.getElementById("live-window");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
 const applyScheme = () => (liveWindow.className = `window ${scheme.matches ? "dark" : "light"}`);
 scheme.addEventListener("change", applyScheme);
 applyScheme();
 
-const live = calculator(document.getElementById("live"), JSON.parse(localStorage.getItem(STORE) || "{}"), { editable: true });
-live.inputs.forEach((el, i) => {
-  el.addEventListener("input", () => localStorage.setItem(STORE, JSON.stringify(live.update())));
-  el.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") live.inputs[i + 1]?.focus();
-  });
-});
+const saved = JSON.parse(localStorage.getItem(STORE) || "null");
+const live = calculator(document.getElementById("live"),
+  saved ?? { values: { cash: "", expenses: "", revenue: "", growth: "" }, unit: "month", chart: true, origin: null },
+  { editable: true, onChange: (s) => localStorage.setItem(STORE, JSON.stringify(s)) });
 live.inputs[0].focus();
 
 // Same keys as the app's NSEvent monitor: Esc, C (no ⌘/⌥/⌃), ⌘⌫.
@@ -246,16 +492,15 @@ document.addEventListener("keydown", (e) => {
   const cmdDelete = e.key === "Backspace" && e.metaKey;
   if (e.key !== "Escape" && !c && !cmdDelete) return;
   e.preventDefault();
-  live.inputs.forEach((el) => (el.value = ""));
-  localStorage.setItem(STORE, JSON.stringify(live.update()));
-  live.inputs[0].focus();
+  live.clear();
 }, true);
 
 // ── Gallery: every preset, design next to app, light then dark ──
 
 // Crops tiles out of the contact sheet Snapshot.swift writes: `gap` px border, rows =
-// presets, columns = light | dark. Returns null if the sheet is missing or was made from
-// a different number of presets (stale), rather than showing mismatched rows.
+// presets, columns = light | dark, rendered at 2x (Retina). Returns null if the sheet is
+// missing or was made from a different number of presets (stale), rather than showing
+// mismatched rows.
 async function appTiles(count) {
   const img = new Image();
   img.src = `../build/snapshot.png?${Date.now()}`;
@@ -266,8 +511,7 @@ async function appTiles(count) {
   if (!Number.isInteger(tileW) || !Number.isInteger(tileH)) return null;
   return (row, col) => {
     const c = Object.assign(document.createElement("canvas"), { width: tileW, height: tileH });
-    c.style.width = "var(--width)";
-    c.style.aspectRatio = `${tileW} / ${tileH}`;
+    c.style.width = `${tileW / 2}px`;
     c.getContext("2d").drawImage(img, gap + col * (tileW + gap), gap + row * (tileH + gap), tileW, tileH, 0, 0, tileW, tileH);
     return c;
   };
@@ -281,7 +525,7 @@ presets.forEach((p, row) => {
   ["light", "dark"].forEach((theme, col) => {
     const tile = Object.assign(document.createElement("div"), { className: theme });
     gallery.append(tile);
-    calculator(tile, p.input, { editable: false });
+    calculator(tile, { values: p.input, unit: p.unit ?? "month", chart: true, origin: null }, { editable: false });
     gallery.append(appTile?.(row, col) ??
       Object.assign(document.createElement("div"), { className: "missing", textContent: "run make snapshot" }));
   });
