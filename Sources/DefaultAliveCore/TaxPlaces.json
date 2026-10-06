@@ -1,0 +1,3189 @@
+{
+ "checked": "2026-10",
+ "places": [
+  {
+   "id": "AL",
+   "name": "Alabama",
+   "state": "AL",
+   "local": false,
+   "rate": 0,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 0,
+   "note": "No Alabama state receipts tax. The business privilege tax (0.025% of paid-in capital x Alabama sales share in loss years) is $0 when it computes to $100 or less, and the $10 annual report fee was repealed in 2024.",
+   "confidence": "high",
+   "sources": [
+    "https://www.revenue.alabama.gov/individual-corporate/alabama-business-privilege-tax-and-corporate-share-tax/",
+    "https://www.revenue.alabama.gov/wp-content/uploads/2026/01/26fcptinstr.pdf",
+    "https://www.revenue.alabama.gov/tax-types/business-privilege-tax/",
+    "https://www.revenue.alabama.gov/wp-content/uploads/2025/05/summary.pdf",
+    "https://admincode.legislature.state.al.us/api/rule/810-6-1-.37",
+    "https://www.revenue.alabama.gov/wp-content/uploads/2022/12/Handbook-of-Privilege-Store-Licenses.pdf",
+    "https://www.revenue.alabama.gov/business-license/municipal-business-license-information/",
+    "https://www.revenue.alabama.gov/five-year-adjustment-to-municipal-business-license-issuance-fees-6/",
+    "https://alabamaretail.org/news/repeal-corporation-annual-report-requirement/",
+    "https://almonline.org/TaxRates.aspx"
+   ]
+  },
+  {
+   "id": "AL-birmingham",
+   "name": "Birmingham",
+   "state": "AL",
+   "local": true,
+   "rate": 0.002,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 100,
+   "note": "0.2% city business license on the Alabama receipts of a Birmingham-located business (out-of-state sales deductible), about $100 minimum. Default share equals Alabama's share of US population.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.revenue.alabama.gov/wp-content/uploads/2026/04/City-of-Birmingham.pdf",
+    "https://revds.com/taxpayerpdfs/Alabama/taxpayerforms/Discovery%20Recovery/Birmingham%20Business%20License%20Fee%20Schedule.pdf",
+    "https://www.birminghamal.gov/government/city-departments/finance/tax-license-division/information-regarding-business-licenses",
+    "https://almonline.org/TaxRates.aspx"
+   ]
+  },
+  {
+   "id": "AL-huntsville",
+   "name": "Huntsville",
+   "state": "AL",
+   "local": true,
+   "rate": 0.001,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 70,
+   "note": "Service-schedule city license of $95 + 0.1% of receipts over $25k (the miscellaneous schedule may instead measure in-city operating cost if greater).",
+   "confidence": "medium",
+   "sources": [
+    "https://www.huntsvilleal.gov/wp-content/uploads/2024/12/2025_City-of-Huntsville-License-Fee-Schedule.pdf",
+    "https://www.huntsvilleal.gov/business/licensing-permits/business-licenses/",
+    "https://www.huntsvilleal.gov/business/licensing-permits/business-licenses/new-business-license-application/"
+   ]
+  },
+  {
+   "id": "AL-jefferson-county",
+   "name": "Jefferson County",
+   "state": "AL",
+   "local": true,
+   "rate": 0.00025,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 50,
+   "note": "0.025% county business license on in-county business receipts (capped at $15,000) plus $50 minimum and issuance fee; applies on top of Birmingham/Hoover city licenses.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.revenue.alabama.gov/wp-content/uploads/2026/04/Jefferson-County.pdf"
+   ]
+  },
+  {
+   "id": "AL-mobile",
+   "name": "Mobile",
+   "state": "AL",
+   "local": true,
+   "rate": 0.003,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 138,
+   "note": "About 0.3% city business license on the Alabama receipts of a Mobile-located business (computer programming rate 0.2998%), with a $120 minimum plus $18 of fees.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.revenue.alabama.gov/wp-content/uploads/2026/04/City-of-Mobile.pdf",
+    "https://www.cityofmobile.gov/revenue-faqs/",
+    "https://www.cityofmobile.gov/business-license-overview/"
+   ]
+  },
+  {
+   "id": "AL-montgomery",
+   "name": "Montgomery",
+   "state": "AL",
+   "local": true,
+   "rate": 0.00237,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 120,
+   "note": "Graduated city license of about $120 plus 0.237% of Alabama receipts (the $100k-$500k bracket rate; marginal rates fall to 0.143% above $2M).",
+   "confidence": "medium",
+   "sources": [
+    "https://www.revenue.alabama.gov/wp-content/uploads/2026/04/City-of-Montgomery.pdf",
+    "https://www.revenue.alabama.gov/five-year-adjustment-to-municipal-business-license-issuance-fees-6/"
+   ]
+  },
+  {
+   "id": "AL-tuscaloosa",
+   "name": "Tuscaloosa",
+   "state": "AL",
+   "local": true,
+   "rate": 0.002,
+   "share": 0.0152,
+   "threshold": null,
+   "perYear": 75,
+   "note": "Professional-services city license: flat $75-$550 up to $300k of receipts, then 0.2% above that.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.revenue.alabama.gov/wp-content/uploads/2026/04/City-of-Tuscaloosa.pdf"
+   ]
+  },
+  {
+   "id": "AK",
+   "name": "Alaska",
+   "state": "AK",
+   "local": false,
+   "rate": 0,
+   "share": 0.0022,
+   "threshold": null,
+   "perYear": 150,
+   "note": "No Alaska tax on receipts; $50/yr state business license plus $200 biennial foreign-corporation tax ($100/yr).",
+   "confidence": "high",
+   "sources": [
+    "https://www.commerce.alaska.gov/web/Portals/5/pub/BusinessLicenseStatutes.pdf",
+    "https://www.akleg.gov/basis/statutes.asp?media=print&secStart=10.06.845&secEnd=10.06.845",
+    "https://www.akleg.gov/basis/statutes.asp?media=print&secStart=10.06.811&secEnd=10.06.811",
+    "https://www.akleg.gov/basis/statutes.asp?media=print&secStart=43.20.011&secEnd=43.20.011",
+    "https://tax.alaska.gov/programs/programs/index.aspx?10002",
+    "https://arsstc.org/code/"
+   ]
+  },
+  {
+   "id": "AK-fairbanks",
+   "name": "Fairbanks",
+   "state": "AK",
+   "local": true,
+   "rate": 0,
+   "share": 0.0001,
+   "threshold": null,
+   "perYear": 50,
+   "note": "$50/yr City of Fairbanks business license if you sell to Fairbanks customers; fee rises in tiers only above $50k of in-city receipts.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.fairbanks.gov/clerks/city-business-license",
+    "https://www.fairbanks.gov/faqs/category/city-business-license",
+    "https://www.fairbanks.gov/finance/schedule-of-fees-and-charges-for-services",
+    "https://files.aptuitivcdn.com/K9gxWNkmZ2-1856/docs/Schedule-of-Fees-and-Charges-for-Services-EFFECTIVE-06-14-2026-2-3.pdf",
+    "https://files.aptuitivcdn.com/K9gxWNkmZ2-1856/docs/2026-New-Business-License-Form-Fillable-2.pdf"
+   ]
+  },
+  {
+   "id": "AZ",
+   "name": "Arizona",
+   "state": "AZ",
+   "local": false,
+   "rate": 0,
+   "share": 0.0223,
+   "threshold": null,
+   "perYear": 95,
+   "note": "$50 minimum corporate income tax plus $45 annual report; no receipts tax on services, and TPT on SaaS is assumed passed through to customers.",
+   "confidence": "high",
+   "sources": [
+    "https://www.azleg.gov/ars/43/01111.htm",
+    "https://azdor.gov/sites/default/files/document/FORMS_CORPORATE_2025_120_i.pdf",
+    "https://www.azleg.gov/ars/10/00122.htm",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf",
+    "https://azdor.gov/sites/default/files/2023-03/RULINGS_TPT_2011_lr11-11.pdf",
+    "https://www.arizonatax.org/sites/default/files/publications/presentations/ador_digitalgoods_7-31-17.pdf",
+    "https://azdor.gov/model-city-tax-code/articles-and-sections/computer-hardware-software-and-data-services",
+    "https://azdor.gov/business/transaction-privilege-tax/tpt-license",
+    "https://azdor.gov/transaction-privilege-tax/tpt-license/renewing-tpt-license",
+    "https://azdor.gov/business/transaction-privilege-tax/retail-sales-subject-tpt/out-state-sellers/licensing-and-renewal",
+    "https://www.swlaw.com/publication/saas-remains-subject-to-tpt-in-arizona/"
+   ]
+  },
+  {
+   "id": "AZ-chandler",
+   "name": "Chandler",
+   "state": "AZ",
+   "local": true,
+   "rate": 0,
+   "share": 0.00083,
+   "threshold": null,
+   "perYear": 47,
+   "note": "$45/yr business registration plus a $2/yr TPT city license if selling SaaS in Arizona; the 1.5% city TPT on SaaS is passed through.",
+   "confidence": "high",
+   "sources": [
+    "https://www.chandleraz.gov/business/tax-and-license/business-registration",
+    "https://www.chandleraz.gov/business/tax-and-license/business-registration/frequently-asked-questions",
+    "https://azdor.gov/model-city-tax-code/city-profile/chandler",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf"
+   ]
+  },
+  {
+   "id": "AZ-mesa",
+   "name": "Mesa",
+   "state": "AZ",
+   "local": true,
+   "rate": 0,
+   "share": 0.0015,
+   "threshold": null,
+   "perYear": 45,
+   "note": "$25/yr general business license plus a $20/yr TPT city license renewal if selling SaaS in Arizona; the 2.0% city TPT on SaaS is passed through.",
+   "confidence": "high",
+   "sources": [
+    "https://www.mesaaz.gov/Business-Development/Licensing/Mesa-General-Business-License",
+    "https://azdor.gov/model-city-tax-code/city-profile/mesa",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf"
+   ]
+  },
+  {
+   "id": "AZ-phoenix",
+   "name": "Phoenix",
+   "state": "AZ",
+   "local": true,
+   "rate": 0,
+   "share": 0.0049,
+   "threshold": null,
+   "perYear": 50,
+   "note": "No Phoenix tax on services receipts and no general business license; a $50/yr TPT city license renewal is assumed (needed only if selling SaaS to Arizona customers), and the 2.8% city TPT on SaaS is passed through.",
+   "confidence": "high",
+   "sources": [
+    "https://azdor.gov/model-city-tax-code/city-profile/phoenix",
+    "https://www.phoenix.gov/administration/departments/cityclerk/programs-services/license-services.html",
+    "https://www.phoenix.gov/administration/departments/finance/privilege-sales-use-tax/privilege-tax-license/business-activities.html",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf",
+    "https://azdor.gov/transaction-privilege-tax/tpt-license/renewing-tpt-license"
+   ]
+  },
+  {
+   "id": "AZ-scottsdale",
+   "name": "Scottsdale",
+   "state": "AZ",
+   "local": true,
+   "rate": 0,
+   "share": 0.0007,
+   "threshold": null,
+   "perYear": 50,
+   "note": "$50/yr city business registration (or TPT city license); the 1.7% city TPT on SaaS is passed through.",
+   "confidence": "high",
+   "sources": [
+    "https://www.scottsdaleaz.gov/licenses",
+    "https://www.scottsdaleaz.gov/docs/default-source/scottsdaleaz/licenses/business-registration-license-application.pdf?sfvrsn=e2c6af81_1",
+    "https://azdor.gov/model-city-tax-code/city-profile/scottsdale",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf"
+   ]
+  },
+  {
+   "id": "AZ-tempe",
+   "name": "Tempe",
+   "state": "AZ",
+   "local": true,
+   "rate": 0,
+   "share": 0.00056,
+   "threshold": null,
+   "perYear": 75,
+   "note": "$25/yr general business license plus a $50/yr TPT city license renewal if selling SaaS in Arizona; the 1.8% city TPT on SaaS is passed through.",
+   "confidence": "medium",
+   "sources": [
+    "https://azdor.gov/model-city-tax-code/city-profile/tempe",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf"
+   ]
+  },
+  {
+   "id": "AZ-tucson",
+   "name": "Tucson",
+   "state": "AZ",
+   "local": true,
+   "rate": 0,
+   "share": 0.0016,
+   "threshold": null,
+   "perYear": 70,
+   "note": "$50/yr city business license plus a $20/yr TPT city license renewal if selling SaaS in Arizona; the 2.6% city TPT on SaaS is passed through.",
+   "confidence": "medium",
+   "sources": [
+    "https://azdor.gov/model-city-tax-code/city-profile/tucson",
+    "https://www.tucsonaz.gov/Departments/Business-Services-Department/Taxpayer-Assistance-Division/Business-License-and-Tax-Information",
+    "https://www.tucsonaz.gov/files/sharedassets/public/v/1/city-services/business-services/documents/17step_rev0114.pdf",
+    "https://beta.tucsonaz.gov/files/sharedassets/public/v/1/government/departments/office-of-economic-initiatives/documents/flyernewpolicy.pdf",
+    "https://azdor.gov/sites/default/files/document/TPT_RATETABLE_09012026.pdf"
+   ]
+  },
+  {
+   "id": "AR",
+   "name": "Arkansas",
+   "state": "AR",
+   "local": false,
+   "rate": 0,
+   "share": 0.0091,
+   "threshold": null,
+   "perYear": 150,
+   "note": "No Arkansas tax on revenue; $150 minimum annual franchise tax (0.3% of apportioned par-value stock, which is below $150 for typical low-par startup stock).",
+   "confidence": "high",
+   "sources": [
+    "https://www.sos.arkansas.gov/uploads/bcs/Corp1_FT_2026.pdf",
+    "https://www.sos.arkansas.gov/business-commercial-services-bcs/franchise-tax-report-forms/",
+    "https://arkleg.state.ar.us/Bills/Detail?id=SB256&ddBienniumSession=2025%2F2025R",
+    "https://www.sos.arkansas.gov/uploads/bcs/Corp_Filing_Fees_2.pdf",
+    "https://www.dfa.arkansas.gov/office/taxes/income-tax-administration/corporation-income-tax/corporate-faqs/",
+    "https://www.arkansashouse.org/news/post/35262/tax-cuts-passed-in-special-session/",
+    "https://codeofarrules.arkansas.gov/Rules/Rule?levelType=section&titleID=26&chapterID=33&subChapterID=241&partID=971&subPartID=9368&sectionID=63007",
+    "https://codes.findlaw.com/ar/title-26-taxation/ar-code-sect-26-77-102/",
+    "https://nlr.ar.gov/departments/city-clerk-and-treasurer-office/business-licenses-and-taxes/"
+   ]
+  },
+  {
+   "id": "AR-little-rock",
+   "name": "Little Rock",
+   "state": "AR",
+   "local": true,
+   "rate": 0,
+   "share": 0.0006,
+   "threshold": null,
+   "perYear": 470,
+   "note": "No receipts tax in Little Rock; $470 base business license (data-processing class, 2026) if you operate there, plus about $40-55 per programmer or sales employee; base rises to $484 in 2027.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.littlerock.gov/!userfiles/editor/docs/Finance/ARTICLE_II._BUSINESS_TAX_Sec52.pdf",
+    "https://www.littlerock.gov/city-administration/board-of-directors/meeting-agenda/AGENDA%20-%20WEB%20-%2012-16-2025/O%20-%20Business%20License%20Fee%20Increase%20for%202027.pdf",
+    "https://www.littlerock.gov/!userfiles/editor/docs/Finance/STARTING_BUSINESS_IN_LITTLE_ROCK_AND_OBTAINING_PERMITS.pdf",
+    "https://www.littlerock.gov/wp-content/uploads/Guide-to-Starting-a-New-Business-in-Little-Rock.pdf",
+    "https://littlerock.gov/business/licenses-permits/",
+    "https://codes.findlaw.com/ar/title-26-taxation/ar-code-sect-26-77-102/"
+   ]
+  },
+  {
+   "id": "CA",
+   "name": "California",
+   "state": "CA",
+   "local": false,
+   "rate": 0,
+   "share": 0.116,
+   "threshold": null,
+   "perYear": 825,
+   "note": "$800 minimum franchise tax (waived in the first taxable year) plus a $25 annual Statement of Information; California has no state gross receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://www.ftb.ca.gov/file/business/types/corporations/index.html",
+    "https://www.ftb.ca.gov/file/business/doing-business-in-california.html",
+    "https://www.ftb.ca.gov/file/business/tax-rates.html",
+    "https://www.sos.ca.gov/business-programs/business-entities/forms/corporations-statement-information",
+    "https://www.sos.ca.gov/business-programs/business-entities/forms/corporations-foreign-out-state-or-out-country",
+    "https://www.cdtfa.ca.gov/lawguides/vol1/sutr/1502.html"
+   ]
+  },
+  {
+   "id": "CA-berkeley",
+   "name": "Berkeley",
+   "state": "CA",
+   "local": true,
+   "rate": 0.0036,
+   "share": 1,
+   "threshold": null,
+   "perYear": 55,
+   "note": "0.36% of gross receipts (professional class; SaaS may instead be 0.18% business-services class) with $51 minimum plus $4 state fee.",
+   "confidence": "medium",
+   "sources": [
+    "https://berkeleyca.gov/doing-business/operating-berkeley/business-tax/business-license-classifications-tax-rates"
+   ]
+  },
+  {
+   "id": "CA-culver-city",
+   "name": "Culver City",
+   "state": "CA",
+   "local": true,
+   "rate": 0.003,
+   "share": 1,
+   "threshold": {
+    "perYear": 200000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 4,
+   "note": "0.30% (software development) on the greater of gross receipts or total operating costs, after a $200k exclusion, so pre-profit firms pay about 0.3% of their spend.",
+   "confidence": "medium",
+   "sources": [
+    "https://codelibrary.amlegal.com/codes/culvercity/latest/culvercity_ca/0-0-0-7936",
+    "https://codelibrary.amlegal.com/codes/culvercity/latest/culvercity_ca/0-0-0-7900",
+    "https://codelibrary.amlegal.com/codes/culvercity/latest/culvercity_ca/0-0-0-7760"
+   ]
+  },
+  {
+   "id": "CA-los-angeles",
+   "name": "Los Angeles",
+   "state": "CA",
+   "local": true,
+   "rate": 0.00425,
+   "share": 1,
+   "threshold": {
+    "perYear": 100000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "0.425% of receipts from work performed in LA (about all receipts for an LA-based team); nothing owed if worldwide receipts are $100k or less and the renewal is filed on time.",
+   "confidence": "high",
+   "sources": [
+    "https://finance.lacity.gov/tax-education/business-taxes/know-your-rates",
+    "https://finance.lacity.gov/sites/g/files/wph1721/files/2025-11/Business%20Tax%20Rate%20Table.pdf",
+    "https://finance.lacity.gov/internet-business-classifications-faqs",
+    "https://finance.lacity.gov/tax-education/laws-regulations/city-clerks-ruling",
+    "https://finance.lacity.gov/tax-education/tax-exemptions/tax-incentives-and-exemptions",
+    "https://finance.lacity.gov/tax-information-booklet",
+    "https://finance.lacity.gov/business-tax-renewal-instructions",
+    "https://finance.lacity.gov/ab1379"
+   ]
+  },
+  {
+   "id": "CA-oakland",
+   "name": "Oakland",
+   "state": "CA",
+   "local": true,
+   "rate": 0.0036,
+   "share": 1,
+   "threshold": null,
+   "perYear": 64,
+   "note": "0.36% of total gross receipts for an Oakland-based business (rising to 0.425% above $1M and 0.475% above $2.5M), plus $60 minimum tax and $4 state fee; no small-business exemption.",
+   "confidence": "high",
+   "sources": [
+    "https://library.municode.com/ca/oakland/codes/code_of_ordinances?nodeId=TIT5BUTAPERE_CH5.04BUTAGE",
+    "https://cao-94612.s3.us-west-2.amazonaws.com/documents/Progressive-Tax-Rate-Schedule.pdf",
+    "https://cao-94612.s3.us-west-2.amazonaws.com/documents/Measure-T-Progressive-Business-Tax-Structure-Notice-English.pdf",
+    "https://www.oaklandca.gov/Business/Business-Taxes-Licenses-Permits/Apply-or-Renew-for-a-Business-License-or-Certificate"
+   ]
+  },
+  {
+   "id": "CA-san-diego",
+   "name": "San Diego",
+   "state": "CA",
+   "local": true,
+   "rate": 0,
+   "share": 0.0041,
+   "threshold": null,
+   "perYear": 38,
+   "note": "$34 business tax certificate (12 or fewer employees) plus $4 state fee; no receipts-based tax.",
+   "confidence": "high",
+   "sources": [
+    "https://www.sandiego.gov/treasurer/taxesfees/btax/btaxfees"
+   ]
+  },
+  {
+   "id": "CA-san-francisco",
+   "name": "San Francisco",
+   "state": "CA",
+   "local": true,
+   "rate": 0.0125,
+   "share": 0.252,
+   "threshold": {
+    "perYear": 5000000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 59,
+   "note": "About 1.25% of SF-apportioned receipts (1.0% up to $2.5M, 1.5% from $2.5M to $25M), owed only once SF receipts exceed $5M; for an SF-based team SF receipts are about 25% of total revenue plus 75% of SF customer sales; $59 registration fee.",
+   "confidence": "high",
+   "sources": [
+    "https://sftreasurer.org/business/taxes-fees/gross-receipts-tax-gr-0",
+    "https://sftreasurer.org/proposition-m-2024-business-tax-reform",
+    "https://sftreasurer.org/business/first-year-free"
+   ]
+  },
+  {
+   "id": "CA-san-jose",
+   "name": "San Jose",
+   "state": "CA",
+   "local": true,
+   "rate": 0,
+   "share": 0.0029,
+   "threshold": null,
+   "perYear": 530.73,
+   "note": "Employee-based business tax: $222.89 base plus $37.98 per employee beyond 2 (10 employees assumed), plus $4 state fee; no receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://www.sanjoseca.gov/your-government/departments-offices/finance/business-tax-registration/business-tax-rates"
+   ]
+  },
+  {
+   "id": "CA-santa-monica",
+   "name": "Santa Monica",
+   "state": "CA",
+   "local": true,
+   "rate": 0.003,
+   "share": 1,
+   "threshold": {
+    "perYear": 103000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 123.85,
+   "note": "0.30% of Santa Monica receipts above $60k for software, IT and AI services ($75 minimum); exempt if worldwide receipts are under $103k; about $49 in state and processing fees.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.santamonica.gov/topic-explainers/business-license-classifications-and-tax-rates",
+    "https://www.santamonica.gov/business-license-tax-classifications-and-penalty-schedules",
+    "https://www.santamonica.gov/new-business-license-taxes-fees-and-assessments",
+    "https://ecode360.com/42734817",
+    "https://www.santamonica.gov/media/Document%20Library/Topic%20Explainers/Elections/FAQ_%20MEASURE%20F%20BLT.pdf"
+   ]
+  },
+  {
+   "id": "CO",
+   "name": "Colorado",
+   "state": "CO",
+   "local": false,
+   "rate": 0,
+   "share": 0.0176,
+   "threshold": null,
+   "perYear": 25,
+   "note": "No Colorado gross receipts or franchise tax; $25 annual periodic report; 4.4% corporate income tax only once profitable.",
+   "confidence": "high",
+   "sources": [
+    "https://tax.colorado.gov/sites/tax/files/documents/DR0112_2025.pdf",
+    "https://tax.colorado.gov/sites/tax/files/documents/DR0112_2024.pdf",
+    "https://tax.colorado.gov/sites/tax/files/documents/DR0112EP_2026.pdf",
+    "https://tax.colorado.gov/business-income-tax",
+    "https://www.coloradosos.gov/pubs/info_center/fees/business.html",
+    "https://famli.colorado.gov/employers",
+    "https://leg.colorado.gov/bills/hb26-1223",
+    "https://tax.colorado.gov/sites/tax/files/02.2021_SUTT_Computer%20Software.pdf",
+    "https://www.douglasco.gov/assessor/business-personal-property/"
+   ]
+  },
+  {
+   "id": "CO-aurora",
+   "name": "Aurora",
+   "state": "CO",
+   "local": true,
+   "rate": 0,
+   "share": 0.0012,
+   "threshold": null,
+   "perYear": 14,
+   "note": "No Aurora receipts or head tax (OPT repealed 2025); $28 two-year business license (~$14/yr).",
+   "confidence": "high",
+   "sources": [
+    "https://www.auroragov.org/business_services/taxes/occupational_privilege_tax",
+    "https://www.auroragov.org/business_services/licenses___permits/business_licensing"
+   ]
+  },
+  {
+   "id": "CO-denver",
+   "name": "Denver",
+   "state": "CO",
+   "local": true,
+   "rate": 0,
+   "share": 0.00217,
+   "threshold": null,
+   "perYear": 25,
+   "note": "No Denver receipts tax; ~$25/yr sales tax license because Denver taxes SaaS; OPT head tax ($4/employee/month employer share) belongs in payroll expenses.",
+   "confidence": "high",
+   "sources": [
+    "https://denvergov.org/files/assets/public/v/2/finance/documents/treasury/tax-guides/taxguidetopic61_occupationalprivilegetaxes_1.pdf",
+    "https://www.denvergov.org/content/dam/denvergov/Portals/571/documents/TaxGuide/TaxGuideTopic47_LicensesFeesAndRegistration.pdf",
+    "https://www.denvergov.org/files/assets/public/v/3/finance/documents/treasury/tax-guides/taxguidetopic18_software.pdf",
+    "https://www.denvergov.org/files/assets/public/v/1/finance/documents/treasury/tax-guides/2026/taxguidetopic70_salestax.pdf",
+    "https://www.denvergov.org/Government/Agencies-Departments-Offices/Business-Licensing/Business-Licenses"
+   ]
+  },
+  {
+   "id": "CT",
+   "name": "Connecticut",
+   "state": "CT",
+   "local": false,
+   "rate": 0,
+   "share": 0.0108,
+   "threshold": null,
+   "perYear": 685,
+   "note": "No receipts tax; $250 minimum corporation business tax plus $435 foreign-corporation annual report. A CT-headquartered company may instead owe capital base tax of 0.16% of book equity in 2026 and 0.11% in 2027, falling to the $250 minimum from 2028.",
+   "confidence": "high",
+   "sources": [
+    "https://www.cga.ct.gov/2026/sup/chap_208.htm",
+    "https://www.cga.ct.gov/current/pub/chap_208.htm",
+    "https://portal.ct.gov/-/media/drs/forms/2025/corp/ct-1120-instructions_1225.pdf",
+    "https://portal.ct.gov/drs/corporation-tax/tax-information",
+    "https://business.ct.gov/knowledge-base/articles/foreign-annual-report-forms-and-fees",
+    "https://portal.ct.gov/drs/publications/informational-publications/2010/ip-2010291-q--a-on-economic-nexus",
+    "https://www.cga.ct.gov/2025/rpt/pdf/2025-R-0093.pdf",
+    "https://www.cga.ct.gov/2026/rpt/pdf/2026-R-0076.pdf",
+    "https://portal.ct.gov/drs/publications/policy-statements/2006/ps-20068-sales-and-use-taxes-on-computerrelated-services-and-sales-of-tangible-personal-property",
+    "https://www.cga.ct.gov/current/pub/chap_219.htm"
+   ]
+  },
+  {
+   "id": "DE",
+   "name": "Delaware",
+   "state": "DE",
+   "local": false,
+   "rate": 0.003983,
+   "share": 0.003,
+   "threshold": {
+    "perYear": 1200000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 450,
+   "note": "Every Delaware corporation pays the $400 franchise tax minimum (assumed par value method) plus the $50 annual report. If you operate in Delaware, 0.3983% of Delaware receipts above $100k/month is also owed (plus a $75 license); set the share near 100% if you're based there.",
+   "confidence": "high",
+   "sources": [
+    "https://corp.delaware.gov/frtax/",
+    "https://corp.delaware.gov/paytaxes/",
+    "https://corp.delaware.gov/frtaxcalc/",
+    "https://delcode.delaware.gov/title30/c023/index.html",
+    "https://delcode.delaware.gov/title30/c019/index.html",
+    "https://revenuefiles.delaware.gov/docs/services.pdf",
+    "https://revenuefiles.delaware.gov/docs/gr_rates.pdf",
+    "https://revenue.delaware.gov/frequently-asked-questions/gross-receipts-tax-faqs/",
+    "https://revenue.delaware.gov/business-tax-forms/doing-business-in-delaware/step-4-gross-receipts-taxes/",
+    "https://revenue.delaware.gov/frequently-asked-questions/business-licenses-faqs/"
+   ]
+  },
+  {
+   "id": "DE-dover",
+   "name": "Dover",
+   "state": "DE",
+   "local": true,
+   "rate": 0,
+   "share": 0.0001,
+   "threshold": null,
+   "perYear": 128,
+   "note": "$128/yr Dover business license (computer-related services); no receipts tax.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.cityofdover.gov/media/Government/Ordinances-Resolutions-Tributes/2024/Ordinance%202024-22%20-%20Amending%20Chapter%2026%20-%20Businesses%20and%20Appx%20F%20-%20ADOPTED.pdf",
+    "https://evogov.s3.amazonaws.com/media/27/media/24394.pdf"
+   ]
+  },
+  {
+   "id": "DE-newark",
+   "name": "Newark",
+   "state": "DE",
+   "local": true,
+   "rate": 0,
+   "share": 0.0001,
+   "threshold": null,
+   "perYear": 168,
+   "note": "About $168/yr Newark business license for a professional/administrative office with 5 or fewer employees ($218 with 6-10); no receipts tax.",
+   "confidence": "medium",
+   "sources": [
+    "https://library.municode.com/de/newark/codes/code_of_ordinances",
+    "https://newarkde.gov/135/Business-Licenses",
+    "https://newarkde.gov/DocumentCenter/View/18740/2024-Fee-Schedule"
+   ]
+  },
+  {
+   "id": "DE-wilmington",
+   "name": "Wilmington",
+   "state": "DE",
+   "local": true,
+   "rate": 0,
+   "share": 0.0002,
+   "threshold": null,
+   "perYear": 200,
+   "note": "$200/yr city business license (computer services; $500 if also licensed as consultants); no receipts tax. The $15/employee/month head tax over 5 employees and the 1.25% wage tax belong in payroll.",
+   "confidence": "medium",
+   "sources": [
+    "https://wilmdebudget.org/wp-content/uploads/2026/03/fy27-tax-rates.pdf",
+    "https://wilmdebudget.org/wp-content/uploads/2024/03/fy25-tax-rates.pdf",
+    "https://library.municode.com/de/wilmington/codes/code_of_ordinances",
+    "https://www.wilmingtoncitycouncil.com/wp-content/uploads/2022/10/Sub.-1-to-Ord.-23-014-0288-Rev.-1-Amend-Chapters-4-5-and-12-Business-License-Permit-Fees-cjW0.pdf",
+    "https://www.wilmingtoncitycouncil.com/wp-content/uploads/2023/03/0288-Ordinance-to-Amend-Chapters-4-5-and-12-Business-License-Permit-Fees-cj-W0120309x920B6-3.pdf"
+   ]
+  },
+  {
+   "id": "FL",
+   "name": "Florida",
+   "state": "FL",
+   "local": false,
+   "rate": 0,
+   "share": 0.068,
+   "threshold": null,
+   "perYear": 150,
+   "note": "No Florida receipts or franchise tax; $150 annual report fee; 5.5% corporate income tax only once profitable (first $50k exempt).",
+   "confidence": "high",
+   "sources": [
+    "https://floridarevenue.com/taxes/taxesfees/Pages/corporate.aspx",
+    "https://efile.sunbiz.org/sbs_ar_instr.html",
+    "https://www.flsenate.gov/Laws/Statutes/2025/607.0122",
+    "https://www.flsenate.gov/Laws/Statutes/2025/607.193",
+    "https://www.flsenate.gov/Laws/Statutes/2025/205.0535",
+    "https://www.flsenate.gov/Laws/Statutes/2025/205.022",
+    "https://floridarevenue.com/taxes/tips/Documents/TIP_25A01-04.pdf",
+    "https://floridarevenue.com/TaxLaw/Documents/16A-014.pdf",
+    "https://floridarevenue.com/taxes/taxesfees/Pages/reemployment.aspx",
+    "https://www.flsenate.gov/Laws/Statutes/2025/196.183",
+    "https://www.flsenate.gov/Laws/Statutes/2025/201.08"
+   ]
+  },
+  {
+   "id": "FL-jacksonville",
+   "name": "Jacksonville",
+   "state": "FL",
+   "local": true,
+   "rate": 0,
+   "share": 0.003,
+   "threshold": null,
+   "perYear": 658.75,
+   "note": "No receipts tax; if you have an office in Jacksonville, about $659/yr in city + county business tax under the 'data processing' class at 6-10 employees (about $110 if classed as a general service business).",
+   "confidence": "medium",
+   "sources": [
+    "https://taxcollector.jacksonville.gov/taxes/local-business-tax",
+    "https://bustaxreccalculator.coj.net/",
+    "https://library.municode.com/fl/jacksonville/codes/code_of_ordinances?nodeId=TITXXIITA_CH770COBUTA",
+    "https://library.municode.com/fl/jacksonville/codes/code_of_ordinances?nodeId=TITXXIITA_CH772MUBUTA"
+   ]
+  },
+  {
+   "id": "FL-miami",
+   "name": "Miami",
+   "state": "FL",
+   "local": true,
+   "rate": 0,
+   "share": 0.0014,
+   "threshold": null,
+   "perYear": 207,
+   "note": "No receipts tax; if you have an office in Miami, about $207/yr in flat fees (city computer-services BTR $99 + Certificate of Use renewal $63 + Miami-Dade County business tax $45).",
+   "confidence": "medium",
+   "sources": [
+    "https://library.municode.com/fl/miami/codes/code_of_ordinances?nodeId=PTIITHCO_CH31LOBUTAMIBURE",
+    "https://library.municode.com/fl/miami_-_dade_county/codes/code_of_ordinances?nodeId=PTIIICOOR_CH8ABURE_ARTIXLOBUTARE",
+    "https://archive.miamigov.com/finance/BusinessTax.html",
+    "https://www.miami.gov/Business-Licenses/Certificate-of-Use-and-Accessory-Use%E2%80%93-Application-Inspection-Fees"
+   ]
+  },
+  {
+   "id": "FL-orlando",
+   "name": "Orlando",
+   "state": "FL",
+   "local": true,
+   "rate": 0,
+   "share": 0.001,
+   "threshold": null,
+   "perYear": 265.51,
+   "note": "No receipts tax; if you have an office in Orlando, about $266/yr in flat fees (city data-processing BTR $220.51 at 6-15 workers in under 2,000 sq ft + $15 Certificate of Use + Orange County $30).",
+   "confidence": "medium",
+   "sources": [
+    "https://library.municode.com/fl/orlando/codes/code_of_ordinances?nodeId=TITIICICO_CH36LI",
+    "https://library.municode.com/fl/orange_county/codes/code_of_ordinances?nodeId=PTIIORCOCO_CH25LITAMIBURE_ARTIIILOBUTA_DIV2CLRAREPABUOC",
+    "https://www.orlando.gov/Building-Development/Permits-Inspections/Get-a-Permit/Permitting-Checklists/Business-Tax-Receipt-Information",
+    "https://www.orlando.gov/Building-Development/Permits-Inspections/Get-a-Permit/Permitting-Checklists/Business-Tax-Receipt-Guide",
+    "https://www.orlando.gov/files/sharedassets/public/v/1/departments/edv/permitting-services-division/24_per_btrpaymentguide.pdf"
+   ]
+  },
+  {
+   "id": "FL-tampa",
+   "name": "Tampa",
+   "state": "FL",
+   "local": true,
+   "rate": 0,
+   "share": 0.0012,
+   "threshold": null,
+   "perYear": 459.02,
+   "note": "No receipts tax; if you have an office in Tampa, about $459/yr in flat business taxes (city software-development class $231.52 + $17.35/worker at 10 workers, plus Hillsborough County $54).",
+   "confidence": "medium",
+   "sources": [
+    "https://library.municode.com/fl/tampa/codes/code_of_ordinances?nodeId=COOR_CH24TA_ARTVBUTA",
+    "https://library.municode.com/fl/hillsborough_county/codes/code_of_ordinances,_part_a?nodeId=HICOCOORLAPAGEOR_CH46TASPAS_ARTIIIBUTA",
+    "https://www.tampa.gov/business-tax"
+   ]
+  },
+  {
+   "id": "GA",
+   "name": "Georgia",
+   "state": "GA",
+   "local": false,
+   "rate": 0,
+   "share": 0.033,
+   "threshold": null,
+   "perYear": 60,
+   "note": "No Georgia gross receipts tax; $60 annual registration, plus net worth tax that is $0 at or below $100k of Georgia-apportioned net worth (up to $5,000 cap).",
+   "confidence": "high",
+   "sources": [
+    "https://dor.georgia.gov/document/document/2025-it611-corporate-income-tax-instruction-booklet/download",
+    "https://dor.georgia.gov/document/document/2025-600-corporation-income-tax-return-blank-form-printing/download",
+    "https://dor.georgia.gov/taxes/corporate-income-and-net-worth-tax",
+    "https://gov.georgia.gov/press-releases/2026-05-11/gov-kemp-signs-legislation-lowering-taxes-and-supporting-economic-growth",
+    "https://sos.ga.gov/sites/default/files/forms/Reference%20-%20Filing%20Fees_0.pdf",
+    "https://codes.findlaw.com/ga/title-48-revenue-and-taxation/ga-code-sect-48-13-5/",
+    "https://codes.findlaw.com/ga/title-48-revenue-and-taxation/ga-code-sect-48-13-14/"
+   ]
+  },
+  {
+   "id": "GA-alpharetta",
+   "name": "Alpharetta",
+   "state": "GA",
+   "local": true,
+   "rate": 0,
+   "share": 0,
+   "threshold": null,
+   "perYear": 275,
+   "note": "Office in Alpharetta: no receipts tax; $75 admin fee + $200 base for 5-10 employees ($125 for 1-4); the $10 per employee is counted in expenses.",
+   "confidence": "high",
+   "sources": [
+    "https://library.municode.com/ga/alpharetta/codes/code_of_ordinances?nodeId=PTIICOOR_CH42TA_ARTIIIOCTA_S42-58OCTALERE"
+   ]
+  },
+  {
+   "id": "GA-atlanta",
+   "name": "Atlanta",
+   "state": "GA",
+   "local": true,
+   "rate": 0.00188,
+   "share": 0.033,
+   "threshold": {
+    "perYear": 10000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 241,
+   "note": "Office in Atlanta: $1.88 per $1,000 (2026, class 5 software/IT; $2.35 from 2027) on Georgia-customer receipts above $10k, plus $191 admin fee and $50 flat tax; $25 per employee beyond the first counted in expenses.",
+   "confidence": "high",
+   "sources": [
+    "https://www.atlantaga.gov/government/departments/finance/office-of-revenue/estimating-your-business-tax",
+    "https://www.atlantaga.gov/home/showpublishedimage/24141/638981164824930000",
+    "https://www.atlantaga.gov/home/showpublishedimage/25576/639159202499200000",
+    "https://www.atlantaga.gov/home/showpublisheddocument/67510/639044966283330000",
+    "https://library.municode.com/ga/atlanta/codes/code_of_ordinances?nodeId=PTIICOORENOR_CH30BU_ARTIIIOCTA_DIV1GE",
+    "https://codes.findlaw.com/ga/title-48-revenue-and-taxation/ga-code-sect-48-13-5/"
+   ]
+  },
+  {
+   "id": "GA-sandy-springs",
+   "name": "Sandy Springs",
+   "state": "GA",
+   "local": true,
+   "rate": 0.00185,
+   "share": 0.033,
+   "threshold": null,
+   "perYear": 125,
+   "note": "Office in Sandy Springs: 0.185% of Georgia-customer receipts (NAICS 54; 0.16% if NAICS 51) plus $75 admin fee and $50 flat tax; $13 per employee counted in expenses.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.sandyspringsga.gov/schedule-rates/",
+    "https://up.sandyspringsga.gov/sites/default/files/2021-06/ScheduleofRates.pdf"
+   ]
+  },
+  {
+   "id": "GA-savannah",
+   "name": "Savannah",
+   "state": "GA",
+   "local": true,
+   "rate": 0.00089,
+   "share": 0.033,
+   "threshold": null,
+   "perYear": 75,
+   "note": "Office in Savannah: about $75 + 0.089% of Georgia-customer receipts (class C bracket table, 2026).",
+   "confidence": "high",
+   "sources": [
+    "https://www.savannahga.gov/DocumentCenter/View/37555/2026_Revenue_Ordinance_Amended_FINAL"
+   ]
+  },
+  {
+   "id": "HI",
+   "name": "Hawaii",
+   "state": "HI",
+   "local": false,
+   "rate": 0,
+   "share": 0.0042,
+   "threshold": null,
+   "perYear": 12.5,
+   "note": "Hawaii's 4.5% general excise tax (4% + 0.5% county) is assumed itemized on invoices like sales tax, so it isn't counted; $12.50 annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://tax.hawaii.gov/geninfo/get/",
+    "https://tax.hawaii.gov/get/",
+    "https://tax.hawaii.gov/geninfo/countysurcharge/",
+    "https://files.hawaii.gov/tax/legal/tir/tir18-06.pdf",
+    "https://files.hawaii.gov/tax/legal/ltr_rules/ltr12/mjy_ltr12-06.pdf",
+    "https://files.hawaii.gov/tax/forms/current/n30ins.pdf",
+    "https://files.hawaii.gov/tax/news/announce/ann26-06.pdf",
+    "https://files.hawaii.gov/tax/news/announce/ann23-05.pdf",
+    "https://cca.hawaii.gov/wp-content/uploads/2025/12/Form-Fee-Schedule-12-2022.pdf",
+    "https://cca.hawaii.gov/breg/registration/dpc/fees/",
+    "https://cca.hawaii.gov/breg/release-third-quarter-hawai%CA%BBi-annual-business-reports-due/"
+   ]
+  },
+  {
+   "id": "ID",
+   "name": "Idaho",
+   "state": "ID",
+   "local": false,
+   "rate": 0,
+   "share": 0.0059,
+   "threshold": null,
+   "perYear": 30,
+   "note": "No Idaho receipts tax; $20 minimum corporate tax + $10 Permanent Building Fund tax per year; annual report is free.",
+   "confidence": "high",
+   "sources": [
+    "https://legislature.idaho.gov/statutesrules/idstat/Title63/T63CH30/SECT63-3025/",
+    "https://legislature.idaho.gov/statutesrules/idstat/Title63/T63CH30/SECT63-3082/",
+    "https://legislature.idaho.gov/wp-content/uploads/statutesrules/idstat/Title30/T30CH21.pdf",
+    "https://legislature.idaho.gov/statutesrules/idstat/Title30/T30CH21/SECT30-21-214/",
+    "https://tax.idaho.gov/taxes/income-tax/business-income/online-guide/",
+    "https://tax.idaho.gov/wp-content/uploads/forms/EFO00026/EFO00026_09-18-2025.pdf",
+    "https://tax.idaho.gov/taxes/sales-use/online-guide/",
+    "https://tax.idaho.gov/taxes/sales-use/sales-tax/local-sales-tax/city-sales-tax/",
+    "https://legislature.idaho.gov/wp-content/uploads/sessioninfo/2026/legislation/H0589.pdf"
+   ]
+  },
+  {
+   "id": "IL",
+   "name": "Illinois",
+   "state": "IL",
+   "local": false,
+   "rate": 0,
+   "share": 0.037,
+   "threshold": null,
+   "perYear": 75,
+   "note": "No Illinois receipts tax; $75 annual report fee; franchise tax is $0 because the first $10,000 of liability (about $10M of Illinois-allocated paid-in capital) is exempt.",
+   "confidence": "high",
+   "sources": [
+    "https://ilga.gov/ftp/ILCS/Ch%200805/Act%200005/080500050K15.65.html",
+    "https://ilga.gov/ftp/ILCS/Ch%200805/Act%200005/080500050K15.75.html",
+    "https://ilga.gov/ftp/ILCS/Ch%200805/Act%200005/080500050K15.70.html",
+    "https://ilga.gov/ftp/ILCS/Ch%200805/Act%200005/080500050K15.35.html",
+    "https://ilga.gov/ftp/ILCS/Ch%200805/Act%200005/080500050K15.10.html",
+    "https://ilga.gov/ftp/ILCS/Ch%200035/Act%200005/003500050K201.html",
+    "https://ilga.gov/ftp/Public%20Acts/104/104-0468.htm",
+    "https://ilga.gov/documents/legislation/104/HB/PDF/10400HB5526.pdf",
+    "https://www.ilga.gov/commission/lrb/con7.htm",
+    "https://ahlbeckcook.com/resources/illinois-franchise-tax-repeal-where-things-actually-stand/",
+    "https://www.forvismazars.us/forsights/2024/08/il-2025-budget-bill-changes-corporate-income-franchise-tax",
+    "https://www.plantemoran.com/explore-our-thinking/insight/2026/07/illinois-revenue-omnibus-has-significant-changes"
+   ]
+  },
+  {
+   "id": "IL-chicago",
+   "name": "Chicago",
+   "state": "IL",
+   "local": true,
+   "rate": 0,
+   "share": 0.008,
+   "threshold": null,
+   "perYear": 250,
+   "note": "No Chicago receipts tax; $250/yr Limited Business License ($500 per 2-year term) if you have a Chicago office; the 15% cloud lease tax is collected from Chicago customers (pass-through), but it also applies to your own cloud/SaaS spend.",
+   "confidence": "high",
+   "sources": [
+    "https://www.chicago.gov/city/en/depts/fin/supp_info/revenue/tax_list/personal_propertyleasetransactiontax.html",
+    "https://www.chicago.gov/city/en/depts/fin/provdrs/tax_division/news/2025/December/TaxRateChangesasofJanuary2026.html",
+    "https://www.chicago.gov/content/dam/city/depts/rev/supp_info/TaxSupportingInformation/January%202021%20Information%20Bulletin%20-%20Nexus%20and%20Safe%20Harbor.pdf",
+    "https://www.chicago.gov/content/dam/city/depts/rev/supp_info/TaxApplicationandAffidavitForms/SmallNewBusinessExemptionApplication.pdf",
+    "https://www.chicago.gov/content/dam/city/depts/rev/supp_info/TaxRulingsandRegulations/LeaseTaxRuling12-06092015.pdf",
+    "https://www.chicago.gov/content/dam/city/depts/bacp/Small%20Business%20Center/20260127newfees.pdf",
+    "https://www.chicago.gov/dam/city/depts/bacp/ordinances/GeneralLicensingProvisions.pdf",
+    "https://ahlbeckcook.com/resources/chicago-business-taxes-2026/"
+   ]
+  },
+  {
+   "id": "IN",
+   "name": "Indiana",
+   "state": "IN",
+   "local": false,
+   "rate": 0,
+   "share": 0.0204,
+   "threshold": null,
+   "perYear": 15.5,
+   "note": "No Indiana tax on receipts; only the $31 biennial business entity report (about $15.50/yr); the 4.9% corporate income tax is $0 before profit.",
+   "confidence": "high",
+   "sources": [
+    "https://www.in.gov/sos/business/business-entity-reports",
+    "https://www.in.gov/dor/about/news-publications/our-team/tax-types/",
+    "https://forms.in.gov/Download.aspx?id=16945",
+    "https://www.in.gov/dor/files/sib08.pdf",
+    "https://www.in.gov/dlgf/files/2025-memos/250612-Cockerill-Memo-Legislation-Affecting-Deductions,-Exemptions,-and-Credits.pdf",
+    "https://www.in.gov/dor/files/legislative-synopsis-2025.pdf",
+    "https://www.in.gov/dor/files/legislative-synopsis-2026.pdf",
+    "https://www.in.gov/dor/files/dn01.pdf",
+    "https://secure.in.gov/dor/resources/tax-rates-and-reports/rates-fees-and-penalties/miscellaneous-tax-rates/",
+    "https://codes.findlaw.com/in/title-36-local-government/in-code-sect-36-1-3-8/"
+   ]
+  },
+  {
+   "id": "IA",
+   "name": "Iowa",
+   "state": "IA",
+   "local": false,
+   "rate": 0,
+   "share": 0.0095,
+   "threshold": null,
+   "perYear": 30,
+   "note": "No Iowa receipts or minimum tax; a corporation registered in Iowa pays a $60 biennial report every even year (about $30/yr).",
+   "confidence": "high",
+   "sources": [
+    "https://revenue.iowa.gov/taxes/tax-guidance/business-income-tax/iowa-corporate-income-tax-rates",
+    "https://revenue.iowa.gov/taxes/tax-guidance/general/iowa-taxfee-descriptions-and-rates",
+    "https://revenue.iowa.gov/news/2025-10-21/idr-issues-order-related-tax-year-2026-corporate-income-tax-rates",
+    "https://revenue.iowa.gov/news/2026-10-05/idr-issues-order-related-tax-year-2027-corporate-income-tax-rates",
+    "https://revenue.iowa.gov/media/4372/download?inline=",
+    "https://revenue.iowa.gov/media/2663/download?inline=",
+    "https://sos.iowa.gov/business/FormsAndFees.html",
+    "https://www.legis.iowa.gov/docs/code/490.122.pdf",
+    "https://www.legis.iowa.gov/docs/code/490.1621.pdf",
+    "https://revenue.iowa.gov/taxes/tax-guidance/sales-use-excise-tax/taxation-specified-digital-products-software-and-related-services",
+    "https://revenue.iowa.gov/taxes/tax-guidance/sales-use-excise-tax/remote-sellers-marketplace-facilitators",
+    "https://www.legis.iowa.gov/docs/code/364.3.pdf",
+    "https://www.legis.iowa.gov/docs/code/331.301.pdf",
+    "https://www.legis.iowa.gov/docs/code/422D.pdf",
+    "https://www.legis.iowa.gov/docs/code/257.21.pdf"
+   ]
+  },
+  {
+   "id": "KS",
+   "name": "Kansas",
+   "state": "KS",
+   "local": false,
+   "rate": 0,
+   "share": 0.00873,
+   "threshold": null,
+   "perYear": 45,
+   "note": "Kansas has no receipts or franchise tax; the only fixed cost is the $90 biennial information report filed online, about $45/yr.",
+   "confidence": "high",
+   "sources": [
+    "https://www.ksrevenue.gov/taxnotices/notice23-10.pdf",
+    "https://ksrevenue.gov/pdf/corpbook2025.pdf",
+    "https://ksrevenue.gov/taxnotices/notice25-06.pdf",
+    "https://www.ksrevenue.gov/pdf/2025LegChanges.pdf",
+    "https://www.ksrevenue.gov/bustaxtypesfranchise.html",
+    "https://www.ksrevenue.gov/pdf/edu71r.pdf",
+    "https://www.ksrevenue.gov/taxnotices/notice21-17.pdf",
+    "https://www.ksrevenue.gov/pdf/20024.pdf",
+    "https://sos.ks.gov/forms/business_services/IFP.pdf",
+    "https://www.sos.ks.gov/forms/business_services/FA.pdf",
+    "https://www.sos.ks.gov/businesses/information-reports.html",
+    "https://ksrevisor.gov/statutes/chapters/ch17/017_075_0005.html",
+    "https://www.sos.ks.gov/publications/sessionlaws/2024/Chapter-45-HB-2660.html",
+    "https://sos.ks.gov/media/press-releases/2026/05-26-26-secretary-of-state-reduces-fees-for-kansans.html",
+    "https://ksrevisor.gov/statutes/chapters/ch12/012_001_0040.html",
+    "https://lenexa.com/files/sharedassets/city/v/7/government/budget-taxes/documents/schedule-of-fees.pdf"
+   ]
+  },
+  {
+   "id": "KS-kansas-city",
+   "name": "Kansas City",
+   "state": "KS",
+   "local": true,
+   "rate": 0,
+   "share": 0.000461,
+   "threshold": null,
+   "perYear": 188,
+   "note": "KCK has no receipts or earnings tax; a software company with an office or staff in KCK pays a flat occupation tax of about $188/yr (2025, CPI-indexed, about $193 in 2026).",
+   "confidence": "medium",
+   "sources": [
+    "https://www.wycokck.org/Departments/Neighborhood-Resource-Center/Business-License/Occupation-Taxes",
+    "https://library.municode.com/ks/wyandotte_county_-_unified_government/codes/code_of_ordinances?nodeId=CH34TA_ARTIIIOCTA",
+    "https://library.municode.com/ks/wyandotte_county_-_unified_government/codes/code_of_ordinances?nodeId=CH34TA_ARTIIIOCTA_DIV1GE_S34-37EX",
+    "https://ksrevisor.gov/statutes/chapters/ch12/012_001_0040.html",
+    "https://data.bls.gov/timeseries/CWUR0000SA0"
+   ]
+  },
+  {
+   "id": "KY",
+   "name": "Kentucky",
+   "state": "KY",
+   "local": false,
+   "rate": 0.00095,
+   "share": 0.0135,
+   "threshold": {
+    "perYear": 6000000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 190,
+   "note": "Kentucky: $175 LLET minimum plus $15 annual report; 0.095% of Kentucky-sourced receipts once total receipts reach $6M (the $3M–$6M phase-in leaves a nationally-selling company at the $175 minimum); above $6M this overstates by up to $175 because the minimum is really a floor.",
+   "confidence": "high",
+   "sources": [
+    "https://revenue.ky.gov/Business/Corporation-Income-and-Limited-Liability-Entity-Tax/Pages/default.aspx",
+    "https://apps.legislature.ky.gov/law/statutes/statute.aspx?id=57941",
+    "https://apps.legislature.ky.gov/law/statutes/statute.aspx?id=47368",
+    "https://apps.legislature.ky.gov/law/statutes/statute.aspx?id=23782",
+    "https://www.sos.ky.gov/bus/business-filings/Pages/Annual-Reports.aspx",
+    "https://revenue.ky.gov/News/Publications/Sales%20Tax%20Newsletters/Sales%20Tax%20Facts%20Winter%202025-2026.pdf",
+    "https://apps.legislature.ky.gov/recorddocuments/bill/26RS/hb451/orig_bill.pdf",
+    "https://apps.legislature.ky.gov/record/26rs/hb451.html",
+    "https://apps.legislature.ky.gov/CommitteeDocuments/26/35676/Oct%2021%20202%20KACo_KLC%20Occupational%20Taxes%20Presentation.pdf",
+    "https://www.klc.org/CityNews/news/kentuckys-primary-municipal-taxes-and-revenues",
+    "https://www.bgky.org/finance/occupational-taxes-increase"
+   ]
+  },
+  {
+   "id": "KY-covington",
+   "name": "Covington",
+   "state": "KY",
+   "local": true,
+   "rate": 0,
+   "share": 0.00012,
+   "threshold": null,
+   "perYear": 100,
+   "note": "Covington: $100 minimum net-profits license fee if you operate there; the 2.5% net-profits rate is zero before profit.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.covingtonky.gov/government/departments/finance"
+   ]
+  },
+  {
+   "id": "KY-florence",
+   "name": "Florence",
+   "state": "KY",
+   "local": true,
+   "rate": 0.001,
+   "share": 1,
+   "threshold": null,
+   "perYear": 40,
+   "note": "Florence: 0.1% of receipts apportioned to Florence (assumes the team works there), $40 minimum, capped at $10,000 a year.",
+   "confidence": "medium",
+   "sources": [
+    "https://florence-ky.gov/wp-content/uploads/2025/12/2026_OL_Annual_Renewal.pdf"
+   ]
+  },
+  {
+   "id": "KY-lexington",
+   "name": "Lexington",
+   "state": "KY",
+   "local": true,
+   "rate": 0,
+   "share": 0.00097,
+   "threshold": null,
+   "perYear": 100,
+   "note": "Lexington: $100 minimum occupational license fee if you operate in Fayette County; the 2.25% net-profits fee is zero before profit.",
+   "confidence": "high",
+   "sources": [
+    "https://www.lexingtonky.gov/working/occupational-license-fees-minimum-license-fee",
+    "https://www.lexingtonky.gov/working/business-licensing-taxes/occupational-license-fee-minimum-license-filing-requirements",
+    "https://www.lexingtonky.gov/working/business-licensing-taxes/occupational-license-fee-rates-current-forms",
+    "https://amnews.com/2026/01/25/school-board-occupational-tax-hike-bill-bill-advances/"
+   ]
+  },
+  {
+   "id": "KY-owensboro",
+   "name": "Owensboro",
+   "state": "KY",
+   "local": true,
+   "rate": 0,
+   "share": 0.00018,
+   "threshold": null,
+   "perYear": 75,
+   "note": "Owensboro: $75 minimum occupational license fee if you operate there; 1.78% of net profit is zero before profit.",
+   "confidence": "medium",
+   "sources": [
+    "https://owensboro.org/business/business_license_information_forms_in_owensboro.php"
+   ]
+  },
+  {
+   "id": "KY-paducah",
+   "name": "Paducah",
+   "state": "KY",
+   "local": true,
+   "rate": 0.003,
+   "share": 1,
+   "threshold": null,
+   "perYear": 50,
+   "note": "Paducah: 0.30% of receipts apportioned by where the work is done (assumes the whole team is in Paducah; zero if no one works there), with a $50 minimum shown as an add-on; the rate drops to 0.005% above $5.13M (2026).",
+   "confidence": "high",
+   "sources": [
+    "https://paducahky.gov/departments/finance/business-license-and-payroll-tax",
+    "https://www.paducahky.gov/files/Business-License-Form-FY2026-fillable.pdf",
+    "https://paducahky.gov/news/city-commission-meeting-highlights-september-2-2025",
+    "https://library.municode.com/ky/paducah/codes/code_of_ordinances?nodeId=COOR_CH106TA_ARTIIIGRRELITA"
+   ]
+  },
+  {
+   "id": "LA",
+   "name": "Louisiana",
+   "state": "LA",
+   "local": false,
+   "rate": 0,
+   "share": 0.0135,
+   "threshold": null,
+   "perYear": 35,
+   "note": "$35 Louisiana annual report for a foreign corporation (from Oct 1, 2026); corporation franchise tax repealed from 2026; no state receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://revenue.louisiana.gov/tax-education-and-faqs/faqs/income-tax-reform/is-the-corporation-franchise-tax-repealed/",
+    "https://revenue.louisiana.gov/businesses/widely-used-tax-types/corporate-income-franchise-tax/",
+    "https://dam.ldr.la.gov/miscellaneous/2024%20Tax%20Reform%20Legislative%20Summaries%20rev%201.2.25.pdf",
+    "https://dam.ldr.la.gov/miscellaneous/Sales%20Tax%20Reform%20FAQs%209.23.25.pdf",
+    "https://dam.ldr.la.gov/taxforms/Cit620i-2025-revised%204-10-2026%20FINAL.pdf",
+    "https://dam.ldr.la.gov/taxforms/Cift620i(2024)D6.pdf",
+    "https://dam.ldr.la.gov/taxforms/CIFT620WEB-BC-1-25%20F.pdf",
+    "https://dam.ldr.la.gov/taxforms/6906A(1_23)%20F.pdf",
+    "https://static.sos.la.gov/shared/fee_changes_2026.pdf",
+    "https://www.sos.la.gov/business-services/forms-fee-schedule",
+    "https://remotesellers.louisiana.gov/FAQ",
+    "https://www.laworks.net/unemploymentinsurance/ui_lainsurancetaxrates.asp",
+    "https://www.shreveportla.gov/286/Occupational-License-Tax"
+   ]
+  },
+  {
+   "id": "LA-baton-rouge",
+   "name": "Baton Rouge",
+   "state": "LA",
+   "local": true,
+   "rate": 0.0012,
+   "share": 1,
+   "threshold": {
+    "perYear": 50000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "Only with a Baton Rouge office: occupational license tax of about 0.12% of all receipts (no out-of-state deduction assumed), $50 minimum, $6,200 cap (the cap is not modeled, so this overstates above $5.5M).",
+   "confidence": "medium",
+   "sources": [
+    "https://www.brla.gov/1461/Occupational-License-Tax",
+    "https://www.brla.gov/DocumentCenter/View/22789/Occupational-License-Tax-Tables-PDF",
+    "https://www.brla.gov/DocumentCenter/View/3792",
+    "https://brla.gov/DocumentCenter/View/12584/Business-Registration-Application"
+   ]
+  },
+  {
+   "id": "LA-new-orleans",
+   "name": "New Orleans",
+   "state": "LA",
+   "local": true,
+   "rate": 0.0012,
+   "share": 0.0135,
+   "threshold": {
+    "perYear": 50000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "Only with a New Orleans office: occupational license tax of about 0.12% of receipts delivered in Louisiana (out-of-state sales deductible), $50 minimum, $6,200 cap.",
+   "confidence": "medium",
+   "sources": [
+    "https://nola.gov/nola/media/One-Stop-Shop/Revenue/BOR-Occupational-LicenseTax-Tables.pdf",
+    "https://services.nola.gov/CNO/Services/Revenue/Forms/8030inst.htm",
+    "https://nola.gov/revenue/documents/tax-forms/8030/",
+    "https://library.municode.com/la/new_orleans/codes/code_of_ordinances?nodeId=PTIICO_CH150TA_ARTVIIOCLITA"
+   ]
+  },
+  {
+   "id": "ME",
+   "name": "Maine",
+   "state": "ME",
+   "local": false,
+   "rate": 0,
+   "share": 0.0041,
+   "threshold": null,
+   "perYear": 150,
+   "note": "Maine has no gross receipts or minimum franchise tax; a corporation registered there pays a $150/yr foreign-corporation annual report fee.",
+   "confidence": "high",
+   "sources": [
+    "https://www.maine.gov/revenue/taxes/income-estate-tax/corporate-income-tax-1120me",
+    "https://www.maine.gov/revenue/faq/corporate-income-tax",
+    "https://legislature.maine.gov/statutes/36/title36sec5200.html",
+    "https://www.maine.gov/revenue/tax-return-forms/corporate-income-tax-2025",
+    "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/25_1120me_gen_instr_w_cover_pg.pdf",
+    "https://www.maine.gov/sos/corporations-commissions/incorporating-resources/corporations-commissions/filing-requirement-reminders",
+    "https://legislature.maine.gov/statutes/13-c/title13-Csec123.html",
+    "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/Business%20Guide%20for%20December%202025%20FINAL.pdf",
+    "https://www.maine.gov/revenue/sites/maine.gov.revenue/files/inline-files/125c326-2025-188%20(NEW)_accessibility%20update.pdf",
+    "https://www.maine.gov/labor/news_events/article.shtml?id=13345399",
+    "https://legislature.maine.gov/statutes/36/title36sec691.html",
+    "https://www.maine.gov/revenue/taxes/tax-relief-credits-programs/property-tax-relief-programs/business-equipment-tax-programs",
+    "https://legislature.maine.gov/legis/bills/bills_132nd/fiscalpdfs/FN074602.pdf",
+    "https://legislature.maine.gov/statutes/30-A/title30-Asec3001.html"
+   ]
+  },
+  {
+   "id": "MD",
+   "name": "Maryland",
+   "state": "MD",
+   "local": false,
+   "rate": 0,
+   "share": 0.0183,
+   "threshold": null,
+   "perYear": 300,
+   "note": "No Maryland receipts tax; $300/yr annual report fee as a foreign stock corporation; 8.25% income tax only once profitable.",
+   "confidence": "high",
+   "sources": [
+    "https://dat.maryland.gov/SiteAssets/Pages/sdatforms/2026_Form1%20Final%20(6).pdf",
+    "https://mgaleg.maryland.gov/2026RS/fnotes/bil_0007/sb0137.pdf",
+    "https://www.marylandcomptroller.gov/content/dam/mdcomp/tax/instructions/2025/corporate-booklet.pdf",
+    "https://www.marylandcomptroller.gov/content/dam/mdcomp/md/legal-publications/2025-tax-changes-for-businesses.pdf",
+    "https://www.marylandcomptroller.gov/legal-library/tb-30-jun-2025.html",
+    "https://www.marylandcomptroller.gov/individuals/2025-tax-updates.html",
+    "https://mgaleg.maryland.gov/2026RS/fnotes/bil_0000/hb0690.pdf",
+    "https://dls.maryland.gov/pubs/prod/InterGovMatters/LocFinTaxRte/Local-Taxing-Authority-and-Revenue-Sources.pdf"
+   ]
+  },
+  {
+   "id": "MA",
+   "name": "Massachusetts",
+   "state": "MA",
+   "local": false,
+   "rate": 0,
+   "share": 0.021,
+   "threshold": null,
+   "perYear": 556,
+   "note": "No MA receipts tax; $456 minimum corporate excise (more if 0.26% of net worth times MA's share of sales is larger) plus $100 annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleIX/Chapter63/Section39",
+    "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleIX/Chapter63/Section30",
+    "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleIX/Chapter63/Section38",
+    "https://malegislature.gov/Laws/SessionLaws/Acts/2023/Chapter50",
+    "https://web.archive.org/web/20261003041325/https://www.sec.state.ma.us/divisions/corporations/general-information/corporations-filing-fees.htm",
+    "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleXXII/Chapter156D/Section16.22",
+    "https://www.law.cornell.edu/regulations/massachusetts/830-CMR-63-39-1",
+    "https://www.law.cornell.edu/regulations/massachusetts/830-CMR-64H-1-3",
+    "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleIX/Chapter64H/Section2",
+    "https://malegislature.gov/Laws/GeneralLaws/PartI/TitleIX/Chapter59/Section5",
+    "https://malegislature.gov/Laws/Constitution"
+   ]
+  },
+  {
+   "id": "MI",
+   "name": "Michigan",
+   "state": "MI",
+   "local": false,
+   "rate": 0,
+   "share": 0.03,
+   "threshold": null,
+   "perYear": 25,
+   "note": "No receipts tax in Michigan; $25 annual report fee. The 6% income tax is zero before profit and isn't filed below $350k of Michigan receipts.",
+   "confidence": "high",
+   "sources": [
+    "https://www.michigan.gov/taxes/business-taxes/cit",
+    "https://www.michigan.gov/taxes/-/media/Project/Websites/taxes/Forms/CIT/TY2024/4890_ty24.pdf",
+    "https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-206-623",
+    "https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-206-671",
+    "https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-206-681",
+    "https://www.michigan.gov/lara/-/media/Project/Websites/lara/cscl/NonImages_new/Corps/forms/CSCL_CD_268.pdf",
+    "https://www.legislature.mi.gov/Bills/Bill?ObjectName=2025-HB-4961",
+    "https://legislature.mi.gov/documents/2025-2026/billanalysis/House/pdf/2025-HLA-4961-Q64GZVWY.pdf",
+    "https://www.legislature.mi.gov/Bills/Bill?ObjectName=2026-HB-6134",
+    "https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-211-9o",
+    "https://www.legislature.mi.gov/Laws/MCL?objectName=mcl-141-91",
+    "https://www.bdo.com/insights/tax/michigan-budget-bills-make-sweeping-tax-changes"
+   ]
+  },
+  {
+   "id": "MN",
+   "name": "Minnesota",
+   "state": "MN",
+   "local": false,
+   "rate": 0,
+   "share": 0.017,
+   "threshold": null,
+   "perYear": 395,
+   "note": "No receipts tax; $135 foreign-corp annual renewal plus the $260 minimum fee (2026), which applies once Minnesota payroll + property (rent x 8) + Minnesota sales reach $1.28M ($0 below that, $770 above $2.56M).",
+   "confidence": "high",
+   "sources": [
+    "https://www.revenue.state.mn.us/minimum-fee",
+    "https://www.revisor.mn.gov/statutes/cite/290.0922",
+    "https://www.revisor.mn.gov/statutes/cite/290.06",
+    "https://www.revenue.state.mn.us/sites/default/files/2025-10/m4-inst-24.pdf",
+    "https://www.revenue.state.mn.us/corporation-franchise-tax",
+    "https://www.revenue.state.mn.us/filing-requirements",
+    "https://www.sos.mn.gov/business-liens/business-filing-and-certification-fee-schedule/",
+    "https://www.revenue.state.mn.us/guide/computer-software-and-digital-products",
+    "https://www.revenue.state.mn.us/2025-tax-law-changes",
+    "https://www.house.mn.gov/hrd/as/94/as128.pdf",
+    "https://www.revenue.state.mn.us/sites/default/files/2026-08/local-sales-and-use-tax-rate-guide-2026-q4.pdf",
+    "https://www.revisor.mn.gov/statutes/cite/477A.016"
+   ]
+  },
+  {
+   "id": "MS",
+   "name": "Mississippi",
+   "state": "MS",
+   "local": false,
+   "rate": 0,
+   "share": 0.0087,
+   "threshold": null,
+   "perYear": 50,
+   "note": "No Mississippi receipts tax; $25 minimum franchise tax (phased out, repealed from 2028) plus $25 foreign-corporation annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://www.dor.ms.gov/sites/default/files/tax-forms/business/2025%20CIT%20INSTRUCTIONS%2083-100%20-%20Final%20%2001.14.2026.pdf",
+    "https://www.dor.ms.gov/sites/default/files/tax-forms/business/83100248.pdf",
+    "https://www.dor.ms.gov/business/business-tax-frequently-asked-questions",
+    "https://www.sos.ms.gov/content/documents/Business/Services%20&%20Fees%20Document.pdf",
+    "https://www.sos.ms.gov/content/documents/Business/FeeSchedule.pdf",
+    "https://billstatus.ls.state.ms.us/documents/2023/html/SB/2400-2499/SB2449SG.htm"
+   ]
+  },
+  {
+   "id": "MO",
+   "name": "Missouri",
+   "state": "MO",
+   "local": false,
+   "rate": 0,
+   "share": 0.0183,
+   "threshold": null,
+   "perYear": 20,
+   "note": "Missouri has no receipts or franchise tax (franchise tax repealed from 2016); a foreign corporation pays a $20 online annual registration report.",
+   "confidence": "high",
+   "sources": [
+    "https://revisor.mo.gov/main/OneSection.aspx?section=147.010",
+    "https://revisor.mo.gov/main/OneSection.aspx?section=143.071",
+    "https://revisor.mo.gov/main/OneSection.aspx?section=351.120",
+    "https://revisor.mo.gov/main/OneSection.aspx?section=351.122",
+    "https://revisor.mo.gov/main/OneSection.aspx?section=351.125",
+    "https://revisor.mo.gov/main/OneSection.aspx?section=351.127",
+    "https://revisor.mo.gov/main/OneSection.aspx?section=71.620",
+    "https://www.law.cornell.edu/regulations/missouri/12-CSR-10-109-050"
+   ]
+  },
+  {
+   "id": "MO-columbia",
+   "name": "Columbia",
+   "state": "MO",
+   "local": true,
+   "rate": 0.00025,
+   "share": 1,
+   "threshold": null,
+   "perYear": 75,
+   "note": "0.025% of gross receipts (minimum $75, maximum $10,000) Columbia business license; assumes your office is in Columbia.",
+   "confidence": "high",
+   "sources": [
+    "https://www.como.gov/finance/business-licenses/",
+    "https://www.como.gov/finance/business-licenses/understanding-gross-receipts/",
+    "https://library.municode.com/mo/columbia/codes/code_of_ordinances?nodeId=PTIICOOR_CH13LIPEMIBURE_ARTIIOCLI_S13-27LIFESC",
+    "https://library.municode.com/mo/columbia/codes/code_of_ordinances?nodeId=PTIICOOR_CH13LIPEMIBURE_ARTIIOCLI_S13-28COGRRE"
+   ]
+  },
+  {
+   "id": "MO-independence",
+   "name": "Independence",
+   "state": "MO",
+   "local": true,
+   "rate": 0.00031,
+   "share": 1,
+   "threshold": null,
+   "perYear": 75,
+   "note": "$75 plus 0.031% of gross receipts over $25k (maximum $50,000) Independence business license; assumes your office is in Independence.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.independencemo.gov/government/city-departments/community-development/business-license-liquor-license-and-employee-permitting",
+    "https://www.independencemo.gov/sites/default/files/2023-07/FeeSchedule.pdf",
+    "https://library.municode.com/mo/independence/codes/code_of_ordinances?nodeId=CH5BULI"
+   ]
+  },
+  {
+   "id": "MO-kansas-city",
+   "name": "Kansas City",
+   "state": "MO",
+   "local": true,
+   "rate": 0.00085,
+   "share": 1,
+   "threshold": null,
+   "perYear": 25,
+   "note": "About 0.085% of gross receipts plus $25 (Kansas City business license, Table A tiers); assumes your office is in KC and all receipts count, though the city may apportion out-of-state receipts on request.",
+   "confidence": "medium",
+   "sources": [
+    "https://library.municode.com/mo/kansas_city/codes/code_of_ordinances?nodeId=COORKAMIVOII_CH40LIMIBURE_ARTIISCLIFE_S40-62ANGRREGRANBUGRANCODE",
+    "https://library.municode.com/mo/kansas_city/codes/code_of_ordinances?nodeId=COORKAMIVOII_CH40LIMIBURE_ARTIISCLIFE_S40-63COFEGE",
+    "https://library.municode.com/mo/kansas_city/codes/code_of_ordinances?nodeId=COORKAMIVOII_CH40LIMIBURE_ARTIISCLIFE_S40-64LITANOBUINCO",
+    "https://library.municode.com/mo/kansas_city/codes/code_of_ordinances?nodeId=COORKAMIVOII_CH68TA_ARTVIEAPRTA_S68-382IMTA",
+    "https://library.municode.com/mo/kansas_city/codes/code_of_ordinances?nodeId=COORKAMIVOII_CH68TA_ARTVIEAPRTA_S68-384ALNEPRBU",
+    "https://www.zillionforms.com/2021/I7184010125.PDF",
+    "https://bizcare.kcmo.gov/kcmobusinesslicense"
+   ]
+  },
+  {
+   "id": "MO-lee-s-summit",
+   "name": "Lee's Summit",
+   "state": "MO",
+   "local": true,
+   "rate": 0,
+   "share": 1,
+   "threshold": null,
+   "perYear": 55,
+   "note": "$55 flat Lee's Summit business license.",
+   "confidence": "medium",
+   "sources": [
+    "https://cityofls.net/development-services/doing-business/business-and-contractor-licensing",
+    "https://library.municode.com/mo/lee's_summit/codes/code_of_ordinances?nodeId=COOR_CH28TA"
+   ]
+  },
+  {
+   "id": "MO-springfield",
+   "name": "Springfield",
+   "state": "MO",
+   "local": true,
+   "rate": 0.00025,
+   "share": 1,
+   "threshold": null,
+   "perYear": 55,
+   "note": "About 0.025% of gross receipts plus $55 (standard-scale business license, $25 minimum), assuming Springfield treats a software company as a 'service agency'.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.springfieldmo.gov/345/Business-Licensing",
+    "https://library.municode.com/mo/springfield/codes/code_of_ordinances?nodeId=PTIICO_CH70LIPEMIBURE"
+   ]
+  },
+  {
+   "id": "MO-st-louis",
+   "name": "St. Louis",
+   "state": "MO",
+   "local": true,
+   "rate": 0,
+   "share": 1,
+   "threshold": null,
+   "perYear": 675,
+   "note": "$675/yr Graduated Business License assuming 6–10 employees working in the City ($200 for 0–2, $1,500 for 11–20); no receipts tax on services.",
+   "confidence": "high",
+   "sources": [
+    "https://www.stlouis-mo.gov/government/departments/license/business-license-info/Graduated-Business-License-Information-and-Fees-Schedule.cfm",
+    "https://www.stlouis-mo.gov/government/departments/license/business-license-info/Graduated-Business-License-Process.cfm",
+    "https://www.stlouis-mo.gov/services/topic.cfm?id=115&name=business-taxation",
+    "https://www.stlouis-mo.gov/government/departments/collector/earnings-tax/business-earnings-tax-info.cfm",
+    "https://www.stlouis-mo.gov/government/departments/collector/earnings-tax/payroll-tax-info.cfm"
+   ]
+  },
+  {
+   "id": "MT",
+   "name": "Montana",
+   "state": "MT",
+   "local": false,
+   "rate": 0,
+   "share": 0.0033,
+   "threshold": null,
+   "perYear": 50,
+   "note": "Montana: $50 minimum corporate income tax (owed even at a loss); no receipts tax; the $20 annual report fee is waived for on-time filings in 2026 and 2027.",
+   "confidence": "high",
+   "sources": [
+    "https://revenue.mt.gov/taxes/corporate-income-tax",
+    "https://revenue.mt.gov/files/Forms/Montana-Form-CIT-Instructions/2025_Montana_Form_CIT_Instructions.pdf",
+    "https://mca.legmt.gov/bills/mca/title_0150/chapter_0310/part_0010/section_0210/0150-0310-0010-0210.html",
+    "https://sosmt.gov/business/fees/",
+    "https://sosmt.gov/wp-content/uploads/business_filing_fees.pdf",
+    "https://sosmt.gov/secretary-christi-jacobsen-continues-montana-business-support-by-waiving-fees-once-again/",
+    "https://sosmt.gov/secretary-christi-jacobsen-warns-montana-businesses-of-misleading-2027-annual-report-solicitation",
+    "https://revenue.mt.gov/property/personal-property/"
+   ]
+  },
+  {
+   "id": "MT-billings",
+   "name": "Billings",
+   "state": "MT",
+   "local": true,
+   "rate": 0,
+   "share": 0.00035,
+   "threshold": null,
+   "perYear": 55,
+   "note": "Billings: $55/yr business license plus $6 per full-time employee over 5, only if you have an office or staff there; no receipts tax.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.billingsmt.gov/981/Business-License-Information",
+    "https://www.billingsmt.gov/DocumentCenter/View/51684/Business-Tax-Determination-2024-fillable?bidId=",
+    "https://www.billingsmt.gov/DocumentCenter/View/43274/Business-Tax-Determination-2020-Update"
+   ]
+  },
+  {
+   "id": "MT-missoula",
+   "name": "Missoula",
+   "state": "MT",
+   "local": true,
+   "rate": 0,
+   "share": 0.00023,
+   "threshold": null,
+   "perYear": 119,
+   "note": "Missoula: business license renewal of $28 per FTE (4-FTE minimum, about $119/yr with the 5% tech fee), only if you operate there; no receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://www.ci.missoula.mt.us/DocumentCenter/View/36561/Business-Licensing-Fees",
+    "https://www.ci.missoula.mt.us/DocumentCenter/View/76103/FY26-CPDI-Business-Licensing-Fee-Schedule",
+    "http://www.ci.missoula.mt.us/FAQ.aspx?QID=789",
+    "http://www.ci.missoula.mt.us/DocumentCenter/View/1027/Municipal-Code-Title-05-Licenses?bidId="
+   ]
+  },
+  {
+   "id": "NE",
+   "name": "Nebraska",
+   "state": "NE",
+   "local": false,
+   "rate": 0,
+   "share": 0.0059,
+   "threshold": null,
+   "perYear": 26,
+   "note": "No receipts tax in Nebraska; a $52 occupation tax every two years (about $26/yr) as a foreign corporation with under $10k of property there.",
+   "confidence": "high",
+   "sources": [
+    "https://nebraskalegislature.gov/laws/statutes.php?statute=21-304",
+    "https://www.nebraskalegislature.gov/laws/statutes.php?statute=21-306",
+    "https://nebraskalegislature.gov/laws/statutes.php?statute=21-303",
+    "https://sos.nebraska.gov/business-services/forms-and-fee-information",
+    "https://sos.nebraska.gov/business-services/annualbiennial-reporting",
+    "https://www.nebraskalegislature.gov/laws/statutes.php?statute=77-2734.02",
+    "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2025/f_Corp_Booklet.pdf",
+    "https://revenue.nebraska.gov/about/2026-nebraska-legislative-changes",
+    "https://revenue.nebraska.gov/about/frequently-asked-questions/nebraska-sales-and-use-tax-faqs",
+    "https://revenue.nebraska.gov/about/frequently-asked-questions/south-dakota-v-wayfair-inc-collection-sales-tax-remote-sellers-faqs",
+    "https://revenue.nebraska.gov/legal/regs/salestax/1-007.html",
+    "https://www.law.cornell.edu/regulations/nebraska/316-Neb-Admin-Code-ch-1-SS-088",
+    "https://revenue.nebraska.gov/sites/default/files/doc/tax-forms/2026/salestax/f_10_sch1_worksheet_1-2026.pdf",
+    "https://www.billtrack50.com/billdetail/1785586",
+    "https://www.discern.com/resources/nebraska-franchise-tax-filing-information"
+   ]
+  },
+  {
+   "id": "NV",
+   "name": "Nevada",
+   "state": "NV",
+   "local": false,
+   "rate": 0.00253,
+   "share": 0.0096,
+   "threshold": {
+    "perYear": 4000000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 650,
+   "note": "Nevada: $650/yr ($150 annual list + $500 state business license), plus a 0.253% Commerce Tax only once Nevada-sourced revenue tops $4M a year; the real tax is on the excess over $4M only.",
+   "confidence": "high",
+   "sources": [
+    "https://tax.nv.gov/tax-types/commerce-tax/",
+    "https://www.leg.state.nv.us/nrs/NRS-363C.html",
+    "https://tax.nv.gov/faqs/commerce-tax-faqs/",
+    "https://tax.nv.gov/wp-content/uploads/2026/07/Commerce-Tax-Due-Date-Notification.pdf",
+    "https://tax.nv.gov/tax-types/modified-business-tax/",
+    "https://tax.nv.gov/wp-content/uploads/2025/12/TAX-F003-MBT-Return-General-Business.pdf",
+    "https://www.leg.state.nv.us/nrs/nrs-080.html",
+    "https://bizhub.nv.gov/cms-webhook-bff/uploads/bizhub/Annual_List_and_State_Business_License_Corps_Final_2aebeed395.pdf",
+    "https://tax.nv.gov/faqs/sales-tax-faqs/"
+   ]
+  },
+  {
+   "id": "NV-clark-county-unincorporated",
+   "name": "Clark County (unincorporated)",
+   "state": "NV",
+   "local": true,
+   "rate": 0.0005555,
+   "share": 1,
+   "threshold": null,
+   "perYear": 50,
+   "note": "Unincorporated Clark County license: about 0.056% of your office's total revenue, $50/yr minimum; only if your office is outside city limits (e.g. on the Strip).",
+   "confidence": "medium",
+   "sources": [
+    "https://api.municode.com/CodesContent?jobId=495815&productId=16214&nodeId=TIT6BULI_CH6.12FEREMA_6.12.995GRRERACOACMOINCHFE",
+    "https://api.municode.com/CodesContent?jobId=495815&productId=16214&nodeId=TIT6BULI_CH6.12FEREMA_6.12.340CODAPRALSE",
+    "https://api.municode.com/CodesContent?jobId=495815&productId=16214&nodeId=TIT6BULI_CH6.08APIS",
+    "https://www.clarkcountynv.gov/business/doing_business_with_clark_county/divisions/business_license_billing___payments/faq"
+   ]
+  },
+  {
+   "id": "NV-henderson",
+   "name": "Henderson",
+   "state": "NV",
+   "local": true,
+   "rate": 0.00056,
+   "share": 1,
+   "threshold": null,
+   "perYear": 50,
+   "note": "Henderson city license: about 0.056% of your Henderson office's total revenue, $50/yr minimum; only if you have an office in Henderson.",
+   "confidence": "medium",
+   "sources": [
+    "https://api.municode.com/CodesContent?jobId=475955&productId=14896&nodeId=TIT4BURELI_CH4.05BULIFESC",
+    "https://api.municode.com/CodesContent?jobId=475955&productId=14896&nodeId=TIT4BURELI_CH4.04GEBULIPR"
+   ]
+  },
+  {
+   "id": "NV-las-vegas",
+   "name": "Las Vegas",
+   "state": "NV",
+   "local": true,
+   "rate": 0.00056,
+   "share": 1,
+   "threshold": null,
+   "perYear": 110,
+   "note": "Las Vegas city license: about 0.056% of your Las Vegas office's total revenue (not market-sourced), $110/yr minimum; only if you have an office inside city limits.",
+   "confidence": "medium",
+   "sources": [
+    "https://api.municode.com/CodesContent?jobId=491986&productId=14787&nodeId=TIT6BUTALIRE_CH6.04BULIFE",
+    "https://api.municode.com/CodesContent?jobId=491986&productId=14787&nodeId=TIT6BUTALIRE_CH6.02BULIGE",
+    "https://library.municode.com/nv/las_vegas/codes/code_of_ordinances?nodeId=TIT6BUTALIRE_CH6.04BULIFE"
+   ]
+  },
+  {
+   "id": "NV-north-las-vegas",
+   "name": "North Las Vegas",
+   "state": "NV",
+   "local": true,
+   "rate": 0.0005555,
+   "share": 1,
+   "threshold": null,
+   "perYear": 50,
+   "note": "North Las Vegas license: about 0.056% of your North Las Vegas office's total revenue, $50/yr minimum; only if you have an office there.",
+   "confidence": "medium",
+   "sources": [
+    "https://api.municode.com/CodesContent?jobId=492516&productId=16023&nodeId=TIT5BULIRE_CH5.02BULIGE_5.02.080GRMOINLI",
+    "https://api.municode.com/CodesContent?jobId=492516&productId=16023&nodeId=TIT5BULIRE_CH5.02BULIGE_5.02.035PRFE",
+    "https://api.municode.com/CodesContent?jobId=492516&productId=16023&nodeId=TIT5BULIRE_CH5.02BULIGE_5.02.320LIFEOTBUNOSPMEHE"
+   ]
+  },
+  {
+   "id": "NV-reno",
+   "name": "Reno",
+   "state": "NV",
+   "local": true,
+   "rate": 0.00085,
+   "share": 1,
+   "threshold": {
+    "perYear": 100000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 70,
+   "note": "Reno city license: $70/yr, plus 0.085% of Reno gross receipts over $100k (0.065% over $5M); assumes all revenue of a Reno-based office counts.",
+   "confidence": "medium",
+   "sources": [
+    "https://reno.gov/Documents/Business%20and%20Development/Business%20Licensing/Business%20License%20Applications/Fees/BusinessLicenseFeeSchedule.pdf",
+    "https://api.municode.com/CodesContent?jobId=496578&productId=14160&nodeId=PT2READCO_TIT4BULICO_CH4.04GEPR"
+   ]
+  },
+  {
+   "id": "NV-sparks",
+   "name": "Sparks",
+   "state": "NV",
+   "local": true,
+   "rate": 0.001,
+   "share": 1,
+   "threshold": {
+    "perYear": 10000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 84,
+   "note": "Sparks city license: $84/yr, plus 0.1% of Sparks gross receipts over $10k; assumes all revenue of a Sparks-based office counts.",
+   "confidence": "medium",
+   "sources": [
+    "https://api.municode.com/CodesContent?jobId=473717&productId=15068&nodeId=TIT5BULITARE_CH5.12APLIEE_S5.12.100LIPRFEPECOENFE",
+    "https://api.municode.com/CodesContent?jobId=473717&productId=15068&nodeId=TIT5BULITARE_CH5.12APLIEE_S5.12.103RETEFE",
+    "https://api.municode.com/CodesContent?jobId=473717&productId=15068&nodeId=TIT5BULITARE_CH5.04DE_S5.04.030GRRE"
+   ]
+  },
+  {
+   "id": "NH",
+   "name": "New Hampshire",
+   "state": "NH",
+   "local": false,
+   "rate": 0,
+   "share": 0.0041,
+   "threshold": null,
+   "perYear": 100,
+   "note": "No receipts tax in New Hampshire; $100/yr annual report as a registered foreign corporation; the 0.55% Business Enterprise Tax falls on NH-based payroll (about $825/yr per $150k NH salary), so count it with expenses.",
+   "confidence": "high",
+   "sources": [
+    "https://gc.nh.gov/rsa/html/V/77-E/77-E-1.htm",
+    "https://gc.nh.gov/rsa/html/V/77-E/77-E-2.htm",
+    "https://gc.nh.gov/rsa/html/V/77-E/77-E-4.htm",
+    "https://gc.nh.gov/rsa/html/V/77-E/77-E-5.htm",
+    "https://gc.nh.gov/rsa/html/V/77-A/77-A-2.htm",
+    "https://gc.nh.gov/rsa/html/V/77-A/77-A-3.htm",
+    "https://gc.nh.gov/rsa/html/V/77-A/77-A-5.htm",
+    "https://gc.nh.gov/rsa/html/V/77-A/77-A-6.htm",
+    "https://gc.nh.gov/rsa/html/XXVII/293-A/293-A-mrg.htm",
+    "https://www.revenue.nh.gov/resource-center/frequently-asked-questions/business-enterprise-tax (403 to direct fetch; content read via search-result excerpts only)",
+    "https://www.revenue.nh.gov/resource-center/frequently-asked-questions/business-profits-tax (403 to direct fetch; content read via search-result excerpts only)",
+    "https://www.nhpr.org/nh-news/2026-06-04/nh-businesses-exempt-tax-business-enterprise-tax-legislature"
+   ]
+  },
+  {
+   "id": "NJ",
+   "name": "New Jersey",
+   "state": "NJ",
+   "local": false,
+   "rate": 0,
+   "share": 0.028,
+   "threshold": null,
+   "perYear": 575,
+   "note": "$500 New Jersey minimum corporation tax (for NJ receipts under $100k; it steps up to $2,000 at $1M+ of NJ receipts) plus the $75 annual report; no receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://www.nj.gov/treasury/taxation/corp_over.shtml",
+    "https://www.nj.gov/treasury/taxation/pdf/current/cbt/cbt100ins.pdf",
+    "https://www.nj.gov/treasury/revenue/fees.shtml",
+    "https://business.nj.gov/pages/filings-and-accounting",
+    "https://www.nj.gov/treasury/taxation/pdf/pubs/sales/su9.pdf",
+    "https://nj.gov/treasury/taxation/pdf/pubs/tb/tb72.pdf",
+    "https://pub.njleg.gov/Bills/2024/S4500/4219_S3.PDF"
+   ]
+  },
+  {
+   "id": "NM",
+   "name": "New Mexico",
+   "state": "NM",
+   "local": false,
+   "rate": 0,
+   "share": 0.0063,
+   "threshold": null,
+   "perYear": 62.5,
+   "note": "$50 franchise tax plus a $25 report every two years; New Mexico's gross receipts tax (4.875% state, about 7.6% to 8.4% in major cities) is assumed itemized on NM invoices like sales tax.",
+   "confidence": "high",
+   "sources": [
+    "https://www.tax.newmexico.gov/businesses/gross-receipts-overview/",
+    "https://www.tax.newmexico.gov/businesses/determining-nexus/",
+    "https://klvg4oyd4j.execute-api.us-west-2.amazonaws.com/prod/PublicFiles/34821a9573ca43e7b06dfad20f5183fd/c7128f81-2379-4f7b-929e-d08118c49399/FYI-265.pdf",
+    "https://api.realfile.rtsclients.com/publicfiles/34821a9573ca43e7b06dfad20f5183fd/41b98b7a-3c7e-4917-b0ac-f677847d5066/trd-41413ins.pdf",
+    "https://realfile.tax.newmexico.gov/trd-41413ins.pdf",
+    "https://services5.arcgis.com/f4lpEvI6fkgVYigk/arcgis/rest/services/New_Mexico_gross_receipts_tax_July_2026_June_2027_pub_WM/FeatureServer/2",
+    "https://www.sierraco.org/wp-content/uploads/July-1-2025-June-30-2026-GRT_CMP-Rate-Schedule.pdf",
+    "https://www.tax.newmexico.gov/businesses/geographic-information-system-gis/data-download/",
+    "https://grt.edacnm.org/api/by_address",
+    "https://www.tax.newmexico.gov/businesses/corporate-income-franchise-tax-overview/",
+    "https://www.taxformfinder.org/forms/2025/2025-new-mexico-form-cit-1-instructions.pdf",
+    "https://www.nmlegis.gov/handouts/RSTP%20081425%20Item%201%20-%20Tax%20&%20Rev%20and%20LFC%20-%20Tax%20Policy%20101.pdf",
+    "https://www.srca.nm.gov/parts/title12/12.003.0002.html",
+    "https://enterprise.sos.nm.gov/api/report/GetImageByNum/034103089087099177152199082214143027029157228233"
+   ]
+  },
+  {
+   "id": "NM-albuquerque",
+   "name": "Albuquerque",
+   "state": "NM",
+   "local": true,
+   "rate": 0,
+   "share": 0.00165,
+   "threshold": null,
+   "perYear": 36.75,
+   "note": "$36.75 city business license if you have premises in Albuquerque; its 7.625% combined gross receipts tax is assumed passed to customers.",
+   "confidence": "high",
+   "sources": [
+    "https://www.cabq.gov/planning/planning-faqs/business-registration-faqs",
+    "https://www.cabq.gov/planning/business-registration-information/upcoming-business-license-ordinance",
+    "https://services5.arcgis.com/f4lpEvI6fkgVYigk/arcgis/rest/services/New_Mexico_gross_receipts_tax_July_2026_June_2027_pub_WM/FeatureServer/2",
+    "https://grt.edacnm.org/api/by_address"
+   ]
+  },
+  {
+   "id": "NM-santa-fe",
+   "name": "Santa Fe",
+   "state": "NM",
+   "local": true,
+   "rate": 0,
+   "share": 0.00026,
+   "threshold": null,
+   "perYear": 65,
+   "note": "$35 city business license plus a $30 annual fire inspection if you have small premises in Santa Fe; its 8.1875% combined gross receipts tax is assumed passed to customers.",
+   "confidence": "medium",
+   "sources": [
+    "https://santafenm.gov/document_center/document/12901",
+    "https://santafenm.gov/land-use/doing-business-with-the-city",
+    "https://services5.arcgis.com/f4lpEvI6fkgVYigk/arcgis/rest/services/New_Mexico_gross_receipts_tax_July_2026_June_2027_pub_WM/FeatureServer/2",
+    "https://grt.edacnm.org/api/by_address"
+   ]
+  },
+  {
+   "id": "NY",
+   "name": "New York",
+   "state": "NY",
+   "local": false,
+   "rate": 0,
+   "share": 0.0585,
+   "threshold": null,
+   "perYear": 29.5,
+   "note": "New York charges no receipts tax, but there's a $25 minimum franchise tax that steps up with NY receipts ($500 at $0.5-1M, $1,500 at $1-5M) plus a $9 biennial statement; a funded company that raised over $1M may instead owe 0.1875% of its NY-apportioned net assets if that's larger.",
+   "confidence": "high",
+   "sources": [
+    "https://www.tax.ny.gov/forms/current-forms/ct/ct3i.htm",
+    "https://www.tax.ny.gov/pdf/current_forms/ct/ct3i.pdf",
+    "https://www.tax.ny.gov/pdf/current_forms/ct/ct3.pdf",
+    "https://www.tax.ny.gov/pdf/current_forms/ct/ct3mi.pdf",
+    "https://www.tax.ny.gov/pdf/current_forms/ct/ct3m.pdf",
+    "https://www.nysenate.gov/legislation/laws/TAX/210",
+    "https://www.nysenate.gov/legislation/laws/TAX/209-B",
+    "https://www.tax.ny.gov/bus/ct/article9a_deriving_receipts.htm",
+    "https://www.nysenate.gov/legislation/laws/BSC/104-A",
+    "https://www.nysenate.gov/legislation/laws/BSC/408",
+    "https://www.nysenate.gov/legislation/laws/PBA/3102-E",
+    "https://www.tax.ny.gov/pubs_and_bulls/tg_bulletins/st/computer_software.htm",
+    "https://www.tax.ny.gov/bus/mctmt/emp.htm",
+    "https://www.tax.ny.gov/pdf/publications/sales/pub718.pdf",
+    "https://www.nysenate.gov/legislation/laws/GCT/20-B",
+    "https://pad.human.cornell.edu/papers/downloads/V2025StateHighlights.pdf"
+   ]
+  },
+  {
+   "id": "NY-new-york-city",
+   "name": "New York City",
+   "state": "NY",
+   "local": true,
+   "rate": 0,
+   "share": 0.0251,
+   "threshold": null,
+   "perYear": 32.5,
+   "note": "New York City charges no receipts tax: there's a $25 business corporation tax minimum that steps up with NYC receipts ($1,500 at $1-5M, $3,500 at $5-25M), plus up to $7.50 of state MTA surcharge on the NY minimum.",
+   "confidence": "high",
+   "sources": [
+    "https://www.nyc.gov/site/finance/business/business-corporation-tax.page",
+    "https://www.nyc.gov/assets/finance/downloads/pdf/25pdf/business_tax_forms/nyc-2-instr_2025.pdf",
+    "https://www.nyc.gov/assets/finance/downloads/pdf/25pdf/business_tax_forms/nyc-2_2025.pdf",
+    "https://www.nyc.gov/site/finance/business/business-commercial-rent-tax-crt.page",
+    "https://www.nysenate.gov/legislation/bills/2025/S451",
+    "https://www.tax.ny.gov/pdf/current_forms/ct/ct3m.pdf",
+    "https://www.nysenate.gov/legislation/laws/TAX/209-B",
+    "https://www.tax.ny.gov/bus/mctmt/emp.htm",
+    "https://www.tax.ny.gov/pdf/publications/sales/pub718.pdf",
+    "https://s-media.nyc.gov/agencies/dcp/assets/files/pdf/data-tools/population/population-estimates/new-york-city-population-estimates-and-trends-july-2026.pdf"
+   ]
+  },
+  {
+   "id": "NC",
+   "name": "North Carolina",
+   "state": "NC",
+   "local": false,
+   "rate": 0,
+   "share": 0.0328,
+   "threshold": null,
+   "perYear": 225,
+   "note": "No receipts tax; $200 minimum franchise tax (0.15% of NC-apportioned net worth, max $500 on the first $1M) plus $25 annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://www.ncdor.gov/taxes-forms/corporate-income-franchise-tax/corporate-income-and-franchise-tax-rates",
+    "https://www.ncdor.gov/taxes-forms/information-tax-professionals/revenue-laws/2024-tax-law-changes/2024-corporate-taxes-law-changes",
+    "https://www.ncdor.gov/tax-forms/2025-cd-405-c-corporation-tax-return-instructions/open",
+    "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_105/GS_105-122.html",
+    "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_105/GS_105-130.3.html",
+    "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_55/GS_55-1-22.html",
+    "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_55/GS_55-16-22.html",
+    "https://b2b.sosnc.gov/frequently_asked_questions/by_title/_BRD_FAQ_Annual_Reports",
+    "https://www.sosnc.gov/fees/by_title/_Business_Registration_Business_corporations",
+    "https://www.ncdor.gov/documents/files/suplr-2021-0007-subscription-fees-remotely-access-computer-software/open",
+    "https://www.ncdor.gov/taxes-forms/privilege-license-tax",
+    "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_160A/GS_160A-211.html",
+    "https://www.ncleg.gov/EnactedLegislation/Statutes/HTML/BySection/Chapter_153A/GS_153A-152.html",
+    "https://www.census.gov/newsroom/press-releases/2026/population-growth-slows.html"
+   ]
+  },
+  {
+   "id": "ND",
+   "name": "North Dakota",
+   "state": "ND",
+   "local": false,
+   "rate": 0,
+   "share": 0.00234,
+   "threshold": null,
+   "perYear": 25,
+   "note": "No receipts or franchise tax in North Dakota; $25/yr foreign-corporation annual report; income tax (1.41% to 4.31%) is zero before profit.",
+   "confidence": "high",
+   "sources": [
+    "https://www.tax.nd.gov/business/corporate-income-tax",
+    "https://www.tax.nd.gov/sites/www/files/documents/forms/business/corporate-income/2025-corp/28714-form-40-2025.pdf",
+    "https://sos.nd.gov/business/business-services/business-structures/corporations/general-business-corporation/general-business-corporation-fees.html",
+    "https://www.sos.nd.gov/business/business-services/maintain-registration",
+    "https://www.tax.nd.gov/sites/www/files/documents/guidelines/business/sales-use/gl-21825-1.pdf"
+   ]
+  },
+  {
+   "id": "OH",
+   "name": "Ohio",
+   "state": "OH",
+   "local": false,
+   "rate": 0.0026,
+   "share": 0.0349,
+   "threshold": {
+    "perYear": 6000000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 0,
+   "note": "Ohio CAT is 0.26% of Ohio-sourced receipts above a $6M yearly exclusion (only the excess is taxed); Ohio has no minimum tax, annual report fee, or corporate income tax.",
+   "confidence": "high",
+   "sources": [
+    "https://codes.ohio.gov/ohio-revised-code/section-5751.03",
+    "https://codes.ohio.gov/ohio-revised-code/section-5751.01",
+    "https://codes.ohio.gov/ohio-revised-code/section-5751.033",
+    "https://codes.ohio.gov/ohio-revised-code/section-5751.04",
+    "https://codes.ohio.gov/ohio-revised-code/section-5751.051",
+    "https://codes.ohio.gov/ohio-revised-code/section-715.013",
+    "https://codes.ohio.gov/ohio-revised-code/section-5733.01",
+    "https://codes.ohio.gov/ohio-revised-code/section-111.16",
+    "https://codes.ohio.gov/ohio-revised-code/section-5739.01",
+    "https://codes.ohio.gov/ohio-revised-code/section-5739.02",
+    "https://www2.census.gov/programs-surveys/popest/datasets/2020-2024/cities/totals/sub-est2024.csv"
+   ]
+  },
+  {
+   "id": "OK",
+   "name": "Oklahoma",
+   "state": "OK",
+   "local": false,
+   "rate": 0,
+   "share": 0.012,
+   "threshold": null,
+   "perYear": 100,
+   "note": "No Oklahoma receipts or franchise tax (franchise tax repealed from 2024); $100/yr foreign-corporation registered agent fee.",
+   "confidence": "high",
+   "sources": [
+    "https://oklahoma.gov/tax/businesses/other-taxes.html",
+    "https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/businesses/corporate-income-tax/current/OW-8-ESC.pdf",
+    "https://oklahoma.gov/content/dam/ok/en/tax/documents/forms/businesses/general/FRX-200-R-25-26.pdf",
+    "https://www.sos.ok.gov/forms/Fm0012.PDF",
+    "https://www.sos.ok.gov/business/fees.aspx",
+    "https://oklahoma.gov/content/dam/ok/en/tax/documents/resources/rules-and-policies/agency-rules/2024/Chapter_65_Sales_and_Use_Tax_2024.pdf"
+   ]
+  },
+  {
+   "id": "OR",
+   "name": "Oregon",
+   "state": "OR",
+   "local": false,
+   "rate": 0.0057,
+   "share": 0.0125,
+   "threshold": {
+    "perYear": 1000000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 425,
+   "note": "0.57% Corporate Activity Tax on Oregon-sourced revenue above $1M/yr (the real tax also adds $250 and subtracts 35% of costs, so this is a ceiling), plus a $150 minimum excise tax and a $275 foreign annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://www.oregon.gov/dor/programs/businesses/Pages/corporate-activity-tax.aspx",
+    "https://www.oregon.gov/DOR/forms/FormsPubs/form-or-20-instructions_102-020-1_2025.pdf",
+    "https://oregon.public.law/statutes/ors_317A.128",
+    "https://oregon.public.law/statutes/ors_317A.119",
+    "https://oregon.public.law/statutes/ors_314.665",
+    "https://olis.oregonlegislature.gov/liz/2025R1/Measures/Overview/HB2039",
+    "https://sos.oregon.gov/business/Documents/business-registry-forms/br-fee-schedule.pdf",
+    "https://www.oregon.gov/dor/forms/FormsPubs/combined-payroll_211-155-2_2026.pdf",
+    "https://www.oregon.gov/dor/forms/formspubs/transit-payroll-taxes_211-503.pdf",
+    "https://www.greshamoregon.gov/business-services/business-licenses/"
+   ]
+  },
+  {
+   "id": "OR-portland",
+   "name": "Portland",
+   "state": "OR",
+   "local": true,
+   "rate": 0,
+   "share": 0.0018,
+   "threshold": null,
+   "perYear": 200,
+   "note": "No receipts tax; Portland and Multnomah County each charge a $100 minimum business tax even at a loss once total gross receipts reach $75k (city, 2026) / $100k (county), and their 2.6% + 2% net-income taxes start only at profit.",
+   "confidence": "high",
+   "sources": [
+    "https://www.portland.gov/revenue/business-tax",
+    "https://portland.gov/revenue/documents/instructions-form-c-2025/download",
+    "https://www.portland.gov/revenue/documents/instructions-form-sp-2025/download",
+    "https://www.portland.gov/code/7/02",
+    "https://www.portland.gov/code/7/02/500",
+    "https://www.portland.gov/code/7/02/545",
+    "https://www.portland.gov/revenue/register-tax-account",
+    "https://www.portland.gov/revenue/file-c-corp"
+   ]
+  },
+  {
+   "id": "PA",
+   "name": "Pennsylvania",
+   "state": "PA",
+   "local": false,
+   "rate": 0,
+   "share": 0.0385,
+   "threshold": null,
+   "perYear": 7,
+   "note": "Pennsylvania has no receipts or minimum tax for a corporation that isn't profitable yet, only the $7 annual report; its 7.49% corporate income tax is zero until profit.",
+   "confidence": "high",
+   "sources": [
+    "https://www.pa.gov/agencies/revenue/resources/tax-rates/corporation-tax-rates",
+    "https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/corporation-taxes/corporate-net-income-tax",
+    "https://www.pa.gov/agencies/revenue/resources/tax-types-and-information/corporation-taxes/corporate-net-income-tax/act-45-of-2025",
+    "https://www.pa.gov/agencies/dos/programs/business/types-of-filings-and-registrations/annual-reports",
+    "https://www.pa.gov/agencies/dos/programs/business/fees-and-payments",
+    "https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/taxlawpoliciesbulletinsnotices/taxbulletins/ct/documents/ct_bulletin_2019-04.pdf",
+    "https://www.pa.gov/content/dam/copapwp-pagov/en/revenue/documents/taxlawpoliciesbulletinsnotices/taxbulletins/sut/documents/st_bulletin_2005-04.pdf",
+    "https://www.bdo.com/insights/tax/navigating-pennsylvanias-local-business-privilege-taxes"
+   ]
+  },
+  {
+   "id": "PA-allentown",
+   "name": "Allentown",
+   "state": "PA",
+   "local": true,
+   "rate": 0.003,
+   "share": 1,
+   "threshold": null,
+   "perYear": 35,
+   "note": "0.3% (3 mills) of receipts for a company based in Allentown, plus a $35 business license; interstate apportionment can lower the share.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.allentownpa.gov/Portals/0/adam/Content/ZbVw9jFxvEW93nQF87-3wA/Url/Business_Privilege_Tax_Regulations.pdf",
+    "https://www.allentownpa.gov/Portals/0/files/Departments/Finance/Budget2026/Final/2026%20Final%20Narrative%20for%20Website.pdf"
+   ]
+  },
+  {
+   "id": "PA-bethlehem",
+   "name": "Bethlehem",
+   "state": "PA",
+   "local": true,
+   "rate": 0.0015,
+   "share": 1,
+   "threshold": null,
+   "perYear": 25,
+   "note": "0.15% (1.5 mills) of receipts for a company based in Bethlehem, plus a $25 license.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.bethlehem-pa.gov/City-Government/Taxes/Business-Privilege-and-Merchantile-Tax",
+    "https://www.bethlehem-pa.gov/CityOfBethlehem/media/TaxMedia/BethlehemBP-MTRegulations.pdf"
+   ]
+  },
+  {
+   "id": "PA-harrisburg",
+   "name": "Harrisburg",
+   "state": "PA",
+   "local": true,
+   "rate": 0.003,
+   "share": 1,
+   "threshold": null,
+   "perYear": 50,
+   "note": "0.3% (3 mills, city plus school district) of receipts up to $3.3M for a company based in Harrisburg (1 mill above that), plus a $50 license.",
+   "confidence": "medium",
+   "sources": [
+    "https://cms2.revize.com/revize/harrisburgpa/Documents/Services/Licensing%20Taxation%20and%20Central%20Support/Business-Privilege-Mercantile-License-Application.pdf"
+   ]
+  },
+  {
+   "id": "PA-philadelphia",
+   "name": "Philadelphia",
+   "state": "PA",
+   "local": true,
+   "rate": 0.001395,
+   "share": 0.0046,
+   "threshold": null,
+   "perYear": 0,
+   "note": "0.1395% (1.395 mills, tax year 2026) of receipts sourced to Philadelphia, which for a software company means its share of customers there; there is no $100k exclusion from 2025.",
+   "confidence": "high",
+   "sources": [
+    "https://www.phila.gov/services/payments-assistance-taxes/taxes/business-taxes/business-taxes-by-type/business-income-receipts-tax-birt/",
+    "https://www.phila.gov/services/payments-assistance-taxes/business-taxes/business-income-receipts-tax-birt/",
+    "https://www.phila.gov/2026-06-11-what-you-need-to-know-about-changes-to-phillys-use-and-occupancy-tax/",
+    "https://www.phila.gov/media/20251028121348/Philadelphia-business-tax-changes-starting-in-FY26.pdf",
+    "https://www.phila.gov/media/20250425101645/Business-Income-Receipts-Tax-BIRT-regulations-compiled-April-2025.pdf",
+    "https://picapa.org/wp-content/uploads/2025/12/Business-Taxes-Fact-Sheet.pdf",
+    "https://www.phila.gov/services/payments-assistance-taxes/taxes/tax-credits/business-tax-credits/jump-start-philly/",
+    "https://www.phila.gov/2025-08-12-what-anyone-doing-business-in-philly-needs-to-know-about-estimated-tax-payments/",
+    "https://www.phila.gov/services/permits-violations-licenses/get-a-license/business-licenses/activity/get-a-commercial-activity-license/",
+    "https://www.phila.gov/2026-09-28-three-ways-to-keep-your-philly-business-license-active/",
+    "https://www.salestaxinstitute.com/resources/philadelphia-economic-nexus-business-income-receipts-tax"
+   ]
+  },
+  {
+   "id": "PA-reading",
+   "name": "Reading",
+   "state": "PA",
+   "local": true,
+   "rate": 0.00225,
+   "share": 1,
+   "threshold": null,
+   "perYear": 55,
+   "note": "0.225% (2.25 mills, city plus school district) of receipts for a company based in Reading, plus a $55 business privilege license.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.readingpa.gov/images/pdfs/2026_TAX_RATES.pdf",
+    "https://www.readingpa.gov/2024-city-of-reading-taxes-tax-rates",
+    "https://www.readingpa.gov/images/pdfs/bpt_regulations.pdf"
+   ]
+  },
+  {
+   "id": "RI",
+   "name": "Rhode Island",
+   "state": "RI",
+   "local": false,
+   "rate": 0,
+   "share": 0.0033,
+   "threshold": null,
+   "perYear": 450,
+   "note": "Rhode Island: $400 minimum business corporation tax plus $50 annual report each year; no receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://webserver.rilegislature.gov/Statutes/TITLE44/44-11/44-11-2.htm",
+    "https://www.sos.ri.gov/divisions/business-services/foreign-business/business-basics/costs-and-fees",
+    "https://www.rilegislature.gov/housefiscalreport/2020/FY%202025%20Budget%20as%20Enacted%20-%20Revenues%20Changes.pdf",
+    "https://www.rilegislature.gov/housefiscalreport/2020/FY%202026%20Budget%20as%20Enacted%20-%20Revenues%20Changes.pdf",
+    "https://www.rilegislature.gov/housefiscalreport/2020/FY%202027%20Budget%20as%20Enacted%20-%20Revenues%20Changes.pdf",
+    "https://rilegislature.gov/sfiscal/Budget%20Analyses/FY2027%20Articles%20Budget%20as%20Enacted%20SFO.pdf",
+    "https://webserver.rilegislature.gov/Statutes/TITLE44/44-18/44-18-7.htm",
+    "https://webserver.rilegislature.gov/Statutes/TITLE44/44-5.3/44-5.3-1.htm"
+   ]
+  },
+  {
+   "id": "SC",
+   "name": "South Carolina",
+   "state": "SC",
+   "local": false,
+   "rate": 0,
+   "share": 0.016,
+   "threshold": null,
+   "perYear": 25,
+   "note": "No SC receipts tax. Corporate license fee is $15 + 0.1% of paid-in capital apportioned to SC, $25 minimum; an SC-headquartered startup pays about $1,000 per $1M raised.",
+   "confidence": "high",
+   "sources": [
+    "https://dor.sc.gov/business-income-taxes/corporate/c-corporation",
+    "https://dor.sc.gov/business-income-taxes/corporate/corporate-faqs",
+    "https://dor.sc.gov/sites/dor/files/forms/SC1120I.pdf",
+    "https://www.scstatehouse.gov/code/t12c020.php",
+    "https://dor.sc.gov/administrative-legislative-regulations-tax-legislative-update-2025",
+    "https://www.scstatehouse.gov/sess126_2025-2026/bills/3773.htm",
+    "https://dor.sc.gov/sites/dor/files/policies/RR12-1.pdf",
+    "https://www.scstatehouse.gov/code/t06c001.php",
+    "https://www.masc.sc/business-license-ordinance-updates",
+    "https://www.masc.sc/sites/default/files/uploads/finance/standardization-2025-amendment-no-class-9s.docx"
+   ]
+  },
+  {
+   "id": "SC-charleston",
+   "name": "Charleston",
+   "state": "SC",
+   "local": true,
+   "rate": 0.0028,
+   "share": 1,
+   "threshold": null,
+   "perYear": 49,
+   "note": "Charleston business license: $49 + 0.28% of ALL gross receipts when your office is in the city (Class 4); pure software publishers may get a 0.055% subclass.",
+   "confidence": "medium",
+   "sources": [
+    "https://charleston-sc.gov/DocumentCenter/View/40720/20262027-ordinance-and-appendix?bidId=",
+    "https://www.charleston-sc.gov/134/Business-License-Information",
+    "https://www.charleston-sc.gov/1855/Applicable-Fees",
+    "https://www.scstatehouse.gov/code/t06c001.php",
+    "https://www.masc.sc/sites/default/files/uploads/finance/standardization-2025-amendment-no-class-9s.docx"
+   ]
+  },
+  {
+   "id": "SC-columbia",
+   "name": "Columbia",
+   "state": "SC",
+   "local": true,
+   "rate": 0.0012,
+   "share": 1,
+   "threshold": null,
+   "perYear": 75,
+   "note": "Columbia business license: $75 + 0.12% of ALL gross receipts when your office is in the city (Class 4), with the rate stepping down above $1M.",
+   "confidence": "medium",
+   "sources": [
+    "https://businesslicensing.columbiasc.gov/wp-content/uploads/2022/06/2022-Business-License-Ordinance.pdf",
+    "https://businesslicensing.columbiasc.gov/wp-content/uploads/2025/02/O_2024_050_Amending_1998_Code_Chapter11_Licenses_Permits_a.pdf",
+    "https://businesslicensing.columbiasc.gov/wp-content/uploads/2025/02/O_2023_087_Amending_Business_License_Ordinance.pdf",
+    "https://citycouncil.columbiasc.gov/download/ordinance-no-2025-072/",
+    "https://businesslicensing.columbiasc.gov/business-license-ordinance/",
+    "https://www.scstatehouse.gov/code/t06c001.php"
+   ]
+  },
+  {
+   "id": "SC-greenville",
+   "name": "Greenville",
+   "state": "SC",
+   "local": true,
+   "rate": 0.00177,
+   "share": 1,
+   "threshold": null,
+   "perYear": 57,
+   "note": "Greenville business license: $57 + 0.177% of ALL gross receipts when your office is in the city (Class 4, 2026-27 rates).",
+   "confidence": "medium",
+   "sources": [
+    "https://content.civicplus.com/api/assets/sc-greenville/0b584241-a539-40d5-894b-6687467c8d75?cache=1800",
+    "https://sc-greenville3.civicplus.pro/asset/115af066-bc52-4122-8ac0-42db24e8d316",
+    "https://www.greenvillesc.gov/828/Business-Licenses",
+    "https://www.masc.sc/sites/default/files/uploads/finance/standardization-2025-amendment-no-class-9s.docx",
+    "https://www.scstatehouse.gov/code/t06c001.php"
+   ]
+  },
+  {
+   "id": "SD",
+   "name": "South Dakota",
+   "state": "SD",
+   "local": false,
+   "rate": 0,
+   "share": 0.0027,
+   "threshold": null,
+   "perYear": 55,
+   "note": "South Dakota has no corporate income, franchise, or gross receipts tax; a registered foreign corporation pays only the $55 online annual report fee.",
+   "confidence": "high",
+   "sources": [
+    "https://sdsos.gov/general-information/filing-fees.aspx",
+    "https://sdlegislature.gov/api/Statutes/47-1A-122.html?all=true",
+    "https://sdsos.gov/docs/business/corpforeignannualreport20250701.pdf",
+    "https://dor.sd.gov/businesses/taxes/",
+    "https://dor.sd.gov/businesses/taxes/bank-franchise-tax/",
+    "https://dor.sd.gov/media/avyep2sr/2026-7_sales-use-tax-guide.pdf",
+    "https://dor.sd.gov/businesses/taxes/sales-use-tax/2023-legislative-updates/",
+    "https://dor.sd.gov/media/argitevb/products-transferred-electronically.pdf",
+    "https://dor.sd.gov/businesses/taxes/municipal-tax/",
+    "https://dlr.sd.gov/ra/businesses/default.aspx"
+   ]
+  },
+  {
+   "id": "TN",
+   "name": "Tennessee",
+   "state": "TN",
+   "local": false,
+   "rate": 0.001875,
+   "share": 0.021,
+   "threshold": {
+    "perYear": 100000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 120,
+   "note": "0.1875% business tax on Tennessee-delivered service receipts once the TN location's gross sales reach $100k (SaaS license fees exempt since SAP v. Gerregano, 2026, so pure-SaaS revenue may owe nothing), plus the $100 minimum franchise tax and $20 annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2026/business-tax.pdf",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2025/Business-Tax-Manual.pdf",
+    "https://www.tn.gov/revenue/taxes/business-tax/due-dates-and-tax-rates.html",
+    "https://www.tn.gov/revenue/taxes/business-tax/registration-and-licensing.html",
+    "https://www.tn.gov/revenue/taxes/business-tax.html",
+    "https://www.tn.gov/revenue/for-local-governments/city-officials-resource-page/business-tax-co.html",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/forms/business/bus428.pdf",
+    "https://www.tncourts.gov/sites/default/files/OpinionsPDFVersion/M2024-1399-COA-R3-CVOPN.pdf",
+    "https://www.lbmc.com/blog/tennessee-saas-business-tax-ruling/",
+    "https://www.tn.gov/revenue/taxes/franchise---excise-tax.html",
+    "https://www.tn.gov/revenue/taxes/franchise---excise-tax/due-dates-and-tax-rates.html",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2026/franchise-tax.pdf",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/taxpayer_education/fae/filing_fe_tax_return.pdf",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/notices/fae/24-05fe.pdf",
+    "https://sos.tn.gov/businesses/faqs",
+    "https://sos.tn.gov/businesses/services/business-forms-fees",
+    "https://www.tn.gov/revenue/tax-resources/legal-resources/legislative-summaries/2026-legislative-summaries-.html",
+    "https://www.tn.gov/revenue/tax-resources/legal-resources/legislative-summaries/2025-legislative-summaries-.html"
+   ]
+  },
+  {
+   "id": "TN-chattanooga",
+   "name": "Chattanooga",
+   "state": "TN",
+   "local": true,
+   "rate": 0.001875,
+   "share": 0.021,
+   "threshold": {
+    "perYear": 100000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "Another 0.1875% city business tax on all Tennessee-delivered service receipts if your Tennessee office is in Chattanooga and its gross sales reach $100k; nothing for remote sellers without a Chattanooga location.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2026/business-tax.pdf",
+    "https://codes.findlaw.com/tn/title-67-taxes-and-licenses/tn-code-sect-67-4-705/"
+   ]
+  },
+  {
+   "id": "TN-knoxville",
+   "name": "Knoxville",
+   "state": "TN",
+   "local": true,
+   "rate": 0.001875,
+   "share": 0.021,
+   "threshold": {
+    "perYear": 100000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "Another 0.1875% city business tax on all Tennessee-delivered service receipts if your Tennessee office is in Knoxville and its gross sales reach $100k; nothing for remote sellers without a Knoxville location.",
+   "confidence": "high",
+   "sources": [
+    "https://library.municode.com/tn/knoxville/codes/code_of_ordinances?nodeId=PTIICOOR_CH16LIMIBURE_ARTIIBUTA",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2026/business-tax.pdf",
+    "https://codes.findlaw.com/tn/title-67-taxes-and-licenses/tn-code-sect-67-4-705/"
+   ]
+  },
+  {
+   "id": "TN-memphis",
+   "name": "Memphis",
+   "state": "TN",
+   "local": true,
+   "rate": 0.001875,
+   "share": 0.021,
+   "threshold": {
+    "perYear": 100000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "Another 0.1875% city business tax on all Tennessee-delivered service receipts if your Tennessee office is in Memphis and its gross sales reach $100k; nothing for remote sellers without a Memphis location.",
+   "confidence": "high",
+   "sources": [
+    "https://library.municode.com/tn/memphis/codes/code_of_ordinances?nodeId=TIT5REFI_CH5-12LIPRTA",
+    "https://memphistn.gov/licenses-and-permits/",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2026/business-tax.pdf",
+    "https://codes.findlaw.com/tn/title-67-taxes-and-licenses/tn-code-sect-67-4-705/"
+   ]
+  },
+  {
+   "id": "TN-nashville",
+   "name": "Nashville",
+   "state": "TN",
+   "local": true,
+   "rate": 0.001875,
+   "share": 0.021,
+   "threshold": {
+    "perYear": 100000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "Another 0.1875% city business tax on all Tennessee-delivered service receipts if your Tennessee office is in Nashville and its gross sales reach $100k; nothing for remote sellers without a Nashville location.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.tn.gov/content/dam/tn/revenue/documents/tax_manuals/june-2026/business-tax.pdf",
+    "https://library.municode.com/tn/metro_government_of_nashville_and_davidson_county/codes/code_of_ordinances?nodeId=CD_TIT5REFI_DIVIITA_CH5.16PRTA_ARTIIIBUTA",
+    "https://codes.findlaw.com/tn/title-67-taxes-and-licenses/tn-code-sect-67-4-705/",
+    "https://www.tn.gov/content/dam/tn/revenue/documents/forms/business/bus428.pdf",
+    "https://www.tn.gov/revenue/taxes/business-tax/registration-and-licensing.html"
+   ]
+  },
+  {
+   "id": "TX",
+   "name": "Texas",
+   "state": "TX",
+   "local": false,
+   "rate": 0.00331,
+   "share": 0.0928,
+   "threshold": {
+    "perYear": 2650000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "0.331% of Texas-sourced revenue once total revenue tops $2.65M/yr (EZ computation, 2026-27 reports); this is a ceiling, since a company whose payroll exceeds revenue owes $0 via the compensation deduction and computed tax under $1,000 isn't owed.",
+   "confidence": "high",
+   "sources": [
+    "https://comptroller.texas.gov/taxes/franchise/",
+    "https://comptroller.texas.gov/taxes/franchise/filing-requirements.php",
+    "https://comptroller.texas.gov/taxes/publications/98-806.php",
+    "https://comptroller.texas.gov/taxes/tax-policy-news/2026-january.php",
+    "https://comptroller.texas.gov/taxes/franchise/faq/apportionment.php",
+    "https://www.law.cornell.edu/regulations/texas/34-Tex-Admin-Code-SS-3-591",
+    "https://texas.public.law/statutes/tex._tax_code_section_171.002",
+    "https://www.sos.state.tx.us/corp/foreignfaqs.shtml",
+    "https://www.dallascad.org/Admin/125K_Exemption_Rendition_Insert_HB9.pdf",
+    "https://hcad.org/hcad-resources/hcad-industrial-personal-property/hcad-business-personal-property",
+    "https://comptroller.texas.gov/taxes/publications/96-259.php",
+    "https://comptroller.texas.gov/taxes/publications/94-127.php",
+    "https://gov.texas.gov/business/page/start-a-business",
+    "https://www.census.gov/newsroom/press-releases/2026/vintage-2025-city-town-pop-estimates.html"
+   ]
+  },
+  {
+   "id": "UT",
+   "name": "Utah",
+   "state": "UT",
+   "local": false,
+   "rate": 0,
+   "share": 0.0103,
+   "threshold": null,
+   "perYear": 118,
+   "note": "$100 Utah minimum corporate franchise tax plus $18 annual renewal; Utah has no gross receipts tax.",
+   "confidence": "high",
+   "sources": [
+    "https://tax.utah.gov/business/corporate-income-tax/c-corp-tax/",
+    "https://commerce.utah.gov/wp-content/uploads/2023/04/currentfees.pdf",
+    "https://commerce.utah.gov/corporations/renewal-process/",
+    "https://orbitax.com/news/country/article/Utah-Cuts-Individual-and-Corpo-61573",
+    "https://tax.utah.gov/forms/forms-pubs/pub-64",
+    "https://apps.saltlakecounty.gov/assessor/persproptax/public/smallbusinessExemptionOption.cfm",
+    "https://codes.findlaw.com/ut/title-10-utah-municipal-code/ut-code-sect-10-1-203/"
+   ]
+  },
+  {
+   "id": "UT-salt-lake-city",
+   "name": "Salt Lake City",
+   "state": "UT",
+   "local": true,
+   "rate": 0,
+   "share": 0.00064,
+   "threshold": null,
+   "perYear": 198,
+   "note": "$198/yr Salt Lake City business license base fee if you have an office there (plus $29 per employee once you have more than one); no city receipts tax.",
+   "confidence": "medium",
+   "sources": [
+    "https://tools.slc.gov/feeschedule/",
+    "https://www.slc.gov/ed/economic-development-information-taxes/",
+    "https://codes.findlaw.com/ut/title-10-utah-municipal-code/ut-code-sect-10-1-203/",
+    "https://apps.saltlakecounty.gov/assessor/persproptax/public/smallbusinessExemptionOption.cfm"
+   ]
+  },
+  {
+   "id": "VT",
+   "name": "Vermont",
+   "state": "VT",
+   "local": false,
+   "rate": 0,
+   "share": 0.0019,
+   "threshold": null,
+   "perYear": 350,
+   "note": "Vermont has no receipts tax: $100 minimum corporate tax (Vermont receipts ≤ $500k; it steps to $500/$2,000/$6,000 above $500k/$1M/$5M) plus a $250 foreign-corporation annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://tax.vermont.gov/business/corporate-income-tax",
+    "https://legislature.vermont.gov/statutes/section/32/151/05832",
+    "https://legislature.vermont.gov/statutes/section/32/151/05832a",
+    "https://tax.vermont.gov/sites/tax/files/documents/CO-411-Instr-2024.pdf",
+    "https://legislature.vermont.gov/Documents/2026/Workgroups/House%20Ways%20and%20Means/Corporate%20Income%20Tax/W~Patrick%20Titterton~Corporate%20Income%20Tax%20Overview~1-8-2026.pdf",
+    "https://legislature.vermont.gov/Documents/2026/Workgroups/House%20Ways%20and%20Means/Bills/H.933/W~Patrick%20Titterton~H.933%20Revenue%20Provisions~5-5-2026.pdf",
+    "https://sos.vermont.gov/business-services/fees-statutes",
+    "https://legislature.vermont.gov/statutes/fullchapter/11A/001",
+    "https://tax.vermont.gov/business-and-corp/sales-and-use-tax/prewritten-computer-software",
+    "https://tax.vermont.gov/business/child-care-contribution",
+    "https://tax.vermont.gov/business/local-option-tax"
+   ]
+  },
+  {
+   "id": "VA",
+   "name": "Virginia",
+   "state": "VA",
+   "local": false,
+   "rate": 0,
+   "share": 0.026,
+   "threshold": null,
+   "perYear": 1700,
+   "note": "No state receipts tax; $1,700/yr SCC annual registration fee (cap tier for more than 270,000 authorized shares, typical of VC-backed startups); 6% income tax only after profit.",
+   "confidence": "high",
+   "sources": [
+    "https://law.lis.virginia.gov/vacode/title13.1/chapter9/section13.1-775.1/",
+    "https://www.scc.virginia.gov/media/sccvirginiagov-home/business-home/business-faqs/annual-registration-fees/an_fee.pdf",
+    "https://budget.lis.virginia.gov/amendment/2026/2/HB30/Introduced/CR/477/1c/",
+    "https://www.tax.virginia.gov/corporation-income-tax",
+    "https://law.lis.virginia.gov/vacode/title58.1/chapter37/section58.1-3706/",
+    "https://law.lis.virginia.gov/vacode/title58.1/chapter37/section58.1-3703/",
+    "https://law.lis.virginia.gov/vacode/title58.1/chapter37/section58.1-3703.1/",
+    "https://law.lis.virginia.gov/vacode/title58.1/chapter37/section58.1-3732/",
+    "https://www.tax.virginia.gov/laws-rules-decisions/rulings-tax-commissioner/22-117",
+    "https://www.tax.virginia.gov/laws-rules-decisions/rulings-tax-commissioner/24-89",
+    "https://www.tax.virginia.gov/laws-rules-decisions/rulings-tax-commissioner/16-135",
+    "https://www.senatordeeds.com/2026-virginia-general-assembly/budget-deal-2026-special-session-1"
+   ]
+  },
+  {
+   "id": "VA-alexandria",
+   "name": "Alexandria",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0035,
+   "share": 1,
+   "threshold": {
+    "perYear": 99999,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "0.35% BPOL (services; 0.58% if professional) on all receipts attributed to an Alexandria office once they reach $100k; $50 below.",
+   "confidence": "high",
+   "sources": [
+    "https://www.alexandriava.gov/taxes/tax-rates",
+    "https://alexandriava.gov/taxes/business-license-tax",
+    "https://www.alexandriava.gov/business-resources/how-business-tax-is-calculated"
+   ]
+  },
+  {
+   "id": "VA-arlington-county",
+   "name": "Arlington County",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0036,
+   "share": 1,
+   "threshold": {
+    "perYear": 100000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "0.36% BPOL on all receipts attributed to an Arlington office once they exceed $100k (flat $30-$50 below); receipts follow the office, not the customers.",
+   "confidence": "high",
+   "sources": [
+    "https://www.arlingtonva.us/Government/Programs/Taxes/Business/Business-License-Tax",
+    "https://www.arlingtonva.us/files/sharedassets/public/v/1/county-board/documents/chapter-11-licenses.pdf",
+    "https://www.arlingtonva.us/files/sharedassets/public/v/1/budget/documents/fy-2027/adopted/fy27a-revenue-summary.pdf"
+   ]
+  },
+  {
+   "id": "VA-fairfax-county",
+   "name": "Fairfax County",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0019,
+   "share": 1,
+   "threshold": {
+    "perYear": 100000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "0.19% BPOL (business services; 0.31% for consulting) on all receipts attributed to a Fairfax County office once over $100k; flat $30-$50 below.",
+   "confidence": "high",
+   "sources": [
+    "https://www.fairfaxcounty.gov/taxes/business/bpol-license-rates",
+    "https://www.fairfaxcounty.gov/taxes/business/understanding-bpol-tax",
+    "https://www.fairfaxcounty.gov/taxes/business/exclusions",
+    "https://www.vacourts.gov/opinions/opnscvwp/1210568.pdf",
+    "https://www.arlingtonva.us/files/sharedassets/public/v/1/budget/documents/fy-2027/adopted/fy27a-revenue-summary.pdf"
+   ]
+  },
+  {
+   "id": "VA-loudoun-county",
+   "name": "Loudoun County",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0017,
+   "share": 1,
+   "threshold": {
+    "perYear": 200000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 30,
+   "note": "0.17% BPOL (business services; 0.33% if professional) on receipts attributed to a Loudoun office once over $200k; $30 flat below.",
+   "confidence": "high",
+   "sources": [
+    "https://www.loudoun.gov/1570/Business-Tax-Rates",
+    "https://www.loudoun.gov/1552/Business-License-Tax",
+    "https://www.arlingtonva.us/files/sharedassets/public/v/1/budget/documents/fy-2027/adopted/fy27a-revenue-summary.pdf"
+   ]
+  },
+  {
+   "id": "VA-norfolk",
+   "name": "Norfolk",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0036,
+   "share": 1,
+   "threshold": {
+    "perYear": 100000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "0.36% BPOL (business services; 0.58% if professional) on all receipts attributed to a Norfolk office once over $100k; $50 below.",
+   "confidence": "high",
+   "sources": [
+    "https://www.norfolk.gov/DocumentCenter/View/92321/2026-Business-License-Application"
+   ]
+  },
+  {
+   "id": "VA-richmond",
+   "name": "Richmond",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0036,
+   "share": 1,
+   "threshold": {
+    "perYear": 500000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 30,
+   "note": "0.36% BPOL (business/personal services; 0.58% if professional) on all receipts attributed to a Richmond office once over $500k; $30 flat below.",
+   "confidence": "high",
+   "sources": [
+    "https://www.rva.gov/finance/bpol-tax",
+    "https://www.rva.gov/press-releases-and-announcements/news/city-increases-business-professional-and-occupational-license",
+    "https://www.rva.gov/sites/default/files/2025-01/25'%20New%20Business%20License%20Checklist%20&%20Application.pdf"
+   ]
+  },
+  {
+   "id": "VA-virginia-beach",
+   "name": "Virginia Beach",
+   "state": "VA",
+   "local": true,
+   "rate": 0.0036,
+   "share": 1,
+   "threshold": {
+    "perYear": 200000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 50,
+   "note": "0.36% BPOL (general services; 0.58% if professional) on all receipts attributed to a Virginia Beach office once over $200k; $25-$50 flat below.",
+   "confidence": "high",
+   "sources": [
+    "https://cor.virginiabeach.gov/tax-rates-important-dates-deadlines",
+    "https://s3.us-east-1.amazonaws.com/virginia-beach-departments-docs/cor/Businesses/License/How-to-Start-a-Business-English.pdf",
+    "https://yesvirginiabeach.com/why-virginia-beach/business-environment/cost-of-doing-business"
+   ]
+  },
+  {
+   "id": "WA",
+   "name": "Washington",
+   "state": "WA",
+   "local": false,
+   "rate": 0.00471,
+   "share": 0.023,
+   "threshold": {
+    "perYear": 140000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 70,
+   "note": "0.471% retailing B&O on SaaS/IT receipts from Washington customers (1.5% on other professional services), with the small-business credit covering roughly the first $140k/yr of WA receipts; $70 annual report.",
+   "confidence": "high",
+   "sources": [
+    "https://dor.wa.gov/find-taxes-rates/business-occupation-tax/business-occupation-tax-classifications",
+    "https://dor.wa.gov/forms-publications/publications-subject/special-notices/service-and-other-activities-rate-changes",
+    "https://app.leg.wa.gov/RCW/default.aspx?cite=82.04.290",
+    "https://lawfilesext.leg.wa.gov/biennium/2025-26/Htm/Bill%20Reports/House/2081-S.E%20HBR%20FBR%2025.htm",
+    "https://lawfilesext.leg.wa.gov/biennium/2025-26/Pdf/Bill%20Reports/Senate/6346-S.E%20SBR%20FBR%2026.pdf",
+    "https://dor.wa.gov/forms-publications/publications-subject/tax-topics/2026-tax-legislation",
+    "https://dor.wa.gov/taxes-rates/tax-incentives/credits",
+    "https://dor.wa.gov/forms-publications/publications-subject/tax-topics/digital-products-including-digital-goods",
+    "https://dor.wa.gov/taxes-rates/information-technology-services",
+    "https://www.sos.wa.gov/corporations-charities/frequently-asked-questions-faqs/fee-schedules-priority-services",
+    "https://dor.wa.gov/open-business/apply-business-license/variable-business-license-processing-fees"
+   ]
+  },
+  {
+   "id": "WA-bellevue",
+   "name": "Bellevue",
+   "state": "WA",
+   "local": true,
+   "rate": 0.001596,
+   "share": 0.00046,
+   "threshold": {
+    "perYear": 215000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 1319,
+   "note": "0.1596% of receipts sourced to Bellevue once they exceed $215k/yr; plus about $1.32/sq ft/yr square-footage tax, shown here for a 1,000 sq ft office ($0 if remote).",
+   "confidence": "high",
+   "sources": [
+    "https://bellevuewa.gov/sites/default/files/media/pdf_document/2025/fam-2026-26745-botaxguide-v01.pdf",
+    "https://bellevuewa.gov/city-government/departments/finance/business-taxes/business-occupation-taxes/gross-receipts-b--o-tax",
+    "https://bellevuewa.gov/city-government/departments/finance/business-taxes/business-occupation-taxes/square-footage-b--o-tax"
+   ]
+  },
+  {
+   "id": "WA-bellingham",
+   "name": "Bellingham",
+   "state": "WA",
+   "local": true,
+   "rate": 0.0017,
+   "share": 0.00028,
+   "threshold": {
+    "perYear": 20000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 0,
+   "note": "0.17% of receipts sourced to Bellingham above $20k/yr (0.44% for non-retail services); the city license is a one-time $40.",
+   "confidence": "medium",
+   "sources": [
+    "https://cob.org/services/business/business-occupation-tax",
+    "https://dor.wa.gov/manage-business/city-endorsements/bellingham"
+   ]
+  },
+  {
+   "id": "WA-olympia",
+   "name": "Olympia",
+   "state": "WA",
+   "local": true,
+   "rate": 0.0015,
+   "share": 0.00016,
+   "threshold": {
+    "perYear": 500000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 30,
+   "note": "0.15% of receipts sourced to Olympia once they exceed $500k/yr; $30 city endorsement.",
+   "confidence": "high",
+   "sources": [
+    "https://www.olympiawa.gov/business/business___occupation_(b_o)_taxes.php"
+   ]
+  },
+  {
+   "id": "WA-redmond",
+   "name": "Redmond",
+   "state": "WA",
+   "local": true,
+   "rate": 0,
+   "share": 0.00023,
+   "threshold": null,
+   "perYear": 160,
+   "note": "No city receipts tax; business license is $160 per FTE working in Redmond ($160 minimum).",
+   "confidence": "high",
+   "sources": [
+    "https://dor.wa.gov/manage-business/city-endorsements/redmond"
+   ]
+  },
+  {
+   "id": "WA-renton",
+   "name": "Renton",
+   "state": "WA",
+   "local": true,
+   "rate": 0.0007,
+   "share": 0.00031,
+   "threshold": {
+    "perYear": 500000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 150,
+   "note": "0.07% of receipts sourced to Renton once they exceed $500k/yr; $150 business license.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.rentonwa.gov/City-Services/Tax-and-Licensing/Business-and-Occupation-Tax",
+    "https://www.rentonwa.gov/City-Services/Tax-and-Licensing/Business-Licenses"
+   ]
+  },
+  {
+   "id": "WA-seattle",
+   "name": "Seattle",
+   "state": "WA",
+   "local": true,
+   "rate": 0.00342,
+   "share": 0.0023,
+   "threshold": {
+    "perYear": 2000000,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 73,
+   "note": "0.342% (2026) of revenue from Seattle customers above a $2M/yr deduction; nothing owed at or under $2M; $73 business license.",
+   "confidence": "high",
+   "sources": [
+    "https://www.seattle.gov/city-finance/business-taxes-and-licenses/business-taxes",
+    "https://www.seattle.gov/city-finance/business-taxes-and-licenses/business-taxes/tax-rates-and-classifications",
+    "https://www.seattle.gov/city-finance/business-taxes-and-licenses/business-taxes/seattle-shield-business-and-occupation-(bando)-tax-changes",
+    "https://seattle.gov/city-finance/business-taxes-and-licenses/business-taxes/certain-service-activities-reclassified-to-retail",
+    "https://www.seattle.gov/city-finance/business-taxes-and-licenses/business-licenses",
+    "https://www.seattle.gov/documents/Departments/CityFinance/Business%20Tax%20Rules/Draft%20Rules%20July%202023/Seattle%20Rule%205-503%20Digital%20products.pdf",
+    "https://www.adc.seattle.gov/documents/Departments/CityFinance/BusinessLicenseTax/2026%20SB%205814%20Service%20Activities%20to%20Retail/AWC_Guidance_SB5814_sourcing-1.pdf"
+   ]
+  },
+  {
+   "id": "WA-spokane",
+   "name": "Spokane",
+   "state": "WA",
+   "local": true,
+   "rate": 0,
+   "share": 0.00068,
+   "threshold": null,
+   "perYear": 131,
+   "note": "No city receipts tax; $131 business license plus $10-$20 per Spokane employee.",
+   "confidence": "high",
+   "sources": [
+    "https://dor.wa.gov/manage-business/city-endorsements/spokane"
+   ]
+  },
+  {
+   "id": "WA-tacoma",
+   "name": "Tacoma",
+   "state": "WA",
+   "local": true,
+   "rate": 0.00153,
+   "share": 0.00065,
+   "threshold": {
+    "perYear": 250000,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 435,
+   "note": "0.153% of receipts sourced to Tacoma once company-wide revenue tops $250k/yr; $435 business license, which assumes $250k-$1M revenue and ranges from $190 to $2,000.",
+   "confidence": "medium",
+   "sources": [
+    "https://tacoma.gov/government/departments/finance/taxes-and-licenses/city-taxes/",
+    "https://tacoma.gov/government/departments/finance/taxes-and-licenses/city-taxes/tax-types/",
+    "https://tacoma.gov/government/departments/finance/taxes-and-licenses/business-licensing/other-license-information/business-license-fees/",
+    "https://cms.cityoftacoma.org/Finance/Tax_&_License_Workshop_B&O.pdf"
+   ]
+  },
+  {
+   "id": "WA-vancouver",
+   "name": "Vancouver",
+   "state": "WA",
+   "local": true,
+   "rate": 0.001,
+   "share": 0.00058,
+   "threshold": {
+    "perYear": 50000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 347,
+   "note": "0.1% of retail receipts (likely including SaaS) sourced to Vancouver above $50k/yr; $347 business license plus $165 per FTE.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.cityofvancouver.us/government/department/financial-and-management-services/business-and-occupation-tax/",
+    "https://www.cityofvancouver.us/business/permits-licenses-and-inspections/business-and-special-licenses/tax-and-franchise-information/",
+    "https://dor.wa.gov/manage-business/city-endorsements/vancouver"
+   ]
+  },
+  {
+   "id": "DC",
+   "name": "Washington, DC",
+   "state": "DC",
+   "local": false,
+   "rate": 0.0011,
+   "share": 0.002,
+   "threshold": {
+    "perYear": 5000000,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 449.5,
+   "note": "$250 DC minimum franchise tax ($1,000 once DC receipts top $1M) plus $150/yr biennial report and $49.50/yr business license; 0.11% of DC receipts at $5M+ approximates the flat $5,500-$16,500 sports facilities fee.",
+   "confidence": "high",
+   "sources": [
+    "https://otr.cfo.dc.gov/page/dc-business-franchise-tax-rates",
+    "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2025_D-20_Book_Final_wLinks_02272026.pdf",
+    "https://otr.cfo.dc.gov/page/sports-facilities-fee",
+    "https://code.dccouncil.gov/us/dc/council/code/sections/47-2762",
+    "https://otr.cfo.dc.gov/sites/default/files/dc/sites/otr/publication/attachments/2020_and_Later_Ballpark_Fee_Instructions_0.pdf",
+    "https://otr.cfo.dc.gov/release/notice-oct-1-2025-tax-changes",
+    "https://dlcp.dc.gov/page/general-business",
+    "https://dlcp.dc.gov/page/dlcp-license-corporate-filing-fees",
+    "https://otr.cfo.dc.gov/page/taxable-and-non-taxable-services",
+    "https://code.dccouncil.gov/us/dc/council/code/sections/47-2002",
+    "https://ora-cfo.dc.gov/blog/revenue-provisions-dc%E2%80%99s-new-budget"
+   ]
+  },
+  {
+   "id": "WV",
+   "name": "West Virginia",
+   "state": "WV",
+   "local": false,
+   "rate": 0,
+   "share": 0.00541,
+   "threshold": null,
+   "perYear": 25,
+   "note": "No West Virginia state receipts or franchise tax on software/services; $25 annual report fee to the Secretary of State; 6.5% corporate income tax only once profitable.",
+   "confidence": "high",
+   "sources": [
+    "https://tax.wv.gov/Documents/TSD/tsd100.pdf",
+    "https://code.wvlegislature.gov/59-1-2A/",
+    "https://sos.wv.gov/sites/default/files/2026-07/Annualreportcorp_0.pdf",
+    "http://www.wvlegislature.gov/Bill_Status/bills_text.cfm?billdoc=hb2451+sub+enr.htm&yr=2025&sesstype=RS&i=2451",
+    "https://code.wvlegislature.gov/8-13-5/",
+    "https://tax.wv.gov/Documents/SUT/MunicipalitiesImposingSalesAndUseTaxes.pdf",
+    "https://www.fairmontwv.gov/255/Business-Occupation-Tax"
+   ]
+  },
+  {
+   "id": "WV-charleston",
+   "name": "Charleston",
+   "state": "WV",
+   "local": true,
+   "rate": 0.01,
+   "share": 0.000147,
+   "threshold": {
+    "perYear": 2500,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 20,
+   "note": "1% Charleston B&O tax on gross receipts from services rendered in Charleston (more if headquartered there); exempt under $2,500 total gross income; $20/yr business license if you have a location in the city.",
+   "confidence": "high",
+   "sources": [
+    "https://www.charlestonwv.gov/sites/default/files/documents/2026-03/New%20Business%20Handbook%2012.25.pdf",
+    "https://www.charlestonwv.gov/sites/default/files/documents/2022-12/B&O%20Frequently%20Asked%20Questions%2012.2022.pdf",
+    "https://www.charlestonwv.gov/sites/default/files/documents/2026-01/BOoverview.pdf",
+    "https://www.charlestonwv.gov/sites/default/files/documents/2024-05/BUSINESS%20REGISTRATION%20APPLICATION-revisions%202024.pdf",
+    "https://www.charlestonwv.gov/government/business-startup",
+    "https://charlestonwvpayments.com/bando-info",
+    "https://wchsnetwork.com/2025/10/06/charleston-council-members-approve-amendment-to-business-and-occupation-tax/",
+    "http://www.wvlegislature.gov/Bill_Status/bills_text.cfm?billdoc=hb2451+sub+enr.htm&yr=2025&sesstype=RS&i=2451"
+   ]
+  },
+  {
+   "id": "WV-huntington",
+   "name": "Huntington",
+   "state": "WV",
+   "local": true,
+   "rate": 0.005,
+   "share": 0.000141,
+   "threshold": {
+    "perYear": 2500,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 20,
+   "note": "0.5% Huntington B&O tax on gross receipts from services in Huntington; $20/yr business license.",
+   "confidence": "high",
+   "sources": [
+    "https://www.cityofhuntington.com/business/taxes-and-fees/",
+    "https://www.cityofhuntington.com/assets/pdf/BO_Tax_Return_City_of_Huntington_Fillable_1.pdf",
+    "https://www.cityofhuntington.com/assets/pdf/Business_License_Application_City_of_Huntington_10.1.25_Fillable__1.pdf",
+    "https://www.cityofhuntington.com/business/taxes-and-fees/city-service-fee/"
+   ]
+  },
+  {
+   "id": "WV-morgantown",
+   "name": "Morgantown",
+   "state": "WV",
+   "local": true,
+   "rate": 0.009,
+   "share": 0.0000916,
+   "threshold": {
+    "perYear": 1529,
+    "on": "there",
+    "excess": false
+   },
+   "perYear": 20,
+   "note": "0.9% Morgantown B&O tax on service receipts from Morgantown, less a small $3.44/quarter credit; $20/yr business license.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.morgantownwv.gov/204/Business-Occupation-Tax-Returns",
+    "https://www.morgantownwv.gov/DocumentCenter/View/3581/Quarterly-Business-and-Occupation-Tax-Return-Form-PDF",
+    "https://morgantownwv.gov/DocumentCenter/View/5595/Fillable-Municipal-Business-License-Application",
+    "https://tax.wv.gov/Documents/SUT/MunicipalitiesImposingSalesAndUseTaxes.pdf"
+   ]
+  },
+  {
+   "id": "WV-parkersburg",
+   "name": "Parkersburg",
+   "state": "WV",
+   "local": true,
+   "rate": 0.009,
+   "share": 0.0000897,
+   "threshold": {
+    "perYear": 88889,
+    "on": "there",
+    "excess": true
+   },
+   "perYear": 0,
+   "note": "0.9% Parkersburg B&O tax on service receipts from Parkersburg after a $200/quarter tax exemption (about the first $89k/yr of Parkersburg receipts).",
+   "confidence": "medium",
+   "sources": [
+    "https://cms2.revize.com/revize/parkersburg/Document%20Center/Department/Finance/Frequently%20Requested%20Forms/3Q24%20B&O%20Standard%20Form%208-23.pdf",
+    "https://tax.wv.gov/Documents/SUT/MunicipalitiesImposingSalesAndUseTaxes.pdf"
+   ]
+  },
+  {
+   "id": "WV-wheeling",
+   "name": "Wheeling",
+   "state": "WV",
+   "local": true,
+   "rate": 0.0088,
+   "share": 0.0000797,
+   "threshold": {
+    "perYear": 2500,
+    "on": "total",
+    "excess": false
+   },
+   "perYear": 15,
+   "note": "0.88% Wheeling B&O tax on service receipts from Wheeling; $15/yr business license.",
+   "confidence": "medium",
+   "sources": [
+    "https://www.wheelingwv.gov/business-occupation-tax-schedule-table-rates",
+    "https://www.wheelingwv.gov/departments/Finance/taxes-fees",
+    "https://www.wheelingwv.gov/departments/Finance/businesslicense"
+   ]
+  },
+  {
+   "id": "WI",
+   "name": "Wisconsin",
+   "state": "WI",
+   "local": false,
+   "rate": 0,
+   "share": 0.0175,
+   "threshold": null,
+   "perYear": 65,
+   "note": "No Wisconsin receipts tax; $65/yr foreign-corporation annual report, plus $25/yr surcharge only once total receipts reach $4M (not modeled).",
+   "confidence": "high",
+   "sources": [
+    "https://dfi.wi.gov/Pages/BusinessServices/BusinessEntities/Fees.aspx",
+    "https://dfi.wi.gov/Documents/BusinessServices/BusinessEntities/Forms/CORP18.pdf",
+    "https://docs.legis.wisconsin.gov/statutes/statutes/180/i/0122",
+    "https://docs.legis.wisconsin.gov/statutes/statutes/180/xv/1503",
+    "https://docs.legis.wisconsin.gov/misc/lfb/budget/2005_07_biennial_budget/300_budget_papers/301_financial_institutions_foreign_corporation_filing_fees.pdf",
+    "https://www.revenue.wi.gov/Pages/FAQS/pcs-temp.aspx",
+    "https://www.revenue.wi.gov/DOR%20Publications/pb400.pdf",
+    "https://www.revenue.wi.gov/Pages/FAQS/ise-crpginfo.aspx",
+    "https://www.revenue.wi.gov/Pages/FAQS/pcs-computerc.aspx",
+    "https://www.revenue.wi.gov/Documents/2023-Act12-Information.pdf"
+   ]
+  },
+  {
+   "id": "WY",
+   "name": "Wyoming",
+   "state": "WY",
+   "local": false,
+   "rate": 0,
+   "share": 0.0017,
+   "threshold": null,
+   "perYear": 60,
+   "note": "No Wyoming income or receipts tax; $60 minimum annual report license tax (≤ $300k of Wyoming assets).",
+   "confidence": "high",
+   "sources": [
+    "https://sos.wyo.gov/Business/Docs/BusinessFees.pdf",
+    "https://sos.wyo.gov/faqs.aspx?root=BUS",
+    "https://sos.wyo.gov/forms/business/general/arworksheet.pdf",
+    "https://www.law.cornell.edu/regulations/wyoming/011-2-Wyo-Code-R-SS-2-12",
+    "https://taxfoundation.org/location/wyoming/"
+   ]
+  },
+  {
+   "id": "WY-jackson",
+   "name": "Jackson",
+   "state": "WY",
+   "local": true,
+   "rate": 0,
+   "share": 0.00003,
+   "threshold": null,
+   "perYear": 179,
+   "note": "$179/yr Town of Jackson business license (1–10 employees, non-sales-tax-collecting); applies only with a location in the Town.",
+   "confidence": "high",
+   "sources": [
+    "https://www.jacksonwy.gov/DocumentCenter/View/97/Business-License-Application-PDF"
+   ]
+  }
+ ],
+ "nothingOwed": [
+  "Anchorage, AK",
+  "Juneau, AK",
+  "Fort Smith, AR (low confidence)",
+  "Fayetteville, AR",
+  "Colorado Springs, CO",
+  "Boulder, CO",
+  "Greenwood Village, CO",
+  "Stamford, CT",
+  "Hartford, CT",
+  "New Haven, CT",
+  "Bridgeport, CT",
+  "Columbus (GA), GA (low confidence)",
+  "Honolulu, HI",
+  "Hawaii County, HI",
+  "Maui County, HI",
+  "Kauai County, HI",
+  "Boise, ID",
+  "Cook County, IL",
+  "Indianapolis, IN",
+  "Des Moines, IA",
+  "Cedar Rapids, IA",
+  "Davenport, IA",
+  "Wichita, KS",
+  "Overland Park, KS",
+  "Louisville, KY",
+  "Portland, ME",
+  "Baltimore, MD",
+  "Montgomery County, MD",
+  "Boston, MA",
+  "Cambridge, MA",
+  "Detroit, MI",
+  "Grand Rapids, MI",
+  "Ann Arbor, MI",
+  "Minneapolis, MN",
+  "St. Paul, MN",
+  "Jackson, MS",
+  "Clayton, MO (low confidence)",
+  "St. Louis County, MO",
+  "Bozeman, MT (low confidence)",
+  "Omaha, NE",
+  "Lincoln, NE",
+  "Carson City, NV",
+  "Manchester, NH",
+  "Newark, NJ",
+  "Jersey City, NJ",
+  "Buffalo, NY",
+  "Yonkers, NY",
+  "Charlotte, NC",
+  "Raleigh, NC",
+  "Durham, NC",
+  "Fargo, ND",
+  "Bismarck, ND",
+  "Grand Forks, ND",
+  "Columbus, OH",
+  "Cleveland, OH",
+  "Cincinnati, OH",
+  "Oklahoma City, OK",
+  "Tulsa, OK",
+  "Multnomah County, OR",
+  "Metro (Portland region), OR",
+  "Eugene, OR",
+  "Pittsburgh, PA",
+  "Scranton, PA",
+  "Lancaster, PA",
+  "Providence, RI",
+  "Sioux Falls, SD",
+  "Rapid City, SD",
+  "Houston, TX",
+  "Dallas, TX",
+  "Austin, TX",
+  "San Antonio, TX",
+  "Lehi, UT",
+  "Burlington, VT",
+  "Everett, WA (low confidence)",
+  "Milwaukee, WI",
+  "Madison, WI",
+  "Cheyenne, WY",
+  "Casper, WY"
+ ]
+}
