@@ -487,7 +487,12 @@ function calculator(host, state, { editable, onChange = () => {} }) {
       inputs[key].addEventListener("keydown", (e) => {
         if (e.key !== "Enter" && e.key !== "Tab") return;
         e.preventDefault();
-        inputs[KEYS[(i + (e.shiftKey ? KEYS.length - 1 : 1)) % KEYS.length]].focus();
+        const next = inputs[KEYS[(i + (e.shiftKey ? KEYS.length - 1 : 1)) % KEYS.length]];
+        next.focus();
+        // Forward selects the whole box (to overwrite); backward parks the cursor at the end
+        // (to fix up what you just typed).
+        if (e.shiftKey) next.setSelectionRange(next.value.length, next.value.length);
+        else next.select();
       });
     });
     disclosure.addEventListener("click", () => { state.chart = !state.chart; update(); });
