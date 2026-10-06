@@ -3,10 +3,9 @@ import Foundation
 // Only taxes that cost money before profitability can change the verdict: default alive
 // asks whether you reach breakeven, and at breakeven profit is zero, so income taxes are
 // zero all the way there. What's left are receipts taxes and fixed yearly amounts, per
-// state and city, in TaxPlaces.json: built from research/ (one agent per state, official
-// sources, Oct 2026) by research/places.mjs, compiled in via Package.swift's
-// .embedInCode, and read by the browser mock too. Re-check yearly (research/places.mjs
-// says how).
+// state and city, in TaxPlaces.json: built from docs/tax-research/ (one agent per state,
+// official sources, Oct 2026) by places.mjs there, compiled in via Package.swift's
+// .embedInCode, and read by the browser mock too. Re-check yearly (places.mjs says how).
 
 /// One state or city on the checklist.
 public struct TaxPlace: Decodable, Sendable, Equatable, Identifiable {

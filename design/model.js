@@ -528,7 +528,7 @@ export function balanceCurve(inputs, samples = 160) {
 // default alive asks whether you reach breakeven, and at breakeven profit is zero, so
 // income taxes are zero all the way there. What's left are receipts taxes and fixed
 // yearly amounts, per state and city, in TAX_PLACES (TaxPlaces.json, built from
-// research/ by research/places.mjs; the app compiles in the same file).
+// docs/tax-research/ by places.mjs there; the app compiles in the same file).
 
 export const { places: TAX_PLACES, nothingOwed: TAX_NOTHING_OWED, checked: TAX_CHECKED } = taxCatalog;
 const placeById = new Map(TAX_PLACES.map((p) => [p.id, p]));

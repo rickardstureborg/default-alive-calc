@@ -1,14 +1,14 @@
 // Research → Sources/DefaultAliveCore/TaxPlaces.json, the tax checklist both the app and the
-// browser mock read. Run: node research/places.mjs
+// browser mock read. Run: node docs/tax-research/places.mjs
 //
-// The research is one Opus agent per state (research/workflow.js, Oct 2026), each asked for
-// the taxes a pre-profit Delaware C corp selling software/services nationally actually pays:
+// The research is one Opus agent per state (workflow.js here, Oct 2026), each asked for the
+// taxes a pre-profit Delaware C corp selling software/services nationally actually pays:
 // receipts taxes and fixed yearly amounts. Income taxes are zero before profit and are left
-// out. Next year: rerun the workflow, save it as research/taxes-YYYY-MM.json, point
-// RESEARCH below at it, rerun this, and diff TaxPlaces.json.
+// out. Next year: rerun the workflow, save it as taxes-YYYY-MM.json here, point RESEARCH
+// below at it, rerun this from the repo root, and diff TaxPlaces.json.
 import fs from "node:fs";
 
-const RESEARCH = "research/taxes-2026-10.json";
+const RESEARCH = "docs/tax-research/taxes-2026-10.json";
 const OUT = "Sources/DefaultAliveCore/TaxPlaces.json";
 
 const STATE_CODES = {
