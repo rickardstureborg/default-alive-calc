@@ -48,9 +48,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate()
 
         // A local monitor runs before the field editor sees the key, which is what lets
-        // Esc / C / ⌘⌫ clear everything even while a text field has focus. ⌘⌫ normally
-        // deletes to line start; overriding it is intentional. Plain C is safe to steal
-        // because no field accepts letters other than k/m/b, and ⌘C (copy) still passes.
+        // Esc / C / keypad Clear clear everything even while a box has the cursor. Plain C
+        // is safe to steal because no box accepts letters other than k/m/b, and ⌘C (copy)
+        // still passes. ⌘⌫ clears everything only when no box has the cursor; inside a box
+        // it passes through to its normal meaning, delete back to the start of the box.
         //
         // Tab and Return both move to the next box and Shift reverses, wrapping at the
         // ends. Handled here rather than by AppKit's key-view loop because that loop also
@@ -61,8 +62,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             let mods = event.modifierFlags.intersection([.command, .option, .control, .shift])
             let esc = event.keyCode == 53 && mods.isEmpty
             let c = event.charactersIgnoringModifiers?.lowercased() == "c" && mods.subtracting(.shift).isEmpty
-            let cmdDelete = event.keyCode == 51 && mods == .command
-            if esc || c || cmdDelete {
+            // 71: the keypad's Clear key (Apple extended / Macally keyboards).
+            let keypadClear = event.keyCode == 71
+            let inBox = event.window?.firstResponder is NSTextView
+            let cmdDelete = event.keyCode == 51 && mods == .command && !inBox
+            if esc || c || keypadClear || cmdDelete {
                 NotificationCenter.default.post(name: .clearInputs, object: nil)
                 return nil
             }
@@ -106,7 +110,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         edit.addItem(withTitle: "Select All", action: #selector(NSText.selectAll(_:)), keyEquivalent: "a")
         edit.addItem(.separator())
         // Listed for discoverability; the key monitor above handles the keystroke first.
-        let clear = edit.addItem(withTitle: "Clear All", action: #selector(clearInputs(_:)), keyEquivalent: "\u{8}")
+        // Shown as Esc, not ⌘⌫: a ⌘⌫ menu shortcut would fire inside a box too (menu key
+        // equivalents run before the field editor), clearing everything instead of
+        // deleting to the start of the box.
+        let clear = edit.addItem(withTitle: "Clear All", action: #selector(clearInputs(_:)), keyEquivalent: "\u{1b}")
+        clear.keyEquivalentModifierMask = []
         clear.target = self
 
         let windowMenu = NSMenu(title: "Window")

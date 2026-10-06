@@ -79,6 +79,10 @@ struct CalculatorForm: View {
         }
         .padding(Style.padding)
         .frame(width: Style.width)
+        // Clicking empty space takes the cursor out of the boxes, as in a browser. That's
+        // the "no box selected" state where ⌘⌫ clears everything.
+        .contentShape(Rectangle())
+        .onTapGesture { focus = nil }
         .onAppear { focus = .cash }
         .onReceive(NotificationCenter.default.publisher(for: .clearInputs)) { _ in
             model.state.clear()

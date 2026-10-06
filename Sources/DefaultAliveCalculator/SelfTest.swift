@@ -27,6 +27,16 @@ enum SelfTest {
                 NSApp.postEvent(event, atStart: false)
                 await settle()
             }
+            @MainActor func click(_ point: NSPoint) async {
+                for type in [NSEvent.EventType.leftMouseDown, .leftMouseUp] {
+                    let event = NSEvent.mouseEvent(
+                        with: type, location: point, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                        windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1,
+                        pressure: type == .leftMouseDown ? 1 : 0)!
+                    NSApp.postEvent(event, atStart: false)
+                }
+                await settle()
+            }
             /// Which box has the cursor (by its text, all distinct here) and what's selected.
             @MainActor func where_() -> (row: String, selection: NSRange) {
                 guard let editor = window.firstResponder as? NSTextView else { return ("none", NSRange()) }
@@ -59,7 +69,7 @@ enum SelfTest {
             }
 
             let clears: [(String, UInt16, String, NSEvent.ModifierFlags)] = [
-                ("Esc", 53, "\u{1b}", []), ("C", 8, "c", []), ("⌘⌫", 51, "\u{7f}", .command),
+                ("Esc", 53, "\u{1b}", []), ("C", 8, "c", []), ("keypad Clear", 71, "\u{F739}", []),
             ]
             for (name, code, chars, mods) in clears {
                 model.state = state
@@ -72,6 +82,33 @@ enum SelfTest {
             await settle()
             await key(8, "c", .command)
             check("⌘C does not clear", model.state.field(.cash).text == "$400k", "cash=\(model.state.field(.cash).text)")
+
+            // ⌘⌫ inside a box: delete back to the start of that box only.
+            (window.firstResponder as? NSTextView)?.setSelectedRange(NSRange(location: 3, length: 0))
+            await key(51, "\u{7f}", .command)
+            check("⌘⌫ in a box deletes to its start only", model.state.field(.cash).text == "0k" && model.state.field(.expenses).text == "80k",
+                  "cash=\(model.state.field(.cash).text) expenses=\(model.state.field(.expenses).text)")
+
+            // Clicking empty space deselects; then ⌘⌫ clears everything.
+            model.state = state
+            await settle()
+            await click(NSPoint(x: 12, y: 12))
+            check("click on background deselects", where_().row == "none", "at \(where_().row)")
+            await key(51, "\u{7f}", .command)
+            let empty = Row.allCases.allSatisfy { model.state.field($0).text.isEmpty }
+            check("⌘⌫ with no box selected clears all", empty, "empty=\(empty)")
+            await click(NSPoint(x: 12, y: 12))
+            model.state = state
+            await settle()
+            await key(48, "\t")
+            check("Tab with no box selected goes to cash", where_().row == "cash", "at \(where_().row)")
+
+            // The background tap handler must not swallow clicks meant for a box. Expenses'
+            // centre, from the layout: padding 20 + "alive if" header ~20 + cash row 28 +
+            // spacing 10 + half a row; x is the field's middle, 400 − 20 − 72 − 10 − 60.
+            let height = window.contentView?.bounds.height ?? 0
+            await click(NSPoint(x: 238, y: height - 92))
+            check("clicking a box still focuses it", where_().row == "expenses", "at \(where_().row)")
 
             lines.append(failures == 0 ? "ALL PASS" : "\(failures) FAILED")
             try? lines.joined(separator: "\n").appending("\n").write(toFile: output, atomically: true, encoding: .utf8)
