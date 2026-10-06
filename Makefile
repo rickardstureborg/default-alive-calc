@@ -77,6 +77,15 @@ preview-stop:
 # for a couple of seconds; the installed one and its saved input are untouched.
 selftest: bundle
 	@rm -f build/selftest.txt
+	@# It needs keyboard focus for ~3s; macOS won't give it while someone is typing, and
+	@# their keystrokes would land in the test window. Wait (up to 2 min) for 5s of no
+	@# keyboard/mouse input first.
+	@for i in $$(seq 1 120); do \
+		idle=$$(ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print int($$NF/1000000000); exit}'); \
+		[ "$$idle" -ge 5 ] && break; \
+		[ $$i -eq 1 ] && echo "waiting for 5s without keyboard/mouse input…"; \
+		sleep 1; \
+	done
 	@open -W -n "$(BUILT_APP)" --args --selftest "$(CURDIR)/build/selftest.txt"
 	@cat build/selftest.txt
 	@grep -q '^ALL PASS' build/selftest.txt

@@ -14,7 +14,16 @@ enum SelfTest {
         Task { @MainActor in
             var lines: [String] = []
             var failures = 0
+            var interrupted: String?
+            // Everything here needs the window to be key. If someone uses the Mac mid-run,
+            // macOS hands focus to their app and every later check fails for that reason
+            // alone; report that once instead of a pile of misleading FAILs.
             @MainActor func check(_ name: String, _ ok: Bool, _ detail: String) {
+                guard interrupted == nil else { return }
+                guard window.isKeyWindow else {
+                    interrupted = name
+                    return
+                }
                 if !ok { failures += 1 }
                 lines.append("\(ok ? "PASS" : "FAIL")  \(name)  [\(detail)]")
             }
@@ -125,7 +134,29 @@ enum SelfTest {
             check("Return compacts it and moves on", model.state.field(.cash).text == "168" && where_().row == "expenses",
                   "cash=\(model.state.field(.cash).text) at \(where_().row)")
 
-            lines.append(failures == 0 ? "ALL PASS" : "\(failures) FAILED")
+            // Arrows: Up/Down to the box above/below, cursor at the end, no wrapping.
+            let arrows: [(String, UInt16, String, Bool, String)] = [
+                ("Down", 125, "\u{F701}", true, "revenue"),
+                ("Down", 125, "\u{F701}", true, "growth"),
+                ("Down at the bottom stays", 125, "\u{F701}", true, "growth"),
+                ("Up", 126, "\u{F700}", false, "revenue"),
+                ("Up", 126, "\u{F700}", false, "expenses"),
+                ("Up", 126, "\u{F700}", false, "cash"),
+                ("Up at the top stays", 126, "\u{F700}", false, "cash"),
+            ]
+            for (name, code, chars, _, expected) in arrows {
+                await key(code, chars, [.numericPad, .function])
+                let (row, sel) = where_()
+                let length = (model.state.field(rowFor(expected)).text as NSString).length
+                check("\(name) → \(expected), cursor at end", row == expected && sel == NSRange(location: length, length: 0),
+                      "at \(row), selection \(sel.location)+\(sel.length)")
+            }
+
+            if let interrupted {
+                lines.append("INTERRUPTED at \"\(interrupted)\": the window lost keyboard focus (someone used the Mac). Rerun when it is idle.")
+            } else {
+                lines.append(failures == 0 ? "ALL PASS" : "\(failures) FAILED")
+            }
             try? lines.joined(separator: "\n").appending("\n").write(toFile: output, atomically: true, encoding: .utf8)
             NSApp.terminate(nil)
         }
