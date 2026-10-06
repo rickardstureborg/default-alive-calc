@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Resources/AppIcon.png" width="160" alt="Default Alive Calculator logo: a skull with a sprout growing from it">
+</p>
+
 # Default Alive Calculator
 
 A small Mac app for Paul Graham's question in [Default Alive or Default Dead?](https://paulgraham.com/aord.html): if expenses stay flat and revenue keeps growing at its recent rate, do you reach profitability before the money runs out?
