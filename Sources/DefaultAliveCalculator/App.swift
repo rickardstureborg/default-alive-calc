@@ -19,6 +19,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             return
         }
+        if let i = args.firstIndex(of: "--screenshot"), i + 4 < args.count {
+            do {
+                try Snapshot.screenshot(presetsPath: args[i + 1], preset: args[i + 2], dark: args[i + 3] == "dark", outputPath: args[i + 4])
+            } catch {
+                FileHandle.standardError.write(Data("screenshot failed: \(error)\n".utf8))
+                exit(1)
+            }
+            return
+        }
 
         let app = NSApplication.shared
         let delegate = AppDelegate()
