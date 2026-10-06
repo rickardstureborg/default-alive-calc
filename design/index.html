@@ -86,8 +86,13 @@
     position: absolute; left: 8px; top: 50%; transform: translateY(-50%); pointer-events: none;
     color: var(--secondary); font-size: var(--field-size); font-variant-numeric: tabular-nums;
   }
-  .row input {
+  /* An editable element rather than an <input>, so it can draw grey thousands commas that
+     aren't in its text (see numberBox()). Same look as the app's TextField. */
+  .row .numbox {
     width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    cursor: text;
     height: 28px;
     box-sizing: border-box;
     padding: 0 8px 0 22px;
@@ -99,12 +104,14 @@
     color: var(--text);
     font: inherit;
     font-size: var(--field-size);
+    line-height: 28px; /* after the font shorthand, which would reset it */
     font-variant-numeric: tabular-nums;
     text-align: right;
     outline: none;
   }
-  .row input::placeholder { color: var(--placeholder); }
-  .row input.invalid { color: var(--dead); }
+  .numbox:empty::before { content: attr(data-placeholder); color: var(--placeholder); }
+  .numbox .comma::before { content: ","; color: var(--secondary); }
+  .numbox.invalid { color: var(--dead); }
   /* Single-lever breakeven: what this value would have to be, alone, to flip the verdict.
      Secondary ink, not red/green: every hint is unmet when dead and met when alive (each
      lever is monotone), so per-row color would only repeat the headline. */
@@ -263,7 +270,7 @@
 <script type="module">
 import {
   KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatPercent,
-  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing,
+  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing, groupBreaks,
   formatMoney, formatMonths, formatMonthYear,
 } from "./model.js";
 
@@ -384,6 +391,71 @@ function drawChart(host, inputs, now) {
   });
 }
 
+// A one-line editable box that draws grey thousands commas without putting them in its
+// text, as the app's GroupingFieldEditor does: the cursor steps over digits only and
+// Backspace never meets a comma. An <input> can't draw characters it doesn't contain, so
+// this is a contenteditable element with the comma as CSS generated content (not text, not
+// selectable). It mimics the parts of HTMLInputElement the page uses.
+function numberBox(name, editable) {
+  const box = el("div", { className: "numbox", spellcheck: false, tabIndex: editable ? 0 : -1 });
+  box.dataset.name = name;
+  box.contentEditable = editable ? "plaintext-only" : "false";
+  const raw = () => box.textContent;
+  const render = (text) => {
+    const nodes = [];
+    let from = 0;
+    for (const at of [...groupBreaks(text), text.length]) {
+      if (at > from) nodes.push(document.createTextNode(text.slice(from, at)));
+      if (at < text.length) nodes.push(el("span", { className: "comma" }));
+      from = at;
+    }
+    box.replaceChildren(...nodes);
+  };
+  // Raw text offsets ↔ DOM positions. Comma spans hold no text, so they don't count.
+  const offsetOf = (node, offset) => {
+    const r = document.createRange();
+    r.setStart(box, 0);
+    r.setEnd(node, offset);
+    return r.toString().length;
+  };
+  const positionOf = (offset) => {
+    const walker = document.createTreeWalker(box, NodeFilter.SHOW_TEXT);
+    for (let n = walker.nextNode(); n; n = walker.nextNode()) {
+      if (offset <= n.data.length) return [n, offset];
+      offset -= n.data.length;
+    }
+    return [box, box.childNodes.length];
+  };
+  const selection = () => {
+    const s = getSelection();
+    if (!s.rangeCount || !box.contains(s.anchorNode)) return [raw().length, raw().length];
+    const r = s.getRangeAt(0);
+    return [offsetOf(r.startContainer, r.startOffset), offsetOf(r.endContainer, r.endOffset)];
+  };
+  Object.defineProperties(box, {
+    value: { get: raw, set: render },
+    selectionStart: { get: () => selection()[0] },
+    selectionEnd: { get: () => selection()[1] },
+    placeholder: { get: () => box.dataset.placeholder ?? "", set: (v) => (box.dataset.placeholder = v) },
+  });
+  box.setSelectionRange = (start, end) => {
+    const r = document.createRange();
+    r.setStart(...positionOf(start));
+    r.setEnd(...positionOf(end));
+    getSelection().removeAllRanges();
+    getSelection().addRange(r);
+  };
+  box.select = () => box.setSelectionRange(0, raw().length);
+  // Regroup on every edit so the commas follow the digits; registered first, so it runs
+  // before the page's own input handler.
+  box.addEventListener("input", () => {
+    const caret = box.selectionStart;
+    render(raw());
+    box.setSelectionRange(caret, caret);
+  });
+  return box;
+}
+
 // One calculator in `host`. Mirrors CalculatorForm.
 //
 // state: { fields, linear, chart }. fields has one entry per input box, and growth has
@@ -401,7 +473,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   const labels = {}, inputs = {}, hints = {}, units = {};
   for (const key of KEYS) {
     labels[key] = el("div", { className: "label" });
-    inputs[key] = el("input", { name: key, autocomplete: "off", spellcheck: false, readOnly: !editable, tabIndex: editable ? 0 : -1 });
+    inputs[key] = numberBox(key, editable);
     hints[key] = el("div", { className: "hint", title: HINT_HELP[key] });
     units[key] = el("span", { className: "unit" });
     rows.append(el("div", { className: "row" }, labels[key], el("div", { className: "box" }, units[key], inputs[key]), hints[key]));
@@ -546,7 +618,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   if (editable) {
     KEYS.forEach((key, i) => {
       inputs[key].addEventListener("input", () => {
-        // Live: regroup thousands and drop "$"/"%" as you type, keeping the cursor in place.
+        // Drop "$", "%" and "," as they're typed or pasted (the box draws the unit and commas),
+        // keeping the cursor in place.
         const el = inputs[key], typed = el.value, caret = el.selectionStart;
         const shown = normalizeField(typed);
         if (shown !== typed) { el.value = shown; const at = caretAfterNormalizing(typed, caret, shown); el.setSelectionRange(at, at); }
@@ -629,7 +702,8 @@ live.inputs[0].focus();
 document.addEventListener("keydown", (e) => {
   const c = e.key.toLowerCase() === "c" && !e.metaKey && !e.ctrlKey && !e.altKey;
   const keypadClear = e.key === "Clear" || e.code === "NumLock";
-  const inBox = document.activeElement?.tagName === "INPUT" && document.activeElement.type !== "checkbox";
+  const a = document.activeElement;
+  const inBox = a?.classList.contains("numbox") || (a?.tagName === "INPUT" && a.type !== "checkbox");
   const cmdDelete = e.key === "Backspace" && e.metaKey && !inBox;
   if (e.key !== "Escape" && !c && !keypadClear && !cmdDelete) return;
   e.preventDefault();
