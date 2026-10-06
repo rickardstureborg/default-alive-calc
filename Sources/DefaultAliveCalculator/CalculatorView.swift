@@ -39,7 +39,8 @@ struct CalculatorForm: View {
         _assumptionsOpen = State(initialValue: assumptionsOpen)
     }
 
-    private static let prompts: [Row: String] = [.cash: "$1.2M", .expenses: "80k", .revenue: "20k"]
+    // No units in prompts: the box draws "$" or "%" itself.
+    private static let prompts: [Row: String] = [.cash: "1.2M", .expenses: "80k", .revenue: "20k"]
     private static let help: [Row: String] = [
         .cash: "Default alive with at least this much cash, everything else unchanged",
         .expenses: "Default alive with expenses at or below this, everything else unchanged",
@@ -244,8 +245,20 @@ struct CalculatorForm: View {
     // MARK: Fields
 
     private func field(_ row: Row) -> some View {
-        let text = Binding(get: { model.state.field(row).text }, set: { model.state.edit(row, text: $0) })
-        let prompt = row == .growth ? (model.state.linear ? "$1.6k" : "8%") : Self.prompts[row] ?? ""
+        let text = Binding(get: { model.state.field(row).text }, set: { typed in
+            // edit() regroups thousands and drops "$"/"%" live. When that rewrites the text,
+            // SwiftUI pushes it into the field editor and the cursor jumps to the end, so put
+            // it back where it was among the surviving characters.
+            let editor = NSApp.keyWindow?.firstResponder as? NSTextView
+            let caret = editor?.selectedRange().location
+            model.state.edit(row, text: typed)
+            let shown = model.state.field(row).text
+            if shown != typed, let editor, let caret {
+                Self.placeCaret(editor, at: caretAfterNormalizing(typed, caret: caret, shown), once: shown)
+            }
+        })
+        let prompt = row == .growth ? (model.state.linear ? "1.6k" : "8") : Self.prompts[row] ?? ""
+        let unit = row == .growth && !model.state.linear ? "%" : "$"
         return TextField(prompt, text: text, prompt: Text(prompt))
             .textFieldStyle(.plain)
             .multilineTextAlignment(.trailing)
@@ -253,10 +266,30 @@ struct CalculatorForm: View {
             // Empty isn't an error, just incomplete; only flag text that can't be a number.
             .foregroundStyle(model.state.isInvalid(row) ? Style.dead : Color.primary)
             .focused($focus, equals: row)
-            .padding(.horizontal, 8)
+            .padding(.leading, 22)
+            .padding(.trailing, 8)
             .padding(.vertical, 5)
             .frame(width: Style.fieldWidth)
             .background(RoundedRectangle(cornerRadius: Style.fieldRadius).fill(.quaternary))
+            // The unit is drawn, not typed, so the text is just the number.
+            .overlay(alignment: .leading) {
+                Text(unit)
+                    .font(.system(size: Style.fieldSize).monospacedDigit())
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 8)
+                    .allowsHitTesting(false)
+            }
+    }
+
+    /// Once the field editor shows `text`, put the cursor at `location`.
+    private static func placeCaret(_ editor: NSTextView, at location: Int, once text: String, tries: Int = 0) {
+        DispatchQueue.main.async {
+            guard editor.string == text else {
+                if tries < 20 { placeCaret(editor, at: location, once: text, tries: tries + 1) }
+                return
+            }
+            editor.setSelectedRange(NSRange(location: location, length: 0))
+        }
     }
 
     // MARK: Result

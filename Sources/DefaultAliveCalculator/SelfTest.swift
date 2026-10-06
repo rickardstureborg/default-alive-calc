@@ -90,10 +90,10 @@ enum SelfTest {
             model.state = state
             await settle()
             await key(8, "c", .command)
-            check("⌘C does not clear", model.state.field(.cash).text == "$400k", "cash=\(model.state.field(.cash).text)")
+            check("⌘C does not clear", model.state.field(.cash).text == "400k", "cash=\(model.state.field(.cash).text)")
 
             // ⌘⌫ inside a box: delete back to the start of that box only.
-            (window.firstResponder as? NSTextView)?.setSelectedRange(NSRange(location: 3, length: 0))
+            (window.firstResponder as? NSTextView)?.setSelectedRange(NSRange(location: 2, length: 0))
             await key(51, "\u{7f}", .command)
             check("⌘⌫ in a box deletes to its start only", model.state.field(.cash).text == "0k" && model.state.field(.expenses).text == "80k",
                   "cash=\(model.state.field(.cash).text) expenses=\(model.state.field(.expenses).text)")
@@ -151,6 +151,24 @@ enum SelfTest {
                 check("\(name) → \(expected), cursor at end", row == expected && sel == NSRange(location: length, length: 0),
                       "at \(row), selection \(sel.location)+\(sel.length)")
             }
+
+            // Live thousands separators, typed key by key in cash (where the arrows left us).
+            (window.firstResponder as? NSTextView)?.selectAll(nil)
+            for (code, ch) in [(18, "1"), (22, "6"), (20, "3"), (29, "0"), (29, "0"), (29, "0"), (29, "0")] as [(UInt16, String)] {
+                await key(code, ch)
+            }
+            check("typing 1630000 shows 1,630,000, cursor at end",
+                  model.state.field(.cash).text == "1,630,000" && where_().selection == NSRange(location: 9, length: 0),
+                  "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
+            (window.firstResponder as? NSTextView)?.setSelectedRange(NSRange(location: 2, length: 0))
+            await key(23, "5")
+            check("typing mid-number regroups and keeps the cursor",
+                  model.state.field(.cash).text == "15,630,000" && where_().selection == NSRange(location: 2, length: 0),
+                  "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
+            await key(21, "$", .shift)
+            check("a typed $ is dropped (the box draws it)",
+                  model.state.field(.cash).text == "15,630,000" && where_().selection == NSRange(location: 2, length: 0),
+                  "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
 
             if let interrupted {
                 lines.append("INTERRUPTED at \"\(interrupted)\": the window lost keyboard focus (someone used the Mac). Rerun when it is idle.")
