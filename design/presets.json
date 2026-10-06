@@ -1,56 +1,89 @@
 {
-  "about": "Gallery states for design/index.html and `make snapshot`, and the shared spec for the result text: Swift (PresetTests) and JS (model.test.mjs) must both produce `expect` from `input` at `now`. Change `expect` when the design changes on purpose.",
+  "about": "Gallery states for design/index.html and `make snapshot`, and the shared spec: Swift (PresetTests) and JS (model.test.mjs) must both produce `expect` from `input` (+ optional `units`, default month, and `linear`, default false) at `now`. Change `expect` when the design changes on purpose.",
   "now": "2026-01-10",
   "presets": [
     {
       "name": "alive",
       "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "20k", "growth": "8%" },
-      "expect": { "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $539k to spare" }
+      "expect": {
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $539k to spare",
+        "hints": { "cash": "≥ $661.5k", "expenses": "≤ $106.9k", "revenue": "≥ $10.6k", "growth": "≥ 4.34%" }
+      }
     },
     {
       "name": "dead",
       "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
-      "expect": { "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.6 months · Aug 2026", "line2": "Needs $661k · $261k short" }
+      "expect": {
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.6 months · Aug 2026", "line2": "Needs $661k · $261k short",
+        "hints": { "cash": "≥ $661.5k", "expenses": "≤ $64.2k", "revenue": "≥ $28.7k", "growth": "≥ 13.6%" }
+      }
     },
     {
       "name": "never",
       "input": { "cash": "$600k", "expenses": "80k", "revenue": "20k", "growth": "0%" },
-      "expect": { "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 10.0 months · Nov 2026", "line2": "Never profitable at this growth" }
+      "expect": {
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 10.0 months · Nov 2026", "line2": "Never profitable at this growth",
+        "hints": { "cash": "never", "expenses": "≤ $20k", "revenue": "≥ $80k", "growth": "≥ 8.86%" }
+      }
     },
     {
       "name": "broke",
       "input": { "cash": "0", "expenses": "80k", "revenue": "20k", "growth": "8%" },
-      "expect": { "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash now", "line2": "Needs $661k · $661k short" }
+      "expect": {
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash now", "line2": "Needs $661k · $661k short",
+        "hints": { "cash": "≥ $661.5k", "expenses": "≤ $20k", "revenue": "≥ $80k", "growth": "never" }
+      }
     },
     {
       "name": "profitable",
       "input": { "cash": "$50k", "expenses": "40k", "revenue": "45k", "growth": "5%" },
-      "expect": { "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Already profitable", "line2": "Revenue covers expenses" }
+      "expect": {
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Already profitable", "line2": "Revenue covers expenses",
+        "hints": { "cash": "≥ $0", "expenses": "≤ $60.6k", "revenue": "≥ $27.7k", "growth": "any" }
+      }
+    },
+    {
+      "name": "weekly (TLB)",
+      "input": { "cash": "$90k", "expenses": "1.6k", "revenue": "100", "growth": "2.5%" },
+      "units": { "expenses": "week", "revenue": "week", "growth": "week" },
+      "expect": {
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 15.4 months · Apr 2027", "line2": "Needs $119k · $28.9k short",
+        "hints": { "cash": "≥ $119k", "expenses": "≤ $1.33k", "revenue": "≥ $163", "growth": "≥ 3.32%" }
+      }
+    },
+    {
+      "name": "linear",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "$5k" },
+      "linear": true,
+      "expect": {
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 12.0 months · Jan 2027", "line2": "Needs $360k · $40k to spare",
+        "hints": { "cash": "≥ $360k", "expenses": "≤ $83.2k", "revenue": "≥ $16.8k", "growth": "≥ $4.5k" }
+      }
+    },
+    {
+      "name": "linear, $1.1k short",
+      "input": { "cash": "251k", "expenses": "11k", "revenue": "0", "growth": "$240" },
+      "linear": true,
+      "expect": {
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 42.8 months · Aug 2029", "line2": "Needs $252k · $1.1k short",
+        "hints": { "cash": "≥ $252.1k", "expenses": "≤ $10.9k", "revenue": "≥ $24", "growth": "≥ $242" }
+      }
     },
     {
       "name": "invalid",
       "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "abc", "growth": "8%" },
-      "expect": { "tone": "neutral", "headline": "—", "line1": "Check the numbers in red", "line2": "" }
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Check the numbers in red", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "" }
+      }
     },
     {
       "name": "empty",
       "input": { "cash": "", "expenses": "", "revenue": "", "growth": "" },
-      "expect": { "tone": "neutral", "headline": "—", "line1": "Enter all four numbers", "line2": "" }
-    }
-  ],
-  "prototypes_about": "Browser-only gallery rows for designs not yet in the app: per-field units and $ (linear) growth. No `expect` until ported.",
-  "prototypes": [
-    {
-      "name": "weekly (TLB defaults)",
-      "values": { "cash": "$100k", "expenses": "1.6k", "revenue": "100", "growth": "2.5%" },
-      "units": { "expenses": "week", "revenue": "week", "growth": "week" },
-      "linear": false
-    },
-    {
-      "name": "linear",
-      "values": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "5k" },
-      "units": { "expenses": "month", "revenue": "month", "growth": "month" },
-      "linear": true
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Enter all four numbers", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "" }
+      }
     }
   ]
 }

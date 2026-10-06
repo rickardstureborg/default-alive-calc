@@ -4,6 +4,7 @@
 
 const SUFFIXES = { k: 1e3, m: 1e6, b: 1e9 };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const KEYS = ["cash", "expenses", "revenue", "growth"];
 
 // ── Parsing.swift ────────────────────────────────────────────────────────────
 
@@ -15,9 +16,14 @@ function plainNumber(s) {
   return Number(s);
 }
 
+// "250k", "$1.2M", "1,500", "-$1.6k" → number. The sign goes before the "$" because
+// that's how formatMoney writes negative $ growth back into the field.
 export function parseAmount(text) {
   let s = text.trim().toLowerCase();
+  const negative = s.startsWith("-");
+  if (negative) s = s.slice(1);
   if (s.startsWith("$")) s = s.slice(1);
+  if (s.startsWith("-")) return null;
   s = s.replaceAll(",", "");
   let multiplier = 1;
   const last = s.at(-1);
@@ -26,7 +32,7 @@ export function parseAmount(text) {
     s = s.slice(0, -1);
   }
   const n = plainNumber(s.trim());
-  return n === null ? null : n * multiplier;
+  return n === null ? null : (negative ? -n : n) * multiplier;
 }
 
 export function parsePercent(text) {
@@ -36,28 +42,46 @@ export function parsePercent(text) {
   return n === null ? null : n / 100;
 }
 
-// ── Readout.swift (field ranges) ─────────────────────────────────────────────
+// ── Units.swift ──────────────────────────────────────────────────────────────
+// The model runs in months; each flow field can be typed per week, month or year.
+// Weeks per month is TLB's 365.2425/7/12. % growth compounds per period, so 8%/mo is
+// 1.79%/wk and 152%/yr (not 2% and 96%). $ growth means the per-period revenue figure
+// rises by that much each period ("+$10k MRR a month"), so it scales with period².
 
-export function amountValue(text) {
-  const n = parseAmount(text);
-  return n !== null && n >= 0 ? n : null;
-}
-
-export function growthValue(text) {
-  const n = parsePercent(text);
-  return n !== null && n > -1 ? n : null;
-}
+export const UNITS = {
+  week: { months: 12 * 7 / 365.2425 },
+  month: { months: 1 },
+  year: { months: 12 },
+};
+export const NEXT_UNIT = { week: "month", month: "year", year: "week" };
+export const MONTHLY = { expenses: "month", revenue: "month", growth: "month" };
+const per = (unit) => UNITS[unit].months;
+export const amountToUnit = (monthly, unit) => monthly * per(unit);
+export const amountFromUnit = (perUnit, unit) => perUnit / per(unit);
+export const growthToUnit = (monthly, unit) => Math.expm1(Math.log1p(monthly) * per(unit));
+export const growthFromUnit = (perUnit, unit) => Math.expm1(Math.log1p(perUnit) / per(unit));
+export const linearToUnit = (monthly, unit) => monthly * per(unit) ** 2;
+export const linearFromUnit = (perUnit, unit) => perUnit / per(unit) ** 2;
 
 // ── Projection.swift ─────────────────────────────────────────────────────────
-// inputs: { cash, expenses, revenue, growth }, all monthly; growth is a fraction.
+// inputs: { cash, expenses, revenue, growth, linear }, all monthly. Compounding growth
+// is a fraction per month; linear growth is $ of monthly revenue added per month.
 
-export function cumulativeBurn({ expenses: E, revenue: R, growth: g }, t) {
+export function cumulativeBurn(inputs, t) {
+  return inputs.linear ? linearBurn(inputs, t) : compoundingBurn(inputs, t);
+}
+
+export function project(inputs) {
+  return inputs.linear ? projectLinear(inputs) : projectCompounding(inputs);
+}
+
+function compoundingBurn({ expenses: E, revenue: R, growth: g }, t) {
   const r = Math.log1p(g);
   const revenueSoFar = r === 0 ? R * t : (R * Math.expm1(r * t)) / r;
   return E * t - revenueSoFar;
 }
 
-export function project(inputs) {
+function projectCompounding(inputs) {
   const { cash, expenses: E, revenue: R, growth: g } = inputs;
   if (![cash, E, R, g].every(Number.isFinite) || cash < 0 || E < 0 || R < 0 || g <= -1) return null;
 
@@ -88,151 +112,12 @@ function monthsUntilBurned(target, inputs, low, high) {
   for (let i = 0; i < 200; i++) {
     const mid = (lo + hi) / 2;
     if (mid <= lo || mid >= hi) break;
-    if (cumulativeBurn(inputs, mid) < target) lo = mid; else hi = mid;
+    if (compoundingBurn(inputs, mid) < target) lo = mid; else hi = mid;
   }
   return (lo + hi) / 2;
 }
 
-// ── Formatting.swift ─────────────────────────────────────────────────────────
-
-// Math.round on positives is ties-away-from-zero, matching Swift's .toNearestOrAwayFromZero.
-const oneDecimal = (x) => (Math.round(x * 10) / 10).toFixed(1);
-
-export function formatMoney(value) {
-  const v = Math.abs(value);
-  if (v < 0.5) return "$0";
-  const sign = value < 0 ? "-" : "";
-  for (const [scale, suffix] of [[1e9, "B"], [1e6, "M"], [1e3, "k"]]) {
-    if (v >= scale - scale / 2000) {
-      const x = v / scale;
-      const digits = x < 99.95 ? oneDecimal(x) : String(Math.round(x));
-      return `${sign}$${digits.endsWith(".0") ? digits.slice(0, -2) : digits}${suffix}`;
-    }
-  }
-  return `${sign}$${Math.round(v)}`;
-}
-
-export const formatMonths = (months) => `${oneDecimal(months)} months`;
-
-export function formatMonthYear(months, start) {
-  const whole = Math.floor(months);
-  // Calendar.date(byAdding: .month) clamps to the month's last day (Jan 31 + 1 → Feb 28);
-  // Date.setMonth would overflow into March.
-  const y = start.getFullYear();
-  const m = start.getMonth() + whole;
-  const lastDay = new Date(y, m + 1, 0).getDate();
-  const base = new Date(y, m, Math.min(start.getDate(), lastDay),
-    start.getHours(), start.getMinutes(), start.getSeconds(), start.getMilliseconds());
-  const date = new Date(base.getTime() + (months - whole) * 30.436875 * 86_400_000);
-  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
-}
-
-// ── Readout.swift ────────────────────────────────────────────────────────────
-// raw: { cash, expenses, revenue, growth } as typed, monthly, % growth.
-// Returns { tone, headline, line1, line2 }.
-
-export function readout(raw, now) {
-  const v = [amountValue(raw.cash), amountValue(raw.expenses), amountValue(raw.revenue), growthValue(raw.growth)];
-  const p = v.includes(null) ? null : project({ cash: v[0], expenses: v[1], revenue: v[2], growth: v[3] });
-  return describe(p, Object.values(raw).every((s) => s.trim() !== ""), now);
-}
-
-// The text half of readout(), shared with the prototype's other growth modes.
-export function describe(p, filledIn, now) {
-  if (!p) {
-    return { tone: "neutral", headline: "—", line1: filledIn ? "Check the numbers in red" : "Enter all four numbers", line2: "" };
-  }
-
-  if (p.verdict === "alive") {
-    const T = p.monthsToProfitability ?? 0;
-    if (T === 0) {
-      return { tone: "alive", headline: "DEFAULT ALIVE", line1: "Already profitable", line2: "Revenue covers expenses" };
-    }
-    return {
-      tone: "alive", headline: "DEFAULT ALIVE",
-      line1: `Profitable in ${formatMonths(T)} · ${formatMonthYear(T, now)}`,
-      line2: `Needs ${formatMoney(p.capitalNeeded ?? 0)} · ${formatMoney(p.cushion ?? 0)} to spare`,
-    };
-  }
-
-  const runway = p.runwayMonths ?? 0;
-  const line1 = runway === 0
-    ? "Out of cash now"
-    : `Out of cash in ${formatMonths(runway)} · ${formatMonthYear(runway, now)}`;
-  const line2 = p.capitalNeeded !== null && p.cushion !== null
-    ? `Needs ${formatMoney(p.capitalNeeded)} · ${formatMoney(-p.cushion)} short`
-    : "Never profitable at this growth";
-  return { tone: "dead", headline: "DEFAULT DEAD", line1, line2 };
-}
-
-// ═════════════════════════════════════════════════════════════════════════════
-// Prototype: not in Swift yet. Design-preview only until approved and ported.
-// ═════════════════════════════════════════════════════════════════════════════
-
-// ── Units ────────────────────────────────────────────────────────────────────
-// The model runs in months; each flow field can be typed per week, month or year.
-// Weeks per month is TLB's 365.2425/7/12. % growth compounds per period, so 8%/mo is
-// 1.79%/wk and 152%/yr (not 2% and 96%). $ growth means the per-period revenue figure
-// rises by that much each period ("+$10k MRR a month"), so it scales with period².
-
-export const UNITS = {
-  week: { months: 12 * 7 / 365.2425, short: "wk" },
-  month: { months: 1, short: "mo" },
-  year: { months: 12, short: "yr" },
-};
-export const NEXT_UNIT = { week: "month", month: "year", year: "week" };
-const per = (unit) => UNITS[unit].months;
-export const amountToUnit = (monthly, unit) => monthly * per(unit);
-export const amountFromUnit = (perUnit, unit) => perUnit / per(unit);
-export const growthToUnit = (monthly, unit) => Math.expm1(Math.log1p(monthly) * per(unit));
-export const growthFromUnit = (perUnit, unit) => Math.expm1(Math.log1p(perUnit) / per(unit));
-export const linearToUnit = (monthly, unit) => monthly * per(unit) ** 2;
-export const linearFromUnit = (perUnit, unit) => perUnit / per(unit) ** 2;
-
-// 0.0179 → "1.79%", 0.105 → "10.5%", 1.52 → "152%": three significant digits.
-export function formatPercent(fraction) {
-  const v = fraction * 100;
-  const places = Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2;
-  const s = (Math.round(v * 10 ** places) / 10 ** places).toFixed(places);
-  return `${s.includes(".") ? s.replace(/0+$/, "").replace(/\.$/, "") : s}%`;
-}
-
-/// One typed field → its monthly model value, or null if unusable. $ growth may be negative.
-export function fieldValue(key, text, unit, linear) {
-  if (key === "cash") return amountValue(text);
-  if (key === "growth" && linear) {
-    const n = parseAmount(text);
-    return n === null ? null : linearFromUnit(n, unit);
-  }
-  if (key === "growth") {
-    const g = growthValue(text);
-    return g === null ? null : growthFromUnit(g, unit);
-  }
-  const n = amountValue(text);
-  return n === null ? null : amountFromUnit(n, unit);
-}
-
-/// A monthly model value → what the field shows in `unit`. Inverse of fieldValue.
-export function fieldText(key, monthly, unit, linear) {
-  if (key === "growth" && !linear) return formatPercent(growthToUnit(monthly, unit));
-  const shown = key === "cash" ? monthly : key === "growth" ? linearToUnit(monthly, unit) : amountToUnit(monthly, unit);
-  return formatMoney(shown).replace("$", "");
-}
-
-// % ↔ $ growth: the same first-period step, measured in the growth field's own unit,
-// so 8%/mo on $20k/mo revenue becomes +$1.6k/mo (8% of 20k), and back.
-export function switchGrowthKind(monthlyGrowth, toLinear, monthlyRevenue, unit) {
-  const revenue = amountToUnit(monthlyRevenue, unit);
-  if (!(revenue > 0)) return null;
-  return toLinear
-    ? linearFromUnit(growthToUnit(monthlyGrowth, unit) * revenue, unit)
-    : growthFromUnit(linearToUnit(monthlyGrowth, unit) / revenue, unit);
-}
-
-// ── Linear growth ────────────────────────────────────────────────────────────
-// Revenue R + a·t, with a in $/month per month. Everything has a closed form:
-// T = (E−R)/a, capital needed C = (E−R)²/(2a).
-
+// Linear: revenue R + a·t. Closed forms: T = (E−R)/a, capital needed C = (E−R)²/(2a).
 function linearBurn({ expenses: E, revenue: R, growth: a }, t) {
   // Shrinking revenue stops at zero; after that the whole expense line burns.
   const t0 = a < 0 ? R / -a : Infinity;
@@ -257,16 +142,13 @@ function projectLinear(inputs) {
   return { verdict: "dead", monthsToProfitability: null, capitalNeeded: null, cushion: null, runwayMonths: runway };
 }
 
-export const projectAny = (inputs) => (inputs.linear ? projectLinear(inputs) : project(inputs));
-export const burnAny = (inputs, t) => (inputs.linear ? linearBurn(inputs, t) : cumulativeBurn(inputs, t));
-
-// ── Single-lever breakevens ──────────────────────────────────────────────────
+// ── Breakevens.swift ─────────────────────────────────────────────────────────
 // For each input: the value that makes capital needed exactly equal cash, holding the
 // other three fixed. Capital needed is monotone in every input (up in expenses, down in
 // cash/revenue/growth), so each has one crossing. Monthly units. Each result is a
 // number, "never" (no value works) or "any" (every value works).
 
-function capitalNeeded(E, R, r) {
+function compoundingCapital(E, R, r) {
   if (R >= E) return 0;
   if (!(R > 0 && r > 0)) return Infinity;
   return E * (Math.log(E / R) / r) - (E - R) / r;
@@ -297,19 +179,19 @@ export function breakevens(inputs) {
   }
 
   const r = Math.log1p(g);
-  const C = capitalNeeded(E, R, r);
+  const C = compoundingCapital(E, R, r);
 
   let maxExpenses = R;
   if (R > 0 && r > 0) {
     let hi = Math.max(E, R) * 2;
-    for (let i = 0; i < 100 && capitalNeeded(hi, R, r) <= cash; i++) hi *= 2;
-    maxExpenses = bisect((e) => capitalNeeded(e, R, r), cash, R, hi);
+    for (let i = 0; i < 100 && compoundingCapital(hi, R, r) <= cash; i++) hi *= 2;
+    maxExpenses = bisect((e) => compoundingCapital(e, R, r), cash, R, hi);
   }
 
   // Searched in log space, since the answer can sit many orders below E.
   let minRevenue = E;
   if (r > 0 && E > 0) {
-    minRevenue = Math.exp(bisect((x) => capitalNeeded(E, Math.exp(x), r), cash, Math.log(E) - 40, Math.log(E)));
+    minRevenue = Math.exp(bisect((x) => compoundingCapital(E, Math.exp(x), r), cash, Math.log(E) - 40, Math.log(E)));
   }
 
   // None needed if already profitable; none suffices from zero revenue or zero cash.
@@ -318,19 +200,189 @@ export function breakevens(inputs) {
   else if (R === 0 || cash === 0) minGrowth = "never";
   else {
     let hi = 0.01;
-    for (let i = 0; i < 100 && capitalNeeded(E, R, Math.log1p(hi)) > cash; i++) hi *= 2;
-    minGrowth = bisect((x) => capitalNeeded(E, R, Math.log1p(x)), cash, 0, hi);
+    for (let i = 0; i < 100 && compoundingCapital(E, R, Math.log1p(hi)) > cash; i++) hi *= 2;
+    minGrowth = bisect((x) => compoundingCapital(E, R, Math.log1p(x)), cash, 0, hi);
   }
 
   return { cash: Number.isFinite(C) ? C : "never", expenses: maxExpenses, revenue: minRevenue, growth: minGrowth };
 }
 
-// ── Chart data ───────────────────────────────────────────────────────────────
+// ── Formatting.swift ─────────────────────────────────────────────────────────
+
+// Math.round on positives is ties-away-from-zero, matching Swift's .toNearestOrAwayFromZero.
+const oneDecimal = (x) => (Math.round(x * 10) / 10).toFixed(1);
+const trimZeros = (s) => (s.includes(".") ? s.replace(/0+$/, "").replace(/\.$/, "") : s);
+
+export function formatMoney(value) {
+  const v = Math.abs(value);
+  if (v < 0.5) return "$0";
+  const sign = value < 0 ? "-" : "";
+  for (const [scale, suffix] of [[1e9, "B"], [1e6, "M"], [1e3, "k"]]) {
+    if (v >= scale - scale / 2000) {
+      const x = v / scale;
+      const digits = x < 99.95 ? oneDecimal(x) : String(Math.round(x));
+      return `${sign}$${digits.endsWith(".0") ? digits.slice(0, -2) : digits}${suffix}`;
+    }
+  }
+  return `${sign}$${Math.round(v)}`;
+}
+
+export const formatMonths = (months) => `${oneDecimal(months)} months`;
+
+export function formatMonthYear(months, start) {
+  const whole = Math.floor(months);
+  // Calendar.date(byAdding: .month) clamps to the month's last day (Jan 31 + 1 → Feb 28);
+  // Date.setMonth would overflow into March.
+  const y = start.getFullYear();
+  const m = start.getMonth() + whole;
+  const lastDay = new Date(y, m + 1, 0).getDate();
+  const base = new Date(y, m, Math.min(start.getDate(), lastDay),
+    start.getHours(), start.getMinutes(), start.getSeconds(), start.getMilliseconds());
+  const date = new Date(base.getTime() + (months - whole) * 30.436875 * 86_400_000);
+  return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+// 0.0179 → "1.79%", 0.105 → "10.5%", 1.52 → "152%": three significant digits.
+export function formatPercent(fraction) {
+  const v = fraction * 100;
+  const places = Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2;
+  return `${trimZeros((Math.round(v * 10 ** places) / 10 ** places).toFixed(places))}%`;
+}
+
+// Breakeven hints round toward the safe side ("≥" up, "≤" down), so the shown value
+// really flips the verdict: $241.04 needed must read "≥ $242", never "≥ $241". They also
+// carry one more digit than formatMoney ($7.46k, $252.1k) so the rounding costs little.
+// The 1e-9 slack keeps an exact grid value (360000) from stepping to the next one.
+const STEPS = [[1e10, 1e8], [1e9, 1e7], [1e7, 1e5], [1e6, 1e4], [1e4, 100], [1e3, 10], [0, 1]];
+
+export function formatMoneyBound(value, roundUp) {
+  const v = Math.max(0, value);
+  const step = STEPS.find(([from]) => v >= from)[1];
+  const r = (roundUp ? Math.ceil(v / step - 1e-9) : Math.floor(v / step + 1e-9)) * step;
+  for (const [scale, suffix] of [[1e9, "B"], [1e6, "M"], [1e3, "k"]]) {
+    if (r >= scale) {
+      const x = r / scale;
+      return `$${trimZeros(x.toFixed(x < 10 ? 2 : 1))}${suffix}`;
+    }
+  }
+  return `$${r}`;
+}
+
+export function formatPercentBound(fraction, roundUp) {
+  const v = fraction * 100;
+  const places = Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2;
+  const f = 10 ** places;
+  const r = (roundUp ? Math.ceil(v * f - 1e-9) : Math.floor(v * f + 1e-9)) / f;
+  return `${trimZeros(r.toFixed(places))}%`;
+}
+
+// ── Readout.swift ────────────────────────────────────────────────────────────
+
+export function amountValue(text) {
+  const n = parseAmount(text);
+  return n !== null && n >= 0 ? n : null;
+}
+
+export function growthValue(text) {
+  const n = parsePercent(text);
+  return n !== null && n > -1 ? n : null;
+}
+
+/// One typed field → its monthly model value, or null if unusable. $ growth may be negative.
+export function fieldValue(key, text, unit, linear) {
+  if (key === "cash") return amountValue(text);
+  if (key === "growth" && linear) {
+    const n = parseAmount(text);
+    return n === null ? null : linearFromUnit(n, unit);
+  }
+  if (key === "growth") {
+    const g = growthValue(text);
+    return g === null ? null : growthFromUnit(g, unit);
+  }
+  const n = amountValue(text);
+  return n === null ? null : amountFromUnit(n, unit);
+}
+
+/// A monthly model value → what the field shows in `unit`. Inverse of fieldValue.
+/// $ growth keeps its "$" so it can't be mistaken for a percentage.
+export function fieldText(key, monthly, unit, linear) {
+  if (key === "growth") {
+    return linear ? formatMoney(linearToUnit(monthly, unit)) : formatPercent(growthToUnit(monthly, unit));
+  }
+  return formatMoney(key === "cash" ? monthly : amountToUnit(monthly, unit)).replace("$", "");
+}
+
+// % ↔ $ growth: the same first-period step, measured in the growth field's own unit,
+// so 8%/mo on $20k/mo revenue becomes +$1.6k/mo (8% of 20k), and back.
+export function switchGrowthKind(monthlyGrowth, toLinear, monthlyRevenue, unit) {
+  const revenue = amountToUnit(monthlyRevenue, unit);
+  if (!(revenue > 0)) return null;
+  return toLinear
+    ? linearFromUnit(growthToUnit(monthlyGrowth, unit) * revenue, unit)
+    : growthFromUnit(linearToUnit(monthlyGrowth, unit) / revenue, unit);
+}
+
+function hint(key, threshold, units, linear) {
+  if (threshold === "never" || threshold === "any") return threshold;
+  switch (key) {
+    case "cash": return `≥ ${formatMoneyBound(threshold, true)}`;
+    case "expenses": return `≤ ${formatMoneyBound(amountToUnit(threshold, units.expenses), false)}`;
+    case "revenue": return `≥ ${formatMoneyBound(amountToUnit(threshold, units.revenue), true)}`;
+    default: return linear
+      ? `≥ ${formatMoneyBound(linearToUnit(threshold, units.growth), true)}`
+      : `≥ ${formatPercentBound(growthToUnit(threshold, units.growth), true)}`;
+  }
+}
+
+const NO_HINTS = { cash: "", expenses: "", revenue: "", growth: "" };
+
+/// Everything the result area and the "alive if" column say, from monthly model inputs
+/// (null if a field is unusable). Durations always read in months.
+export function readoutFor(inputs, filledIn, units, now) {
+  const p = inputs && project(inputs);
+  if (!p) {
+    return { tone: "neutral", headline: "—", line1: filledIn ? "Check the numbers in red" : "Enter all four numbers", line2: "", hints: NO_HINTS };
+  }
+  const b = breakevens(inputs);
+  const hints = Object.fromEntries(KEYS.map((k) => [k, hint(k, b[k], units, inputs.linear)]));
+
+  if (p.verdict === "alive") {
+    const T = p.monthsToProfitability ?? 0;
+    if (T === 0) {
+      return { tone: "alive", headline: "DEFAULT ALIVE", line1: "Already profitable", line2: "Revenue covers expenses", hints };
+    }
+    return {
+      tone: "alive", headline: "DEFAULT ALIVE",
+      line1: `Profitable in ${formatMonths(T)} · ${formatMonthYear(T, now)}`,
+      line2: `Needs ${formatMoney(p.capitalNeeded ?? 0)} · ${formatMoney(p.cushion ?? 0)} to spare`,
+      hints,
+    };
+  }
+
+  const runway = p.runwayMonths ?? 0;
+  const line1 = runway === 0
+    ? "Out of cash now"
+    : `Out of cash in ${formatMonths(runway)} · ${formatMonthYear(runway, now)}`;
+  const line2 = p.capitalNeeded !== null && p.cushion !== null
+    ? `Needs ${formatMoney(p.capitalNeeded)} · ${formatMoney(-p.cushion)} short`
+    : "Never profitable at this growth";
+  return { tone: "dead", headline: "DEFAULT DEAD", line1, line2, hints };
+}
+
+/// readoutFor, straight from the typed strings.
+export function readout(raw, now, units = MONTHLY, linear = false) {
+  const values = KEYS.map((k) => fieldValue(k, raw[k], units[k], linear));
+  const inputs = values.includes(null) ? null
+    : { cash: values[0], expenses: values[1], revenue: values[2], growth: values[3], linear };
+  return readoutFor(inputs, KEYS.every((k) => raw[k].trim() !== ""), units, now);
+}
+
+// ── BalanceCurve.swift ───────────────────────────────────────────────────────
 // Bank balance from now until the story is told: past profitability (alive), or to zero
 // (dead). Returns { points: [{ t, balance }], horizon, marker, verdict } in months.
 
 export function balanceCurve(inputs, samples = 160) {
-  const p = projectAny(inputs);
+  const p = project(inputs);
   if (!p) return null;
   let horizon, marker = null;
   if (p.verdict === "alive" && p.monthsToProfitability > 0) {
@@ -346,7 +398,7 @@ export function balanceCurve(inputs, samples = 160) {
   const points = [];
   for (let i = 0; i <= samples; i++) {
     const t = (end * i) / samples;
-    points.push({ t, balance: inputs.cash - burnAny(inputs, t) });
+    points.push({ t, balance: inputs.cash - cumulativeBurn(inputs, t) });
   }
   return { points, horizon, marker, verdict: p.verdict };
 }

@@ -235,13 +235,12 @@
 
 <script type="module">
 import {
-  amountValue, growthValue, parseAmount, describe, projectAny, breakevens, balanceCurve,
-  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, amountToUnit, growthToUnit, linearToUnit,
-  formatMoney, formatPercent, formatMonths, formatMonthYear,
+  KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve,
+  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind,
+  formatMoney, formatMonths, formatMonthYear,
 } from "./model.js";
 
-const KEYS = ["cash", "expenses", "revenue", "growth"];
-const PROMPTS = { cash: "$1.2M", expenses: "80k", revenue: "20k", growth: "8%" };
+const PROMPTS = { cash: "$1.2M", expenses: "80k", revenue: "20k", growthPercent: "8%", growthDollar: "$1.6k" };
 const HINT_HELP = {
   cash: "Default alive with at least this much cash, everything else unchanged",
   expenses: "Default alive with expenses at or below this, everything else unchanged",
@@ -259,14 +258,6 @@ const el = (tag, props = {}, ...children) => {
   e.append(...children);
   return e;
 };
-
-function hintText(key, value, unit, linear) {
-  if (value === "never" || value === "any") return value;
-  if (key === "cash") return `≥ ${formatMoney(value)}`;
-  if (key === "expenses") return `≤ ${formatMoney(amountToUnit(value, unit))}`;
-  if (key === "revenue") return `≥ ${formatMoney(amountToUnit(value, unit))}`;
-  return linear ? `≥ ${formatMoney(linearToUnit(value, unit))}` : `≥ ${formatPercent(growthToUnit(value, unit))}`;
-}
 
 const niceStep = (range, count) => {
   const raw = range / count;
@@ -366,14 +357,12 @@ function drawChart(host, inputs, now) {
 
 // One calculator in `host`. Mirrors CalculatorForm.
 //
-// state: { values, units: { expenses, revenue, growth }, linear, chart, origin, exact }.
-// Until a field is next edited:
-// - origin[key] is what was actually typed (text, unit, kind), so cycling back to it
-//   restores the exact string;
-// - exact[key] is the field's precise monthly value in the kind now showing, so the math
-//   never sees the rounded display. Unit cycles only re-express exact; % ↔ $ is a
-//   one-time conversion into a new exact. Re-deriving $ from the original % on every
-//   unit click instead moves the answer, because the % → $ step depends on the period.
+// state: { fields, linear, chart }. fields has one entry per input box, and growth has
+// two, growthPercent and growthDollar, so flipping % ↔ $ shows each one's own input and
+// never discards the other; a conversion only fills a box that's empty. Each field is
+// { text, unit, origin, exact }; until the field is next edited:
+// - origin is what was actually typed (text, unit), so cycling back restores the string;
+// - exact is the precise monthly value, so the math never sees the rounded display.
 function calculator(host, state, { editable, onChange = () => {} }) {
   const calc = el("div", { className: "calc" });
   host.replaceChildren(calc);
@@ -383,7 +372,7 @@ function calculator(host, state, { editable, onChange = () => {} }) {
   const labels = {}, inputs = {}, hints = {};
   for (const key of KEYS) {
     labels[key] = el("div", { className: "label" });
-    inputs[key] = el("input", { name: key, placeholder: PROMPTS[key], autocomplete: "off", spellcheck: false, readOnly: !editable, tabIndex: editable ? 0 : -1 });
+    inputs[key] = el("input", { name: key, autocomplete: "off", spellcheck: false, readOnly: !editable, tabIndex: editable ? 0 : -1 });
     hints[key] = el("div", { className: "hint", title: HINT_HELP[key] });
     rows.append(el("div", { className: "row" }, labels[key], inputs[key], hints[key]));
   }
@@ -394,12 +383,26 @@ function calculator(host, state, { editable, onChange = () => {} }) {
   const chart = el("div", { className: "chart" });
   calc.append(disclosure, chart);
 
+  const fields = state.fields;
+  // The field behind a row: growth's row shows whichever kind is active.
+  const fieldKey = (key) => (key !== "growth" ? key : state.linear ? "growthDollar" : "growthPercent");
+  const field = (key) => fields[fieldKey(key)];
+  const monthly = (fk) => {
+    const f = fields[fk];
+    return f.exact ?? fieldValue(fk.startsWith("growth") ? "growth" : fk, f.text, f.unit, fk === "growthDollar");
+  };
+  const valid = (key) => {
+    const t = field(key).text;
+    if (key === "growth") return (state.linear ? parseAmount(t) : growthValue(t)) !== null;
+    return amountValue(t) !== null;
+  };
+
   const toggle = (text, title, onClick) => {
     const b = el("button", { className: "toggle", textContent: text, title, tabIndex: editable ? 0 : -1 });
     b.addEventListener("click", onClick);
     return b;
   };
-  const unitToggle = (key) => toggle(state.units[key], `Switch to per ${NEXT_UNIT[state.units[key]]}`, () => cycleUnit(key));
+  const unitToggle = (key) => toggle(field(key).unit, `Switch to per ${NEXT_UNIT[field(key).unit]}`, () => cycleUnit(key));
   const renderLabels = () => {
     labels.cash.replaceChildren("Cash balance");
     labels.expenses.replaceChildren("Expenses / ", unitToggle("expenses"));
@@ -409,84 +412,73 @@ function calculator(host, state, { editable, onChange = () => {} }) {
       " Growth / ", unitToggle("growth"));
   };
 
-  const typed = (key) => ({ text: state.values[key], unit: state.units[key], linear: state.linear });
-  const monthly = (key) => state.exact[key] ?? fieldValue(key, state.values[key], state.units[key], state.linear);
-  const valid = (key) => {
-    const t = state.values[key];
-    if (key === "growth") return (state.linear ? parseAmount(t) : growthValue(t)) !== null;
-    return amountValue(t) !== null;
-  };
-  // Show exact[key] in the current unit/kind, or the typed text if that's where we are.
-  const show = (key) => {
-    const o = state.origin[key];
-    if (o && o.unit === state.units[key] && (key !== "growth" || o.linear === state.linear)) {
-      state.values[key] = o.text;
-      state.origin[key] = state.exact[key] = null;
-    } else {
-      state.values[key] = state.exact[key] === null ? "" : fieldText(key, state.exact[key], state.units[key], state.linear);
-    }
-  };
   function cycleUnit(key) {
-    if (!state.origin[key]) {
-      const v = monthly(key);
-      if (v === null) { state.units[key] = NEXT_UNIT[state.units[key]]; return sync(); }
-      state.origin[key] = typed(key);
-      state.exact[key] = v;
+    const fk = fieldKey(key), f = fields[fk];
+    if (!f.origin) {
+      const v = monthly(fk);
+      if (v === null) { f.unit = NEXT_UNIT[f.unit]; return sync(); }
+      f.origin = { text: f.text, unit: f.unit };
+      f.exact = v;
     }
-    state.units[key] = NEXT_UNIT[state.units[key]];
-    show(key);
+    f.unit = NEXT_UNIT[f.unit];
+    if (f.origin.unit === f.unit) {
+      f.text = f.origin.text;
+      f.origin = f.exact = null;
+    } else {
+      f.text = fieldText(key, f.exact, f.unit, fk === "growthDollar");
+    }
     sync();
   }
   function toggleKind() {
-    const current = monthly("growth");
-    state.origin.growth ??= typed("growth");
+    const from = fieldKey("growth");
     state.linear = !state.linear;
-    const o = state.origin.growth;
-    if (o.linear === state.linear) {
-      state.exact.growth = fieldValue("growth", o.text, o.unit, o.linear);
-    } else {
-      const revenue = monthly("revenue");
-      state.exact.growth = current === null || revenue === null ? null
-        : switchGrowthKind(current, state.linear, revenue, state.units.growth);
+    const to = fieldKey("growth");
+    // Convenience only: seed an empty box from the other kind, in the same period.
+    const seed = monthly(from), revenue = monthly("revenue");
+    if (fields[to].text.trim() === "" && seed !== null && revenue !== null) {
+      const v = switchGrowthKind(seed, state.linear, revenue, fields[from].unit);
+      if (v !== null) Object.assign(fields[to], { unit: fields[from].unit, text: fieldText("growth", v, fields[from].unit, state.linear), origin: null, exact: v });
     }
-    show("growth");
     sync();
   }
 
   const update = () => {
     renderLabels();
-    for (const key of KEYS) inputs[key].classList.toggle("invalid", state.values[key].trim() !== "" && !valid(key));
+    for (const key of KEYS) inputs[key].classList.toggle("invalid", field(key).text.trim() !== "" && !valid(key));
 
-    const m = Object.fromEntries(KEYS.map((k) => [k, monthly(k)]));
-    const modelInputs = Object.values(m).includes(null) ? null : { ...m, linear: state.linear };
-    const filledIn = KEYS.every((k) => state.values[k].trim() !== "");
-    const r = describe(modelInputs && projectAny(modelInputs), filledIn, new Date());
+    const m = KEYS.map((k) => monthly(fieldKey(k)));
+    const modelInputs = m.includes(null) ? null
+      : { cash: m[0], expenses: m[1], revenue: m[2], growth: m[3], linear: state.linear };
+    const units = { expenses: fields.expenses.unit, revenue: fields.revenue.unit, growth: field("growth").unit };
+    const filledIn = KEYS.every((k) => field(k).text.trim() !== "");
+    const r = readoutFor(modelInputs, filledIn, units, new Date());
     headline.textContent = r.headline;
     headline.className = `headline tone-${r.tone}`;
     // " " holds an empty line open, like the app, so the height never changes.
     line1.textContent = r.line1 || " ";
     line2.textContent = r.line2 || " ";
+    for (const key of KEYS) hints[key].textContent = r.hints[key];
 
-    const b = modelInputs && projectAny(modelInputs) && breakevens(modelInputs);
-    for (const key of KEYS) hints[key].textContent = b ? hintText(key, b[key], state.units[key], state.linear) : "";
-
+    const plottable = r.tone !== "neutral";
     disclosure.textContent = state.chart ? "Hide chart" : "Show chart";
-    disclosure.hidden = !b;
+    disclosure.hidden = !plottable;
     // Nothing to plot until all four numbers are usable; an empty frame reads as broken.
-    chart.hidden = !(state.chart && b);
+    chart.hidden = !(state.chart && plottable);
     if (!chart.hidden) drawChart(chart, modelInputs, new Date());
     onChange(state);
   };
   const sync = () => {
-    for (const key of KEYS) inputs[key].value = state.values[key];
+    for (const key of KEYS) {
+      inputs[key].value = field(key).text;
+      inputs[key].placeholder = PROMPTS[fieldKey(key)];
+    }
     update();
   };
 
   if (editable) {
     KEYS.forEach((key, i) => {
       inputs[key].addEventListener("input", () => {
-        state.values[key] = inputs[key].value;
-        state.origin[key] = state.exact[key] = null;
+        Object.assign(field(key), { text: inputs[key].value, origin: null, exact: null });
         update();
       });
       inputs[key].addEventListener("keydown", (e) => { if (e.key === "Enter") inputs[KEYS[i + 1]]?.focus(); });
@@ -497,25 +489,24 @@ function calculator(host, state, { editable, onChange = () => {} }) {
   return {
     inputs: KEYS.map((k) => inputs[k]),
     clear() {
-      for (const key of KEYS) { state.values[key] = ""; state.origin[key] = state.exact[key] = null; }
+      for (const f of Object.values(fields)) Object.assign(f, { text: "", origin: null, exact: null });
       sync();
       inputs.cash.focus();
     },
   };
 }
 
-const freshState = (values = { cash: "", expenses: "", revenue: "", growth: "" }, units = {}, linear = false, chart = true) => ({
-  values: { ...values },
-  units: { expenses: "month", revenue: "month", growth: "month", ...units },
-  linear,
-  chart,
-  origin: { cash: null, expenses: null, revenue: null, growth: null },
-  exact: { cash: null, expenses: null, revenue: null, growth: null },
-});
+const blank = (unit = "month") => ({ text: "", unit, origin: null, exact: null });
+// A preset (or nothing) as calculator state. `input.growth` goes to whichever kind it is.
+function freshState({ input = {}, units = {}, linear = false } = {}) {
+  const fields = { cash: blank(), expenses: blank(units.expenses), revenue: blank(units.revenue), growthPercent: blank(units.growth), growthDollar: blank(units.growth) };
+  for (const key of KEYS) fields[key === "growth" ? (linear ? "growthDollar" : "growthPercent") : key].text = input[key] ?? "";
+  return { fields, linear, chart: true };
+}
 
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
 
-const STORE = "default-alive-state-v3";
+const STORE = "default-alive-state-v4";
 const liveWindow = document.getElementById("live-window");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
 const applyScheme = () => (liveWindow.className = `window ${scheme.matches ? "dark" : "light"}`);
@@ -560,19 +551,15 @@ async function appTiles(count) {
 const spec = await (await fetch("presets.json", { cache: "no-store" })).json();
 const appTile = await appTiles(spec.presets.length);
 const gallery = document.getElementById("gallery");
-const rows = [
-  ...spec.presets.map((p, i) => ({ name: p.name, state: freshState(p.input), app: (col) => appTile?.(i, col) })),
-  ...(spec.prototypes ?? []).map((p) => ({ name: p.name, state: freshState(p.values, p.units, p.linear), app: () => null, proto: true })),
-];
-for (const row of rows) {
-  gallery.append(el("div", { className: "name", textContent: row.name }));
+spec.presets.forEach((p, row) => {
+  gallery.append(el("div", { className: "name", textContent: p.name }));
   ["light", "dark"].forEach((theme, col) => {
     const tile = el("div", { className: theme });
     gallery.append(tile);
-    calculator(tile, structuredClone(row.state), { editable: false });
-    gallery.append(row.app(col) ?? el("div", { className: "missing", textContent: row.proto ? "not in app yet" : "run make snapshot" }));
+    calculator(tile, freshState(p), { editable: false });
+    gallery.append(appTile?.(row, col) ?? el("div", { className: "missing", textContent: "run make snapshot" }));
   });
-}
+});
 
 // ── Live reload: poll the served files; any change reloads the page ──
 
