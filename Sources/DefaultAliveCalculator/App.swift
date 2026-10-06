@@ -77,6 +77,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                                                 userInfo: ["forward": !mods.contains(.shift), "commit": event.keyCode != 48])
                 return nil
             }
+            // 125 Down, 126 Up: the box below / above, no wrapping, cursor at the end. With a
+            // modifier (⇧ ⌥ ⌘) they keep their text-selection meaning.
+            if [125, 126].contains(event.keyCode), mods.isEmpty {
+                NotificationCenter.default.post(name: .moveFocus, object: nil, userInfo: ["arrow": true, "forward": event.keyCode == 125])
+                return nil
+            }
             return event
         }
 

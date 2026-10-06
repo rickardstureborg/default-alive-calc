@@ -99,10 +99,16 @@ struct CalculatorForm: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .moveFocus)) { note in
             let forward = note.userInfo?["forward"] as? Bool ?? true
+            let arrow = note.userInfo?["arrow"] as? Bool == true
             if note.userInfo?["commit"] as? Bool == true, let row = focus { model.state.commit(row) }
+            let target = focus.map { arrow ? $0.stepped(down: forward) : $0.moved(forward: forward) } ?? .cash
+            // At the top or bottom an arrow has nowhere to go; leave the cursor where it is.
+            guard target != focus else { return }
             let previous = (NSApp.keyWindow?.firstResponder as? NSTextView)?.delegate
-            focus = focus?.moved(forward: forward) ?? .cash
-            Self.placeCursor(forward: forward, awayFrom: previous)
+            focus = target
+            // Tab and Return forward select the box to overwrite; going back, and arrows,
+            // park the cursor at the end.
+            Self.placeCursor(selectAll: forward && !arrow, awayFrom: previous)
         }
     }
 
@@ -111,13 +117,13 @@ struct CalculatorForm: View {
     /// pass, and AppKit selects all when it does, so a selection set right away lands on the
     /// old box and then gets overridden (`make selftest` caught exactly that). Wait until the
     /// shared field editor belongs to a different box, then set it.
-    private static func placeCursor(forward: Bool, awayFrom previous: NSTextViewDelegate?, tries: Int = 0) {
+    private static func placeCursor(selectAll: Bool, awayFrom previous: NSTextViewDelegate?, tries: Int = 0) {
         DispatchQueue.main.async {
             guard let editor = NSApp.keyWindow?.firstResponder as? NSTextView, editor.delegate !== previous else {
-                if tries < 20 { placeCursor(forward: forward, awayFrom: previous, tries: tries + 1) }
+                if tries < 20 { placeCursor(selectAll: selectAll, awayFrom: previous, tries: tries + 1) }
                 return
             }
-            if forward {
+            if selectAll {
                 editor.selectAll(nil)
             } else {
                 editor.setSelectedRange(NSRange(location: (editor.string as NSString).length, length: 0))

@@ -3,6 +3,13 @@ import Foundation
 public enum Row: CaseIterable, Sendable {
     case cash, expenses, revenue, growth
 
+    /// Up / Down arrows: the box above or below, staying put at the ends.
+    public func stepped(down: Bool) -> Row {
+        let all = Row.allCases
+        let i = all.firstIndex(of: self)! + (down ? 1 : -1)
+        return all.indices.contains(i) ? all[i] : self
+    }
+
     /// Tab / Return order, wrapping at both ends.
     public func moved(forward: Bool) -> Row {
         let all = Row.allCases

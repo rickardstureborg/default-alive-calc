@@ -68,6 +68,15 @@ struct CalculatorStateTests {
         #expect(s.expenses.text == "1M")
     }
 
+    @Test func arrowsStepWithoutWrapping() {
+        #expect(Row.cash.stepped(down: true) == .expenses)
+        #expect(Row.growth.stepped(down: true) == .growth)
+        #expect(Row.cash.stepped(down: false) == .cash)
+        #expect(Row.revenue.stepped(down: false) == .expenses)
+        // Tab still wraps.
+        #expect(Row.growth.moved(forward: true) == .cash)
+    }
+
     @Test func expressionsCountLiveAndCompactOnCommit() {
         var s = filled()
         let plain = s.readout(now: now)
