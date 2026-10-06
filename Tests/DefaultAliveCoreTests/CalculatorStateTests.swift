@@ -16,10 +16,10 @@ struct CalculatorStateTests {
         s.cycleUnit(.expenses)
         #expect(s.expenses.unit == .year)
         #expect(s.expenses.text == "960k")
-        #expect(s.readout(now: now).line2 == before.line2)
+        #expect(s.readout(now: now).line1 == before.line1)
         s.cycleUnit(.expenses)
         #expect(s.expenses.text == "18.4k")
-        #expect(s.readout(now: now).line2 == before.line2)
+        #expect(s.readout(now: now).line1 == before.line1)
         s.cycleUnit(.expenses)
         #expect(s.expenses.unit == .month)
         #expect(s.expenses.text == "80k")
@@ -53,8 +53,26 @@ struct CalculatorStateTests {
         s.toggleGrowthKind()
         let before = s.readout(now: now)
         s.cycleUnit(.growth)
-        #expect(s.field(.growth).text == "230k")
-        #expect(s.readout(now: now).line2 == before.line2)
+        // +1.6k of MRR a month is +19.2k of MRR a year.
+        #expect(s.field(.growth).text == "19.2k")
+        #expect(s.readout(now: now).line1 == before.line1)
+    }
+
+    // $ growth adds to the Revenue box's figure, so changing that box's unit re-expresses it.
+    @Test func revenueUnitChangeReExpressesDollarGrowth() {
+        var s = filled()
+        s.toggleGrowthKind()
+        #expect(s.field(.growth).text == "1.6k")
+        let before = s.readout(now: now)
+        s.cycleUnit(.revenue)
+        #expect(s.revenue.text == "240k")
+        // +1.6k of MRR a month is +19.2k of annual revenue a month.
+        #expect(s.field(.growth).text == "19.2k")
+        #expect(s.readout(now: now).line1 == before.line1)
+        s.cycleUnit(.revenue)
+        s.cycleUnit(.revenue)
+        #expect(s.field(.growth).text == "1.6k")
+        #expect(s.readout(now: now) == before)
     }
 
     @Test func editingDropsTheRememberedOrigin() {

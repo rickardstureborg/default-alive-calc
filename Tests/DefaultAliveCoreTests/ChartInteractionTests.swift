@@ -88,7 +88,7 @@ struct SetGrowthTests {
         #expect(s.inputs?.monthlyGrowth == 0.1)
         s.toggleGrowthKind()
         s.setGrowth(monthly: 5_000)
-        // The box is still per year (cycled above): +5k/mo a month is +720k/yr a year.
-        #expect(s.field(.growth).text == "720k")
+        // The box is still per year (cycled above): +5k of MRR a month is +60k a year.
+        #expect(s.field(.growth).text == "60k")
     }
 }

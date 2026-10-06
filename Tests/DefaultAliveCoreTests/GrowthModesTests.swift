@@ -73,9 +73,16 @@ struct UnitsTests {
         // Growth compounds per period: 8%/mo is 152%/yr, not 96%.
         #expect(close(growthToUnit(0.08, .year), pow(1.08, 12) - 1, within: 1e-12))
         #expect(close(growthFromUnit(growthToUnit(0.08, .week), .week), 0.08, within: 1e-12))
-        // $ growth scales with period²: monthly revenue +5k each month = yearly revenue +720k each year.
-        #expect(close(linearToUnit(5_000, .year), 720_000, within: 1e-9))
-        #expect(close(linearFromUnit(linearToUnit(5_000, .week), .week), 5_000, within: 1e-9))
+        // $ growth: the Revenue box's figure grows by this much each growth period, so it
+        // scales with the growth period alone. +5k of MRR a month is +60k of MRR a year...
+        #expect(close(linearToUnit(5_000, .year, revenue: .month), 60_000, within: 1e-9))
+        // ...and +720k of annual revenue a year, if the Revenue box is per year.
+        #expect(close(linearToUnit(5_000, .year, revenue: .year), 720_000, within: 1e-9))
+        // +$50/wk of MRR is +$217/mo a month, and 50 × 52.18 ≈ +$2.6k a year.
+        let monthly = linearFromUnit(50, .week, revenue: .month)
+        #expect(close(monthly, 50 * 365.2425 / 7 / 12, within: 1e-9))
+        #expect(close(linearToUnit(monthly, .year, revenue: .month), 50 * 365.2425 / 7, within: 1e-9))
+        #expect(close(linearFromUnit(linearToUnit(5_000, .week, revenue: .week), .week, revenue: .week), 5_000, within: 1e-9))
     }
 
     @Test func switchingGrowthKindKeepsTheFirstStep() throws {

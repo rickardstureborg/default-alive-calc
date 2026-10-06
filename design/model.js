@@ -135,8 +135,9 @@ export function caretAfterNormalizing(old, caret, now) {
 // ── Units.swift ──────────────────────────────────────────────────────────────
 // The model runs in months; each flow field can be typed per week, month or year.
 // Weeks per month is TLB's 365.2425/7/12. % growth compounds per period, so 8%/mo is
-// 1.79%/wk and 152%/yr (not 2% and 96%). $ growth means the per-period revenue figure
-// rises by that much each period ("+$10k MRR a month"), so it scales with period².
+// 1.79%/wk and 152%/yr (not 2% and 96%). $ growth means the Revenue box's figure (in that
+// box's unit) rises by that much each growth period: linear in the growth period ("+$10k of
+// MRR a month" is +$120k of MRR a year), and scaled by the revenue period.
 
 export const UNITS = {
   week: { months: 12 * 7 / 365.2425 },
@@ -150,8 +151,8 @@ export const amountToUnit = (monthly, unit) => monthly * per(unit);
 export const amountFromUnit = (perUnit, unit) => perUnit / per(unit);
 export const growthToUnit = (monthly, unit) => Math.expm1(Math.log1p(monthly) * per(unit));
 export const growthFromUnit = (perUnit, unit) => Math.expm1(Math.log1p(perUnit) / per(unit));
-export const linearToUnit = (monthly, unit) => monthly * per(unit) ** 2;
-export const linearFromUnit = (perUnit, unit) => perUnit / per(unit) ** 2;
+export const linearToUnit = (monthly, unit, revenue = "month") => monthly * per(unit) * per(revenue);
+export const linearFromUnit = (perUnit, unit, revenue = "month") => perUnit / (per(unit) * per(revenue));
 
 // ── Projection.swift ─────────────────────────────────────────────────────────
 // inputs: { cash, expenses, revenue, growth, linear }, all monthly. Compounding growth
@@ -390,11 +391,11 @@ export function growthValue(text) {
 }
 
 /// One typed field → its monthly model value, or null if unusable. $ growth may be negative.
-export function fieldValue(key, text, unit, linear) {
+export function fieldValue(key, text, unit, linear, revenueUnit = "month") {
   if (key === "cash") return amountValue(text);
   if (key === "growth" && linear) {
     const n = parseAmount(text);
-    return n === null ? null : linearFromUnit(n, unit);
+    return n === null ? null : linearFromUnit(n, unit, revenueUnit);
   }
   if (key === "growth") {
     const g = growthValue(text);
@@ -406,21 +407,21 @@ export function fieldValue(key, text, unit, linear) {
 
 /// A monthly model value → what the field shows in `unit`. Inverse of fieldValue.
 /// No "$" or "%": the box draws the unit.
-export function fieldText(key, monthly, unit, linear) {
+export function fieldText(key, monthly, unit, linear, revenueUnit = "month") {
   if (key === "growth") {
-    return normalizeField(linear ? formatMoney(linearToUnit(monthly, unit)) : formatPercent(growthToUnit(monthly, unit)));
+    return normalizeField(linear ? formatMoney(linearToUnit(monthly, unit, revenueUnit)) : formatPercent(growthToUnit(monthly, unit)));
   }
   return normalizeField(formatMoney(key === "cash" ? monthly : amountToUnit(monthly, unit)));
 }
 
 // % ↔ $ growth: the same first-period step, measured in the growth field's own unit,
 // so 8%/mo on $20k/mo revenue becomes +$1.6k/mo (8% of 20k), and back.
-export function switchGrowthKind(monthlyGrowth, toLinear, monthlyRevenue, unit) {
-  const revenue = amountToUnit(monthlyRevenue, unit);
+export function switchGrowthKind(monthlyGrowth, toLinear, monthlyRevenue, unit, revenueUnit = "month") {
+  const revenue = amountToUnit(monthlyRevenue, revenueUnit);
   if (!(revenue > 0)) return null;
   return toLinear
-    ? linearFromUnit(growthToUnit(monthlyGrowth, unit) * revenue, unit)
-    : growthFromUnit(linearToUnit(monthlyGrowth, unit) / revenue, unit);
+    ? linearFromUnit(growthToUnit(monthlyGrowth, unit) * revenue, unit, revenueUnit)
+    : growthFromUnit(linearToUnit(monthlyGrowth, unit, revenueUnit) / revenue, unit);
 }
 
 function hint(key, threshold, units, linear) {
@@ -430,7 +431,7 @@ function hint(key, threshold, units, linear) {
     case "expenses": return `≤ ${formatMoneyBound(amountToUnit(threshold, units.expenses), false)}`;
     case "revenue": return `≥ ${formatMoneyBound(amountToUnit(threshold, units.revenue), true)}`;
     default: return linear
-      ? `≥ ${formatMoneyBound(linearToUnit(threshold, units.growth), true)}`
+      ? `≥ ${formatMoneyBound(linearToUnit(threshold, units.growth, units.revenue), true)}`
       : `≥ ${formatPercentBound(growthToUnit(threshold, units.growth), true)}`;
   }
 }
@@ -461,7 +462,7 @@ export function readoutFor(inputs, filledIn, units, now, taxes = null) {
 
 /// readoutFor, straight from the typed strings.
 export function readout(raw, now, units = MONTHLY, linear = false, taxes = null) {
-  const values = KEYS.map((k) => fieldValue(k, raw[k], units[k], linear));
+  const values = KEYS.map((k) => fieldValue(k, raw[k], units[k], linear, units.revenue));
   const inputs = values.includes(null) ? null
     : { cash: values[0], expenses: values[1], revenue: values[2], growth: values[3], linear };
   return readoutFor(inputs, KEYS.every((k) => raw[k].trim() !== ""), units, now, taxes);
