@@ -142,3 +142,47 @@ test("readout date, drag math and revenue over time (same cases as Swift)", () =
   assert.equal(m.revenueAt({ revenue: 20_000, growth: 5_000, linear: true }, 12), 80_000);
   assert.equal(m.revenueAt({ revenue: 20_000, growth: -2_000, linear: true }, 15), 0);
 });
+
+test("taxes (same cases as TaxTests.swift)", () => {
+  assert.equal(m.TAX_PLACES.length, 148);
+  assert.equal(m.TAX_PLACES.filter((p) => !p.local).length, 51);
+  assert.equal(m.TAX_NOTHING_OWED.length, 78);
+  const base = { cash: 400_000, expenses: 80_000, revenue: 20_000, growth: 0.08, linear: false };
+  const sample = { CA: 0, "CA-oakland": 1, TX: 0.1 };
+  const t = m.withTaxes(base, sample);
+  assert.equal(t.revenueRate, 0.0036);
+  assert.equal(t.fixedMonthly, 889 / 12);
+  assert.equal(m.withTaxes({ ...base, revenue: 250_000 }, sample).revenueRate, 0.0036 + 0.00331 * 0.1);
+  assert.equal(m.withTaxes({ ...base, revenue: 2_650_000 / 12 }, sample).revenueRate, 0.0036);
+  const p = m.taxPlace;
+  assert.ok(Math.abs(m.placeRate(p("OH"), 1, 10_000_000) - 0.0026 * 0.4) < 1e-15);
+  assert.equal(m.placeRate(p("OH"), 1, 6_000_000), 0);
+  assert.equal(m.placeRate(p("OH"), 0.5, 10_000_000), 0);
+  assert.equal(m.placeRate(p("VA-arlington-county"), 1, 150_000), 0.0036);
+  assert.equal(m.placeRate(p("VA-arlington-county"), 1, 90_000), 0);
+  assert.equal(m.placeRate(p("CA-oakland"), 0.5, 0), 0.0036 * 0.5);
+  assert.deepEqual(m.withTaxes(base, {}).inputs, base);
+  for (const [id, short, s] of [["CA-oakland", false, "0.36% of revenue there + $64/yr"],
+    ["TX", false, "0.331% of revenue there, once revenue tops $2.65M/yr"],
+    ["DE", false, "0.3983% of revenue there above $1.2M/yr + $450/yr"],
+    ["VA-arlington-county", false, "0.36% of revenue there, once it tops $100k/yr + $50/yr"],
+    ["MO", false, "$20/yr"], ["AL", false, "$0"], ["DE", true, "0.3983% + $450/yr"], ["TX", true, "0.331%"]]) {
+    assert.equal(m.placeSummary(p(id), short), s, id);
+  }
+  for (const [x, digits, s] of [[0.003983, 4, "0.3983%"], [0.00331, 4, "0.331%"], [0.0125, 4, "1.25%"],
+    [0.0000052, 2, "0.00052%"], [0.003983, 2, "0.4%"], [0, 4, "0%"]]) assert.equal(m.formatRate(x, digits), s);
+  for (const [text, v] of [["0.5", 0.005], ["100", 1], ["0", 0], ["10%", 0.1], ["150", null], ["-1", null], ["", null], ["abc", null]])
+    assert.equal(m.shareValue(text), v, text);
+  const ids = (q) => m.matchingPlaces(q).map((x) => x.id);
+  assert.equal(ids("").length, 148);
+  assert.equal(ids("  ").length, 148);
+  assert.deepEqual(ids("seat"), ["WA-seattle"]);
+  assert.deepEqual(ids("Tennessee"), ["TN", "TN-chattanooga", "TN-knoxville", "TN-memphis", "TN-nashville"]);
+  assert.equal(ids("tenn").length, 5);
+  assert.deepEqual(ids("TX"), ["TX"]);
+  assert.deepEqual(ids("seattle wa"), ["WA-seattle"]);
+  assert.deepEqual(ids("kansas city"), ["KS-kansas-city", "MO-kansas-city"]);
+  assert.deepEqual(ids("kansas city mo"), ["MO-kansas-city"]);
+  assert.deepEqual(ids("oakland, ca"), ["CA-oakland"]);
+  assert.deepEqual(ids("zzz"), []);
+});

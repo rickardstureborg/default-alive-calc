@@ -519,6 +519,24 @@ export const taxPlace = (id) => placeById.get(id) ?? null;
 /// Most venture-backed startups are Delaware corporations; every other place is the
 /// user's to add.
 export const DEFAULT_TAX_PLACES = ["DE"];
+const stateNames = Object.fromEntries(TAX_PLACES.filter((p) => !p.local).map((p) => [p.state, p.name]));
+
+/// What the checklist's filter shows, and what "Add all" / "Remove all" act on: places
+/// where every word typed is part of the name or the state's name, or is the state's
+/// code ("kansas city mo", "tenn", "tx"). TaxCatalog.matching in Swift.
+export function matchingPlaces(query) {
+  const words = query.toLowerCase().split(/[\s,]+/).filter(Boolean);
+  return TAX_PLACES.filter((p) => {
+    const name = p.name.toLowerCase(), state = stateNames[p.state].toLowerCase(), code = p.state.toLowerCase();
+    return words.every((w) => name.includes(w) || state.includes(w) || code === w);
+  });
+}
+
+/// A typed share of revenue: a percentage from 0 to 100, as a fraction.
+export function shareValue(text) {
+  const v = parsePercent(text);
+  return v !== null && v >= 0 && v <= 1 ? v : null;
+}
 
 /// The share of revenue a place's receipts tax takes, at `annual` revenue: rate × share,
 /// or nothing at or under its threshold, or only the part above it for an exclusion.

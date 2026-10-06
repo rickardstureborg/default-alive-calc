@@ -168,7 +168,10 @@
   .picker .list { max-height: 248px; overflow-y: auto; margin: 6px -8px 0; padding: 0 8px; }
   .picker .item { display: flex; align-items: center; gap: 6px; padding: 2px 0; white-space: nowrap; }
   .picker .item.state { font-weight: 600; padding-top: 5px; }
-  .picker .item.local { padding-left: 20px; }
+  .picker .item.nested { padding-left: 20px; }
+  .picker .bulk { display: flex; gap: 12px; margin-top: 6px; font-size: 11px; }
+  /* Past eight places ("Add all" makes 148) the list scrolls instead of stretching the window. */
+  .places.scrolls { max-height: 200px; overflow-y: auto; }
   .picker .item input { margin: 0; }
   .picker .item .sum { margin-left: auto; padding-left: 8px; font-weight: 400; font-size: 11px; color: var(--secondary); font-variant-numeric: tabular-nums; }
   .picker .foot { margin-top: 6px; font-size: 11px; color: var(--secondary); white-space: normal; }
@@ -309,7 +312,7 @@
 <script type="module">
 import {
   KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatRate,
-  TAX_PLACES, TAX_NOTHING_OWED, DEFAULT_TAX_PLACES, taxPlace, placeSummary,
+  TAX_PLACES, TAX_NOTHING_OWED, DEFAULT_TAX_PLACES, taxPlace, placeSummary, matchingPlaces, shareValue,
   NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing, groupBreaks,
   formatMoney, formatMonths, formatMonthYear, formatDate, cumulativeBurn, project, revenueAt, amountToUnit,
   dragProfitPoint,
@@ -566,6 +569,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   const placeRows = el("div", { className: "places" });
   const renderPlaces = () => {
     placeRows.replaceChildren();
+    placeRows.classList.toggle("scrolls", state.taxes.places.length > 8);
     for (const id in shareInputs) delete shareInputs[id];
     for (const id of state.taxes.places) {
       const place = taxPlace(id);
@@ -586,16 +590,17 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     }
   };
   // A removed place keeps its typed share, so adding it back restores it.
-  const setPlace = (id, on) => {
+  const setPlaces = (changed, on) => {
     const ids = new Set(state.taxes.places);
-    if (on) ids.add(id); else ids.delete(id);
+    for (const id of changed) if (on) ids.add(id); else ids.delete(id);
     state.taxes.places = TAX_PLACES.map((p) => p.id).filter((p) => ids.has(p));
     renderPlaces();
     picker.refresh();
     update();
   };
+  const setPlace = (id, on) => setPlaces([id], on);
   const addMore = el("button", { className: "link", textContent: "Add more…", tabIndex: -1, disabled: !editable });
-  const picker = taxPicker(() => state.taxes.places, setPlace);
+  const picker = taxPicker(() => state.taxes.places, setPlace, setPlaces);
   addMore.addEventListener("click", () => (picker.isOpen() ? picker.close() : picker.open()));
   document.addEventListener("pointerdown", (e) => {
     if (picker.isOpen() && !picker.el.contains(e.target) && e.target !== addMore) picker.close();
@@ -753,7 +758,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     assumptions.hidden = !assumptionsOpen;
     // Places without a receipts tax have no share box; their share never matters.
     const shares = Object.fromEntries(state.taxes.places.map((id) =>
-      [id, taxPlace(id).rate > 0 ? parsePercent(state.taxes.shares[id] ?? "") : 0]));
+      [id, taxPlace(id).rate > 0 ? shareValue(state.taxes.shares[id] ?? "") : 0]));
     for (const [id, input] of Object.entries(shareInputs)) input.classList.toggle("invalid", shares[id] === null);
     const taxAssumptions = state.taxes.on && !Object.values(shares).includes(null) ? shares : null;
     const taxed = taxAssumptions && modelInputs ? withTaxes(modelInputs, taxAssumptions) : null;
@@ -849,33 +854,44 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   };
 }
 
-// "Add more…": every place with a checkbox, grouped by state (the state's own row first,
-// its cities indented under it), filtered by name or state. Ticking adds, unticking
-// removes, straight away. Mirrors TaxPicker in CalculatorView.swift.
-function taxPicker(selected, setPlace) {
+// "Add more…": every place with a checkbox, filtered on each keystroke (matchingPlaces:
+// name, state name or state code). A state shown with its cities heads them; a city shown
+// without its state reads "Seattle, WA". Ticking adds and unticking removes, straight
+// away; "Add all" / "Remove all" act on what the filter shows. Mirrors TaxPicker.swift.
+function taxPicker(selected, setPlace, setPlaces) {
   const filter = el("input", { className: "filter", placeholder: "Filter states and cities", spellcheck: false });
+  const addAll = el("button", { className: "link", textContent: "Add all", tabIndex: -1 });
+  const removeAll = el("button", { className: "link", textContent: "Remove all", tabIndex: -1 });
   const list = el("div", { className: "list" });
-  const hidden = TAX_NOTHING_OWED.length;
-  const foot = el("div", { className: "foot", textContent: `${hidden} more cities checked owe nothing before profit.`, title: TAX_NOTHING_OWED.join(", ") });
-  const panel = el("div", { className: "picker", hidden: true }, filter, list, foot);
-  const stateName = Object.fromEntries(TAX_PLACES.filter((p) => !p.local).map((p) => [p.state, p.name]));
-  const boxes = {};
+  const foot = el("div", { className: "foot", textContent: `${TAX_NOTHING_OWED.length} more cities checked owe nothing before profit.`, title: TAX_NOTHING_OWED.join(", ") });
+  const panel = el("div", { className: "picker", hidden: true }, filter, el("div", { className: "bulk" }, addAll, removeAll), list, foot);
+  const boxes = {}, items = {}, names = {};
   for (const place of TAX_PLACES) {
     const box = el("input", { type: "checkbox", tabIndex: -1 });
     box.addEventListener("change", () => setPlace(place.id, box.checked));
     boxes[place.id] = box;
-    list.append(el("label", { className: `item ${place.local ? "local" : "state"}`, title: place.note },
-      box, place.name, el("span", { className: "sum", textContent: placeSummary(place, true) })));
+    names[place.id] = el("span", { textContent: place.name });
+    items[place.id] = el("label", { className: `item ${place.local ? "local" : "state"}`, title: place.note },
+      box, names[place.id], el("span", { className: "sum", textContent: placeSummary(place, true) }));
+    list.append(items[place.id]);
   }
-  const items = [...list.children];
+  let shown = TAX_PLACES;
   const applyFilter = () => {
-    const q = filter.value.trim().toLowerCase();
-    const hit = (p) => !q || p.name.toLowerCase().includes(q) || stateName[p.state].toLowerCase().includes(q) || p.state.toLowerCase() === q;
-    // A state's row shows whenever any of its places match, as their heading.
-    const states = new Set(TAX_PLACES.filter(hit).map((p) => p.state));
-    TAX_PLACES.forEach((p, i) => (items[i].hidden = p.local ? !hit(p) : !states.has(p.state)));
+    shown = matchingPlaces(filter.value);
+    const ids = new Set(shown.map((p) => p.id));
+    const states = new Set(shown.filter((p) => !p.local).map((p) => p.state));
+    for (const place of TAX_PLACES) {
+      const nested = place.local && states.has(place.state);
+      items[place.id].hidden = !ids.has(place.id);
+      items[place.id].classList.toggle("nested", nested);
+      names[place.id].textContent = place.local && !nested ? `${place.name}, ${place.state}` : place.name;
+    }
+    addAll.title = filter.value.trim() ? "Add every place shown" : "Add every place";
+    removeAll.title = filter.value.trim() ? "Remove every place shown" : "Remove every place";
   };
   filter.addEventListener("input", applyFilter);
+  addAll.addEventListener("click", () => setPlaces(shown.map((p) => p.id), true));
+  removeAll.addEventListener("click", () => setPlaces(shown.map((p) => p.id), false));
   const refresh = () => {
     const on = new Set(selected());
     for (const [id, box] of Object.entries(boxes)) box.checked = on.has(id);
