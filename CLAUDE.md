@@ -3,11 +3,12 @@
 Native macOS calculator for PG's "default alive" test: SwiftPM, no Xcode project, no
 dependencies. The only persisted state is the last input (UserDefaults, bundle id
 `local.DefaultAliveCalculator`): each box's text and unit (`cash`, `expenses[Unit]`,
-`revenue[Unit]`, `growthPercent[Unit]`, `growthDollar[Unit]`), `growthLinear`, `chartShown`.
+`revenue[Unit]`, `growthPercent[Unit]`, `growthDollar[Unit]`), `growthLinear`, `taxesOn`,
+`oaklandShare`, `washingtonShare`, `chartShown`.
 
 ## Layout
 
-- `Sources/DefaultAliveCore/`: everything testable. `Projection` (compounding + linear), `Units`, `Breakevens` (the "alive if" column), `Formatting`, `Readout` (all text under the divider + hints), `BalanceCurve` (chart data), `CalculatorState` (the form's behavior: unit cycling, separate %/$ growth boxes, clear).
+- `Sources/DefaultAliveCore/`: everything testable. `Projection` (compounding + linear), `Units`, `Breakevens` (the "alive if" column), `Taxes`, `Formatting`, `Parsing` (numbers + arithmetic), `Readout` (all text under the divider + hints), `BalanceCurve` (chart data), `CalculatorState` (the form's behavior: unit cycling, separate %/$ growth boxes, taxes, commit, clear).
 - `Sources/DefaultAliveCalculator/`: AppKit shell + key monitor (`App.swift`), persistence (`CalculatorModel`), SwiftUI view (`CalculatorView.swift`, tokens in `enum Style`), Swift Charts (`BalanceChart`), `--snapshot` (`Snapshot.swift`), `--selftest` (`SelfTest.swift`).
 - `design/`: the browser mock. `index.html` (UI, CSS variables named like `Style`), `model.js` (JS twin of the core), `presets.json` (gallery states + shared spec for readout text and hints), `shot.mjs` (headless screenshots).
 
@@ -37,7 +38,7 @@ dependencies. The only persisted state is the last input (UserDefaults, bundle i
 - **Seeing the app**: `screencapture` needs Screen Recording and System Events keystrokes need Automation/Accessibility; this terminal has neither. Use `make snapshot` for looks and `make selftest` for keys (both permission-free and never touch saved input; selftest flashes a second window for ~2s).
 - **Keyboard**: all handled in the NSEvent monitor in `App.swift`, not AppKit's key-view loop (which would also stop on the unit buttons when keyboard navigation is on). Clear all: Esc, C, keypad Clear (keyCode 71), or ⌘⌫ only when no box has the cursor; inside a box ⌘⌫ passes through to delete-to-start, which is why the Edit menu's Clear All shortcut is Esc (a ⌘⌫ menu shortcut would fire first). Tab / Return: next box, Shift for previous, wrapping; Return also compacts an expression ("163+5" → "168"), Tab doesn't. Forward selects all, backward parks the cursor at the end; SwiftUI moves first responder a run-loop pass later, so `placeCursor` waits for the field editor to change hands. Clicking empty space deselects (`onTapGesture` on the form; selftest checks boxes still take clicks).
 - **Boxes take arithmetic**: `evaluate()` in Parsing.swift / model.js. Unary minus only at the start or after "(", so "--5" stays invalid.
-- **Taxes are prototype-only** (model.js `withTaxes`, the mock's checkbox): no Swift twin or parity test until approved and ported.
+- **Taxes** (`Taxes.swift` / model.js `withTaxes`): only taxes that bite before profitability (Oakland's business tax on receipts, Washington's B&O past its small business credit, Delaware's fixed $450); income taxes are zero until breakeven so they can't change the verdict. Rates carry their source and check date in comments; re-check them yearly. Hints under taxes are converted back to pre-tax numbers (`Taxed.gross`).
 - **Swift Charts colors**: `.secondary` / `.quaternary` resolve against the accent color there (blue gridlines). Use explicit `Color.primary.opacity(...)`.
 - **Axis edge labels** must hang inward (`AxisValueLabel(anchor:)`), or Charts drops the "0" and truncates the last label.
 - **TextField text** is AppKit underneath: `NSColor.textColor` (100% black/white), not SwiftUI's 85% label color. The mock's colors were measured from snapshot pixels; re-measure rather than guess if they drift.
