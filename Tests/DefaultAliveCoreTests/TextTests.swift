@@ -45,17 +45,18 @@ struct ParsingTests {
         #expect(abs(value - expected) < 1e-12)
     }
 
-    // Return rewrites an expression to the shortest exact form; plain numbers stay as typed.
+    // Return rewrites an expression to its exact result with thousands separators; the
+    // unit ($ or %) is drawn by the box, so it's never part of the text.
     @Test(arguments: [
         (Row.cash, "163+5", false, "168"),
-        (Row.cash, "$163k+5k", false, "$168k"),
-        (Row.expenses, "80k+5k", false, "85k"),
-        (Row.expenses, "1234+0", false, "1.234k"),
+        (Row.cash, "$163k+5k", false, "168,000"),
+        (Row.expenses, "80k+5k", false, "85,000"),
+        (Row.expenses, "1234+0", false, "1,234"),
         (Row.revenue, "1000/3", false, "333.3333"),
-        (Row.cash, "$1.2M-200k", false, "$1M"),
-        (Row.growth, "8+2", false, "10%"),
-        (Row.growth, "$1.6k+400", true, "$2k"),
-        (Row.growth, "-1k-600", true, "-$1.6k"),
+        (Row.cash, "$1.2M-200k", false, "1,000,000"),
+        (Row.growth, "8+2", false, "10"),
+        (Row.growth, "$1.6k+400", true, "2,000"),
+        (Row.growth, "-1k-600", true, "-1,600"),
     ])
     func compactsExpressions(row: Row, text: String, linear: Bool, expected: String) {
         #expect(compactField(row, text: text, linear: linear) == expected)
@@ -64,6 +65,37 @@ struct ParsingTests {
     @Test(arguments: ["163", "$1.2M", "80k", "-$1.6k", "8%", "abc+1", "1+", ""])
     func leavesNonExpressionsAlone(text: String) {
         #expect(compactField(.expenses, text: text, linear: false) == nil)
+    }
+
+    // What a box shows for what you typed: commas regrouped live, "$"/"%" dropped (the box
+    // draws the unit), decimals left alone, expressions grouped token by token.
+    @Test(arguments: [
+        ("1000", "1,000"),
+        ("1000000", "1,000,000"),
+        ("163000+5000", "163,000+5,000"),
+        ("1,0000", "10,000"),
+        ("999", "999"),
+        ("1234.5678", "1,234.5678"),
+        ("0.12345", "0.12345"),
+        ("$400k", "400k"),
+        ("-$1600", "-1,600"),
+        ("8%", "8"),
+        ("1500k", "1,500k"),
+        ("", ""),
+    ])
+    func boxText(typed: String, shown: String) {
+        #expect(normalizeField(typed) == shown)
+    }
+
+    // The cursor keeps its place among the characters that survive regrouping.
+    @Test(arguments: [
+        ("1000", 4, "1,000", 5),
+        ("1635000", 4, "1,635,000", 5),
+        ("$400", 1, "400", 0),
+        ("163,0000", 8, "1,630,000", 9),
+    ])
+    func caretFollowsRegroup(old: String, caret: Int, new: String, expected: Int) {
+        #expect(caretAfterNormalizing(old, caret: caret, new) == expected)
     }
 
     @Test(arguments: [

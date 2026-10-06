@@ -101,27 +101,66 @@ private func plainNumber(_ s: String) -> Double? {
     return Double(s)
 }
 
-/// If `text` is arithmetic ("163+5"), its result in the field's shortest exact form
-/// ("168", "85k", "10%", "$2k"); nil for plain numbers and anything that doesn't evaluate.
-/// A typed "$" survives; $ growth always shows one, % growth always a "%".
+/// If `text` is arithmetic ("163+5"), its exact result with thousands separators ("168",
+/// "85,000", "333.3333"); nil for plain numbers and anything that doesn't evaluate. The
+/// box draws the unit ($ or %), so it's never part of the text.
 public func compactField(_ row: Row, text: String, linear: Bool) -> String? {
     let t = text.trimmingCharacters(in: .whitespaces)
     // An operator after the first character (a leading "-" is just a sign) or a "(".
     guard t.first == "(" || t.dropFirst().contains(where: { "+-*/×÷()".contains($0) }) else { return nil }
-    let percent = row == .growth && !linear
-    guard let v = evaluate(t, percent: percent) else { return nil }
-    let sign = v < 0 ? "-" : ""
-    if percent { return sign + compactNumber(abs(v)) + "%" }
-    let dollar = (row == .growth && linear) || t.hasPrefix("$") || t.hasPrefix("-$")
-    return sign + (dollar ? "$" : "") + compactNumber(abs(v))
+    guard let v = evaluate(t, percent: row == .growth && !linear) else { return nil }
+    return groupThousands(trimZeros(String(format: "%.4f", (v * 10_000).rounded() / 10_000)))
 }
 
-/// Shortest exact spelling: 168, 85k, 1.234k, 1.2M; otherwise up to four decimals.
-private func compactNumber(_ a: Double) -> String {
-    for (scale, suffix) in [(1e9, "B"), (1e6, "M"), (1e3, "k")] where a >= scale {
-        let x = a / scale
-        let r = (x * 1000).rounded() / 1000
-        if abs(x - r) < 1e-9 * max(1, x) { return trimZeros(String(format: "%.3f", r)) + suffix }
+/// What a box shows for what was typed: "$" and "%" dropped (the box draws the unit) and
+/// every number's whole part grouped in threes, live: "1000000" → "1,000,000",
+/// "$163000+5" → "163,000+5". Decimals are left alone.
+public func normalizeField(_ text: String) -> String {
+    groupThousands(text.filter { $0 != "$" && $0 != "%" })
+}
+
+func groupThousands(_ text: String) -> String {
+    var out = ""
+    var run = ""
+    var afterPoint = false
+    func flush() {
+        if afterPoint {
+            out += run
+        } else {
+            let digits = Array(run.filter { $0 != "," })
+            for (i, d) in digits.enumerated() {
+                if i > 0, (digits.count - i) % 3 == 0 { out.append(",") }
+                out.append(d)
+            }
+        }
+        run = ""
     }
-    return trimZeros(String(format: "%.4f", (a * 10_000).rounded() / 10_000))
+    for ch in text {
+        if ch.isASCII, ch.isNumber || ch == "," {
+            run.append(ch)
+            continue
+        }
+        flush()
+        out.append(ch)
+        afterPoint = ch == "."
+    }
+    flush()
+    return out
+}
+
+/// Where the cursor goes after normalizeField rewrote `old` into `new`: after the same
+/// number of surviving characters (anything but "," "$" "%"). UTF-16 offsets, as NSRange
+/// and DOM selection use.
+public func caretAfterNormalizing(_ old: String, caret: Int, _ new: String) -> Int {
+    let dropped: Set<UInt16> = [",", "$", "%"].map { Character($0).utf16.first! }.reduce(into: []) { $0.insert($1) }
+    let kept = old.utf16.prefix(caret).filter { !dropped.contains($0) }.count
+    let comma = Character(",").utf16.first!
+    var seen = 0
+    var i = 0
+    for unit in new.utf16 {
+        if seen == kept { break }
+        if unit != comma { seen += 1 }
+        i += 1
+    }
+    return i
 }

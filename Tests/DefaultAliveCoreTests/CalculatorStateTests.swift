@@ -30,7 +30,7 @@ struct CalculatorStateTests {
         var s = filled()
         s.toggleGrowthKind()
         #expect(s.linear)
-        #expect(s.field(.growth).text == "$1.6k")
+        #expect(s.field(.growth).text == "1.6k")
     }
 
     @Test func eachGrowthKindKeepsItsOwnInput() {
@@ -38,12 +38,12 @@ struct CalculatorStateTests {
         s.toggleGrowthKind()
         s.edit(.growth, text: "$5k")
         s.toggleGrowthKind()
-        #expect(s.field(.growth).text == "8%")
+        #expect(s.field(.growth).text == "8")
         s.toggleGrowthKind()
-        #expect(s.field(.growth).text == "$5k")
+        #expect(s.field(.growth).text == "5k")
         s.edit(.growth, text: "")
         s.toggleGrowthKind()
-        #expect(s.field(.growth).text == "8%")
+        #expect(s.field(.growth).text == "8")
     }
 
     // Regression: re-deriving $ from the original % on each unit click moved the answer,
@@ -53,7 +53,7 @@ struct CalculatorStateTests {
         s.toggleGrowthKind()
         let before = s.readout(now: now)
         s.cycleUnit(.growth)
-        #expect(s.field(.growth).text == "$230k")
+        #expect(s.field(.growth).text == "230k")
         #expect(s.readout(now: now).line2 == before.line2)
     }
 
@@ -84,15 +84,15 @@ struct CalculatorStateTests {
         #expect(s.readout(now: now) == plain)
         #expect(s.expenses.text == "60k+20k")
         s.commit(.expenses)
-        #expect(s.expenses.text == "80k")
+        #expect(s.expenses.text == "80,000")
         s.commit(.expenses)
-        #expect(s.expenses.text == "80k")
+        #expect(s.expenses.text == "80,000")
     }
 
     @Test func clearEmptiesBothGrowthKinds() {
         var s = filled()
         s.toggleGrowthKind()
-        #expect(s.field(.growth).text == "$1.6k")
+        #expect(s.field(.growth).text == "1.6k")
         s.clear()
         #expect(Row.allCases.allSatisfy { s.field($0).text.isEmpty })
         s.toggleGrowthKind()
@@ -107,7 +107,20 @@ struct CalculatorStateTests {
         s.edit(.growth, text: "8%")
         #expect(!s.isInvalid(.growth))
         s.toggleGrowthKind()
+        // The box draws the unit, so a typed "%" is just dropped: this is $8.
         s.edit(.growth, text: "8%")
+        #expect(!s.isInvalid(.growth) && s.field(.growth).text == "8")
+        s.edit(.growth, text: "8x")
         #expect(s.isInvalid(.growth))
+    }
+
+    @Test func editingGroupsThousandsLive() {
+        var s = CalculatorState()
+        s.edit(.cash, text: "1000000")
+        #expect(s.cash.text == "1,000,000")
+        #expect(fieldValue(.cash, text: s.cash.text, unit: .month, linear: false) == 1_000_000)
+        s.edit(.cash, text: "$163000+5")
+        #expect(s.cash.text == "163,000+5")
+        #expect(CalculatorState(input: RawInputs(cash: "$1200000", expenses: "80k", revenue: "20k", growth: "8%")).cash.text == "1,200,000")
     }
 }

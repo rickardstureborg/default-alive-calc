@@ -79,13 +79,13 @@ public struct CalculatorState: Equatable, Sendable {
 
     /// A preset: `input.growth` goes to whichever kind `linear` says.
     public init(input: RawInputs, units: Units = .monthly, linear: Bool = false, taxes: TaxAssumptions? = nil) {
-        cash.text = input.cash
-        expenses = Field(text: input.expenses, unit: units.expenses)
-        revenue = Field(text: input.revenue, unit: units.revenue)
+        cash.text = normalizeField(input.cash)
+        expenses = Field(text: normalizeField(input.expenses), unit: units.expenses)
+        revenue = Field(text: normalizeField(input.revenue), unit: units.revenue)
         growthPercent.unit = units.growth
         growthDollar.unit = units.growth
         self.linear = linear
-        self[.growth].text = input.growth
+        self[.growth].text = normalizeField(input.growth)
         if let taxes {
             taxesOn = true
             oaklandShare = trimZeros(String(format: "%.4f", taxes.oaklandShare * 100))
@@ -124,7 +124,8 @@ public struct CalculatorState: Equatable, Sendable {
     }
 
     public mutating func edit(_ row: Row, text: String) {
-        self[row] = Field(text: text, unit: self[row].unit)
+        // Live: regroup thousands and drop "$"/"%" on every keystroke (see normalizeField).
+        self[row] = Field(text: normalizeField(text), unit: self[row].unit)
     }
 
     public mutating func cycleUnit(_ row: Row) {

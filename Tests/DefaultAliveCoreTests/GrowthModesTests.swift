@@ -89,9 +89,9 @@ struct UnitsTests {
 
     @Test func fieldTextRoundTrips() throws {
         #expect(fieldText(.expenses, monthly: 80_000, unit: .week, linear: false) == "18.4k")
-        #expect(fieldText(.growth, monthly: 0.08, unit: .year, linear: false) == "152%")
-        #expect(fieldText(.growth, monthly: 1_600, unit: .month, linear: true) == "$1.6k")
-        #expect(fieldText(.growth, monthly: -1_600, unit: .month, linear: true) == "-$1.6k")
+        #expect(fieldText(.growth, monthly: 0.08, unit: .year, linear: false) == "152")
+        #expect(fieldText(.growth, monthly: 1_600, unit: .month, linear: true) == "1.6k")
+        #expect(fieldText(.growth, monthly: -1_600, unit: .month, linear: true) == "-1.6k")
         #expect(close(fieldValue(.growth, text: "-$1.6k", unit: .month, linear: true), -1_600, within: 1e-9))
         #expect(close(fieldValue(.expenses, text: "18.4k", unit: .week, linear: false), 18_400 / Period.week.months, within: 1e-6))
         #expect(fieldValue(.expenses, text: "-5", unit: .month, linear: false) == nil)

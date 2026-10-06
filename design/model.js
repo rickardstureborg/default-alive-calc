@@ -90,30 +90,52 @@ function plainNumber(s) {
   return Number(s);
 }
 
-// If `text` is arithmetic ("163+5"), its result in the field's shortest exact form
-// ("168", "85k", "10%", "$2k"); null for plain numbers and anything that doesn't evaluate.
+// If `text` is arithmetic ("163+5"), its exact result with thousands separators ("168",
+// "85,000", "333.3333"); null for plain numbers and anything that doesn't evaluate. The
+// box draws the unit ($ or %), so it's never part of the text.
 export function compactField(row, text, linear) {
   const t = text.trim();
   if (!(t.startsWith("(") || /[+\-*/×÷()]/.test(t.slice(1)))) return null;
-  const percent = row === "growth" && !linear;
-  const v = evaluate(t, percent);
+  const v = evaluate(t, row === "growth" && !linear);
   if (v === null) return null;
-  const sign = v < 0 ? "-" : "";
-  if (percent) return `${sign}${compactNumber(Math.abs(v))}%`;
-  const dollar = (row === "growth" && linear) || t.startsWith("$") || t.startsWith("-$");
-  return `${sign}${dollar ? "$" : ""}${compactNumber(Math.abs(v))}`;
+  // Sign-aware so ties round away from zero like Swift's .rounded() (Math.round goes up).
+  return groupThousands(trimZeros((Math.sign(v) * Math.round(Math.abs(v) * 10_000) / 10_000).toFixed(4)));
 }
 
-// Shortest exact spelling: 168, 85k, 1.234k, 1.2M; otherwise up to four decimals.
-function compactNumber(a) {
-  for (const [scale, suffix] of [[1e9, "B"], [1e6, "M"], [1e3, "k"]]) {
-    if (a >= scale) {
-      const x = a / scale;
-      const r = Math.round(x * 1000) / 1000;
-      if (Math.abs(x - r) < 1e-9 * Math.max(1, x)) return `${trimZeros(r.toFixed(3))}${suffix}`;
+// What a box shows for what was typed: "$" and "%" dropped (the box draws the unit) and
+// every number's whole part grouped in threes, live. Decimals are left alone.
+export const normalizeField = (text) => groupThousands(text.replace(/[$%]/g, ""));
+
+function groupThousands(text) {
+  let out = "", run = "", afterPoint = false;
+  const flush = () => {
+    if (afterPoint) out += run;
+    else {
+      const digits = run.replaceAll(",", "");
+      for (let i = 0; i < digits.length; i++) {
+        if (i > 0 && (digits.length - i) % 3 === 0) out += ",";
+        out += digits[i];
+      }
     }
+    run = "";
+  };
+  for (const ch of text) {
+    if (/[0-9,]/.test(ch)) { run += ch; continue; }
+    flush();
+    out += ch;
+    afterPoint = ch === ".";
   }
-  return trimZeros((Math.round(a * 10_000) / 10_000).toFixed(4));
+  flush();
+  return out;
+}
+
+// Where the cursor goes after normalizeField rewrote `old` into `now`: after the same
+// number of surviving characters (anything but "," "$" "%"). UTF-16 offsets.
+export function caretAfterNormalizing(old, caret, now) {
+  const kept = [...old.slice(0, caret)].filter((c) => !",$%".includes(c)).length;
+  let seen = 0, i = 0;
+  for (; i < now.length && seen < kept; i++) if (now[i] !== ",") seen++;
+  return i;
 }
 
 // ── Units.swift ──────────────────────────────────────────────────────────────
@@ -378,12 +400,12 @@ export function fieldValue(key, text, unit, linear) {
 }
 
 /// A monthly model value → what the field shows in `unit`. Inverse of fieldValue.
-/// $ growth keeps its "$" so it can't be mistaken for a percentage.
+/// No "$" or "%": the box draws the unit.
 export function fieldText(key, monthly, unit, linear) {
   if (key === "growth") {
-    return linear ? formatMoney(linearToUnit(monthly, unit)) : formatPercent(growthToUnit(monthly, unit));
+    return normalizeField(linear ? formatMoney(linearToUnit(monthly, unit)) : formatPercent(growthToUnit(monthly, unit)));
   }
-  return formatMoney(key === "cash" ? monthly : amountToUnit(monthly, unit)).replace("$", "");
+  return normalizeField(formatMoney(key === "cash" ? monthly : amountToUnit(monthly, unit)));
 }
 
 // % ↔ $ growth: the same first-period step, measured in the growth field's own unit,

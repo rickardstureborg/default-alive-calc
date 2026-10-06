@@ -36,13 +36,13 @@ public func fieldValue(_ row: Row, text: String, unit: Period, linear: Bool) -> 
 }
 
 /// A monthly model value → what the field shows in `unit`. Inverse of fieldValue.
-/// $ growth keeps its "$" so it can't be mistaken for a percentage.
+/// No "$" or "%": the box draws the unit.
 public func fieldText(_ row: Row, monthly: Double, unit: Period, linear: Bool) -> String {
     switch row {
-    case .growth where linear: formatMoney(linearToUnit(monthly, unit))
-    case .growth: formatPercent(growthToUnit(monthly, unit))
-    case .cash: formatMoney(monthly).replacingOccurrences(of: "$", with: "")
-    case .expenses, .revenue: formatMoney(amountToUnit(monthly, unit)).replacingOccurrences(of: "$", with: "")
+    case .growth where linear: normalizeField(formatMoney(linearToUnit(monthly, unit)))
+    case .growth: normalizeField(formatPercent(growthToUnit(monthly, unit)))
+    case .cash: normalizeField(formatMoney(monthly))
+    case .expenses, .revenue: normalizeField(formatMoney(amountToUnit(monthly, unit)))
     }
 }
 
