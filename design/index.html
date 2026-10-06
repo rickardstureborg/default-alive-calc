@@ -313,20 +313,21 @@ function drawChart(host, inputs, now) {
     const { t, balance, kind } = curve.marker;
     const mx = x(t), my = y(balance);
     root.append(svg("circle", { class: "marker", cx: mx, cy: my, r: 4, fill: color }));
-    const text = svg("text", { class: "marker-label" });
-    text.textContent = `${kind === "profitable" ? "Profitable" : "Out of cash"} · ${formatMonthYear(t, now)}`;
-    root.append(text);
-    // Profitable sits at the bottom of a dip, with clear air underneath. Out of cash ends a
-    // falling line, which always leaves the top-right corner empty; next to the marker the
-    // label would sit on the line.
-    const w = text.getComputedTextLength();
-    if (kind === "profitable") {
-      text.setAttribute("x", Math.min(Math.max(mx - w / 2, left + 2), W - right - w));
-      text.setAttribute("y", my + 18 <= top + plotH ? my + 16 : my - 9);
-    } else {
-      text.setAttribute("x", W - right - w);
-      text.setAttribute("y", top + 10);
-    }
+    const label = (content, xFor, yAt) => {
+      const text = svg("text", { class: "marker-label" });
+      text.textContent = content;
+      root.append(text);
+      const w = text.getComputedTextLength();
+      text.setAttribute("x", Math.min(Math.max(xFor(w), left + 2), W - right - w));
+      text.setAttribute("y", yAt);
+    };
+    // What happened goes along the top edge, over the marker; when and how much sits right
+    // above the dot. A dip has clear air above its low point. Out of cash ends a falling
+    // line that arrives from the upper left, so its date hangs right, into the empty
+    // space past the end, instead of sitting on the line.
+    label(kind === "profitable" ? "Profitable" : "Out of cash", (w) => mx - w / 2, top + 10);
+    if (kind === "profitable") label(`${formatMonthYear(t, now)} · ${formatMoney(balance)}`, (w) => mx - w / 2, my - 9);
+    else label(formatMonthYear(t, now), () => mx - 4, my - 9);
   }
 
   // Hover: crosshair snaps to the nearest sample; the tooltip leads with the value.
@@ -518,15 +519,23 @@ function freshState({ input = {}, units = {}, linear = false } = {}) {
 
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
 
+// ?preset=<name> loads a preset into the live window (not saved) and ?theme=light|dark
+// pins its appearance, so `node design/shot.mjs '<url>?preset=dead' out.png '#live-window'`
+// captures one exact state.
+const spec = await (await fetch("presets.json", { cache: "no-store" })).json();
+const params = new URLSearchParams(location.search);
+const pinned = spec.presets.find((p) => p.name === params.get("preset"));
+
 const STORE = "default-alive-state-v4";
 const liveWindow = document.getElementById("live-window");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
-const applyScheme = () => (liveWindow.className = `window ${scheme.matches ? "dark" : "light"}`);
+const applyScheme = () => (liveWindow.className = `window ${params.get("theme") ?? (scheme.matches ? "dark" : "light")}`);
 scheme.addEventListener("change", applyScheme);
 applyScheme();
 
-const live = calculator(document.getElementById("live"), JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
-  { editable: true, onChange: (s) => localStorage.setItem(STORE, JSON.stringify(s)) });
+const live = calculator(document.getElementById("live"),
+  pinned ? freshState(pinned) : JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
+  { editable: true, onChange: (s) => { if (!pinned) localStorage.setItem(STORE, JSON.stringify(s)); } });
 live.inputs[0].focus();
 
 // Same keys as the app's NSEvent monitor: Esc, C (no ⌘/⌥/⌃), ⌘⌫.
@@ -560,7 +569,6 @@ async function appTiles(count) {
   };
 }
 
-const spec = await (await fetch("presets.json", { cache: "no-store" })).json();
 const appTile = await appTiles(spec.presets.length);
 const gallery = document.getElementById("gallery");
 spec.presets.forEach((p, row) => {
