@@ -114,7 +114,12 @@
   /* Taxes (prototype). Checking the box reveals the assumptions behind it. */
   .taxes { margin-top: 12px; font-size: 12px; color: var(--secondary); }
   .taxes label { display: flex; align-items: center; gap: 6px; color: var(--label); font-size: var(--label-size); }
-  .taxes label .effect { margin-left: auto; color: var(--secondary); font-size: var(--hint-size); font-variant-numeric: tabular-nums; }
+  .taxline { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+  .taxline .effect { margin-left: auto; color: var(--secondary); font-size: var(--hint-size); font-variant-numeric: tabular-nums; }
+  .assumptions-link {
+    border: 0; padding: 0; background: none; color: var(--secondary); font: inherit; font-size: var(--hint-size);
+    font-style: italic; cursor: pointer; text-decoration: underline dotted var(--placeholder); text-underline-offset: 3px;
+  }
   .assumptions[hidden] { display: none; }
   .assumptions { margin: 8px 0 0 22px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: baseline; font-size: 11px; line-height: 1.35; }
   .assumptions b { font-weight: 600; color: var(--label); }
@@ -411,7 +416,12 @@ function calculator(host, state, { editable, onChange = () => {} }) {
     el("div", {}, el("b", { textContent: "Washington B&O" }), " · nothing under about $140k a year of Washington receipts; above it, 0.471% of them."), shareCell(washingtonInput),
     el("div", {}, el("b", { textContent: "Delaware" }), " · $400 franchise tax (assumed par value method) + $50 annual report."), el("span", { textContent: "$450/yr" }),
     el("div", { className: "note", textContent: "Not counted: income taxes (federal 21%, California 8.84% of profit) are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales tax, and count payroll taxes in expenses." }));
-  const taxes = el("div", { className: "taxes" }, el("label", {}, taxBox, "Include taxes", taxEffect), assumptions);
+  // Ticking the box only turns taxes on; the italic link opens and closes the assumptions.
+  let assumptionsOpen = editable && new URLSearchParams(location.search).get("assumptions") === "1";
+  const assumptionsLink = el("button", { className: "assumptions-link", textContent: "assumptions", tabIndex: -1 });
+  assumptionsLink.addEventListener("click", () => { assumptionsOpen = !assumptionsOpen; update(); });
+  const taxes = el("div", { className: "taxes" },
+    el("div", { className: "taxline" }, el("label", {}, taxBox, "Include taxes"), assumptionsLink, taxEffect), assumptions);
   taxBox.addEventListener("change", () => { state.taxes.on = taxBox.checked; update(); });
   calc.append(taxes);
   calc.append(el("hr"));
@@ -492,13 +502,13 @@ function calculator(host, state, { editable, onChange = () => {} }) {
     const filledIn = KEYS.every((k) => field(k).text.trim() !== "");
 
     taxBox.checked = state.taxes.on;
-    assumptions.hidden = !state.taxes.on;
+    assumptions.hidden = !assumptionsOpen;
     const shares = { oaklandShare: parsePercent(state.taxes.oakland), washingtonShare: parsePercent(state.taxes.washington) };
     oaklandInput.classList.toggle("invalid", shares.oaklandShare === null);
     washingtonInput.classList.toggle("invalid", shares.washingtonShare === null);
     const taxAssumptions = state.taxes.on && shares.oaklandShare !== null && shares.washingtonShare !== null ? shares : null;
     const taxed = taxAssumptions && modelInputs ? withTaxes(modelInputs, taxAssumptions) : null;
-    taxEffect.textContent = taxed ? `≈ ${formatPercent(taxed.revenueRate)} of revenue + $${Math.round(taxed.fixedMonthly * 12)}/yr` : "";
+    taxEffect.textContent = taxed ? `≈ ${formatPercent(taxed.revenueRate)} + $${Math.round(taxed.fixedMonthly * 12)}/yr` : "";
 
     const r = readoutFor(modelInputs, filledIn, units, new Date(), taxAssumptions);
     headline.textContent = r.headline;
