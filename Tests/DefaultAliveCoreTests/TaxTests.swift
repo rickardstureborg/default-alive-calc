@@ -57,3 +57,17 @@ struct TaxTests {
         #expect(s.readout(now: now) == off)
     }
 }
+
+@Suite("Growth from the chart")
+struct GrowthFromChartTests {
+    /// The chart plots after-tax numbers; $ growth read off it is net of receipts taxes,
+    /// so it's grossed back up for the box. % growth is unchanged by a flat cut.
+    @Test func dollarGrowthIsGrossedUpUnderTaxes() {
+        var s = CalculatorState(input: RawInputs(cash: "400k", expenses: "80k", revenue: "20k", growth: "8"))
+        #expect(s.growthFromChart(0.1) == 0.1)
+        s.taxesOn = true
+        #expect(s.growthFromChart(0.1) == 0.1)
+        s.toggleGrowthKind()
+        #expect(abs(s.growthFromChart(5_000) - 5_000 / (1 - 0.0036)) < 1e-9)
+    }
+}

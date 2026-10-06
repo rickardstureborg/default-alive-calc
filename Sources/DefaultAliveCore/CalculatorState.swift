@@ -67,7 +67,7 @@ public struct CalculatorState: Equatable, Sendable {
         return "≈ \(formatPercent(taxed.revenueRate)) + $\(Int((taxed.fixedMonthly * 12).rounded()))/yr"
     }
 
-    private var taxed: Taxed? {
+    var taxed: Taxed? {
         guard let inputs, let a = taxAssumptions else { return nil }
         return withTaxes(inputs, a)
     }
@@ -226,5 +226,13 @@ public struct CalculatorState: Equatable, Sendable {
     public func readout(now: Date) -> Readout {
         let filledIn = Row.allCases.allSatisfy { !self[$0].text.trimmingCharacters(in: .whitespaces).isEmpty }
         return DefaultAliveCore.readout(inputs, filledIn: filledIn, units: units, taxes: taxAssumptions, now: now)
+    }
+}
+
+extension CalculatorState {
+    /// Growth read off the chart (which plots after-tax numbers) as the box should show it.
+    public func growthFromChart(_ monthly: Double) -> Double {
+        guard linear, let taxed else { return monthly }
+        return monthly / (1 - taxed.revenueRate)
     }
 }
