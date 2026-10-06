@@ -72,7 +72,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             // 48 Tab, 36 Return, 76 keypad Enter.
             if [48, 36, 76].contains(event.keyCode), mods.subtracting(.shift).isEmpty {
-                NotificationCenter.default.post(name: .moveFocus, object: nil, userInfo: ["forward": !mods.contains(.shift)])
+                // Return also compacts an expression in the box it leaves; Tab leaves it as typed.
+                NotificationCenter.default.post(name: .moveFocus, object: nil,
+                                                userInfo: ["forward": !mods.contains(.shift), "commit": event.keyCode != 48])
                 return nil
             }
             return event

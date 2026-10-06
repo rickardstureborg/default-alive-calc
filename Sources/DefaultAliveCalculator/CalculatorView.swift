@@ -90,6 +90,7 @@ struct CalculatorForm: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .moveFocus)) { note in
             let forward = note.userInfo?["forward"] as? Bool ?? true
+            if note.userInfo?["commit"] as? Bool == true, let row = focus { model.state.commit(row) }
             let previous = (NSApp.keyWindow?.firstResponder as? NSTextView)?.delegate
             focus = focus?.moved(forward: forward) ?? .cash
             Self.placeCursor(forward: forward, awayFrom: previous)

@@ -110,6 +110,21 @@ enum SelfTest {
             await click(NSPoint(x: 238, y: height - 92))
             check("clicking a box still focuses it", where_().row == "expenses", "at \(where_().row)")
 
+            // Arithmetic, typed key by key: live value, Tab keeps it, Return compacts it.
+            await key(48, "\u{19}", .shift)
+            (window.firstResponder as? NSTextView)?.selectAll(nil)
+            for (code, ch) in [(18, "1"), (22, "6"), (20, "3"), (24, "+"), (23, "5")] as [(UInt16, String)] {
+                await key(code, ch, ch == "+" ? .shift : [])
+            }
+            check("typing 163+5 counts as 168", model.state.field(.cash).text == "163+5" && model.state.inputs?.cash == 168,
+                  "text \(model.state.field(.cash).text), value \(model.state.inputs?.cash ?? -1)")
+            await key(48, "\t")
+            check("Tab leaves the expression", model.state.field(.cash).text == "163+5", "cash=\(model.state.field(.cash).text)")
+            await key(48, "\u{19}", .shift)
+            await key(36, "\r")
+            check("Return compacts it and moves on", model.state.field(.cash).text == "168" && where_().row == "expenses",
+                  "cash=\(model.state.field(.cash).text) at \(where_().row)")
+
             lines.append(failures == 0 ? "ALL PASS" : "\(failures) FAILED")
             try? lines.joined(separator: "\n").appending("\n").write(toFile: output, atomically: true, encoding: .utf8)
             NSApp.terminate(nil)
