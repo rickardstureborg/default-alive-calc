@@ -12,7 +12,7 @@ A small Mac app for Paul Graham's question in [Default Alive or Default Dead?](h
 Needs macOS 14 or later and Apple's command line tools (run `xcode-select --install` if you don't have them).
 
 ```sh
-git clone <repo-url> default-alive-calc
+git clone https://github.com/rickardstureborg/default-alive-calc
 cd default-alive-calc
 make install
 ```
