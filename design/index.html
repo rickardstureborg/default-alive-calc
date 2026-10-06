@@ -80,11 +80,17 @@
   .rows { display: flex; flex-direction: column; gap: var(--row-spacing); }
   .row { display: flex; align-items: center; gap: 10px; }
   .row .label { flex: 1; font-size: var(--label-size); }
+  /* The box draws its unit ($ or %) in grey at the left, so the text is just the number. */
+  .box { position: relative; width: var(--field-width); }
+  .box .unit {
+    position: absolute; left: 8px; top: 50%; transform: translateY(-50%); pointer-events: none;
+    color: var(--secondary); font-size: var(--field-size); font-variant-numeric: tabular-nums;
+  }
   .row input {
-    width: var(--field-width);
+    width: 100%;
     height: 28px;
     box-sizing: border-box;
-    padding: 0 8px;
+    padding: 0 8px 0 22px;
     border: 0;
     border-radius: var(--field-radius);
     background: var(--fill);
@@ -257,11 +263,12 @@
 <script type="module">
 import {
   KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatPercent,
-  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField,
+  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing,
   formatMoney, formatMonths, formatMonthYear,
 } from "./model.js";
 
-const PROMPTS = { cash: "$1.2M", expenses: "80k", revenue: "20k", growthPercent: "8%", growthDollar: "$1.6k" };
+// No units in prompts: the box draws "$" or "%" itself.
+const PROMPTS = { cash: "1.2M", expenses: "80k", revenue: "20k", growthPercent: "8", growthDollar: "1.6k" };
 const HINT_HELP = {
   cash: "Default alive with at least this much cash, everything else unchanged",
   expenses: "Default alive with expenses at or below this, everything else unchanged",
@@ -391,12 +398,13 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   calc.append(el("div", { className: "head" }, el("div", { className: "column-head", textContent: "alive if" })));
   const rows = el("div", { className: "rows" });
   calc.append(rows);
-  const labels = {}, inputs = {}, hints = {};
+  const labels = {}, inputs = {}, hints = {}, units = {};
   for (const key of KEYS) {
     labels[key] = el("div", { className: "label" });
     inputs[key] = el("input", { name: key, autocomplete: "off", spellcheck: false, readOnly: !editable, tabIndex: editable ? 0 : -1 });
     hints[key] = el("div", { className: "hint", title: HINT_HELP[key] });
-    rows.append(el("div", { className: "row" }, labels[key], inputs[key], hints[key]));
+    units[key] = el("span", { className: "unit" });
+    rows.append(el("div", { className: "row" }, labels[key], el("div", { className: "box" }, units[key], inputs[key]), hints[key]));
   }
 
   // Taxes (prototype): the checkbox, a one-line size of the effect, and when checked the
@@ -530,6 +538,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     for (const key of KEYS) {
       inputs[key].value = field(key).text;
       inputs[key].placeholder = PROMPTS[fieldKey(key)];
+      units[key].textContent = key === "growth" && !state.linear ? "%" : "$";
     }
     update();
   };
@@ -537,7 +546,11 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   if (editable) {
     KEYS.forEach((key, i) => {
       inputs[key].addEventListener("input", () => {
-        Object.assign(field(key), { text: inputs[key].value, origin: null, exact: null });
+        // Live: regroup thousands and drop "$"/"%" as you type, keeping the cursor in place.
+        const el = inputs[key], typed = el.value, caret = el.selectionStart;
+        const shown = normalizeField(typed);
+        if (shown !== typed) { el.value = shown; const at = caretAfterNormalizing(typed, caret, shown); el.setSelectionRange(at, at); }
+        Object.assign(field(key), { text: shown, origin: null, exact: null });
         update();
       });
       // Tab and Return move forward, with Shift backward, wrapping at both ends.
@@ -582,7 +595,7 @@ const blank = (unit = "month") => ({ text: "", unit, origin: null, exact: null }
 // A preset (or nothing) as calculator state. `input.growth` goes to whichever kind it is.
 function freshState({ input = {}, units = {}, linear = false, taxes = null } = {}) {
   const fields = { cash: blank(), expenses: blank(units.expenses), revenue: blank(units.revenue), growthPercent: blank(units.growth), growthDollar: blank(units.growth) };
-  for (const key of KEYS) fields[key === "growth" ? (linear ? "growthDollar" : "growthPercent") : key].text = input[key] ?? "";
+  for (const key of KEYS) fields[key === "growth" ? (linear ? "growthDollar" : "growthPercent") : key].text = normalizeField(input[key] ?? "");
   const pct = (x) => String(+(x * 100).toFixed(4));
   return { fields, linear, chart: true, taxes: taxes ? { on: true, oakland: pct(taxes.oaklandShare), washington: pct(taxes.washingtonShare) } : { on: false, oakland: "100", washington: "10" } };
 }
