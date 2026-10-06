@@ -1,10 +1,6 @@
 import AppKit
 import SwiftUI
 
-extension Notification.Name {
-    static let clearInputs = Notification.Name("clearInputs")
-}
-
 @main
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -33,7 +29,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = makeMainMenu()
 
-        let controller = NSHostingController(rootView: CalculatorView())
+        let model = CalculatorModel.load(from: .standard)
+        let controller = NSHostingController(rootView: CalculatorForm(model: model))
         controller.sizingOptions = [.preferredContentSize]
         let window = NSWindow(contentViewController: controller)
         window.styleMask = [.titled, .closable, .miniaturizable]
@@ -50,14 +47,27 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Esc / C / ⌘⌫ clear everything even while a text field has focus. ⌘⌫ normally
         // deletes to line start; overriding it is intentional. Plain C is safe to steal
         // because no field accepts letters other than k/m/b, and ⌘C (copy) still passes.
-        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        //
+        // Tab and Return both move to the next box and Shift reverses, wrapping at the
+        // ends. Handled here rather than by AppKit's key-view loop because that loop also
+        // stops on the unit/kind buttons whenever System Settings' keyboard navigation is
+        // on; this way only the four boxes are ever stops.
+        keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard event.window === self?.window else { return event }
             let mods = event.modifierFlags.intersection([.command, .option, .control, .shift])
             let esc = event.keyCode == 53 && mods.isEmpty
             let c = event.charactersIgnoringModifiers?.lowercased() == "c" && mods.subtracting(.shift).isEmpty
             let cmdDelete = event.keyCode == 51 && mods == .command
-            guard esc || c || cmdDelete else { return event }
-            NotificationCenter.default.post(name: .clearInputs, object: nil)
-            return nil
+            if esc || c || cmdDelete {
+                NotificationCenter.default.post(name: .clearInputs, object: nil)
+                return nil
+            }
+            // 48 Tab, 36 Return, 76 keypad Enter.
+            if [48, 36, 76].contains(event.keyCode), mods.subtracting(.shift).isEmpty {
+                NotificationCenter.default.post(name: .moveFocus, object: nil, userInfo: ["forward": !mods.contains(.shift)])
+                return nil
+            }
+            return event
         }
     }
 
