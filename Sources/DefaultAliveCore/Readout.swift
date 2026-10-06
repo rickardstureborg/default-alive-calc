@@ -80,11 +80,21 @@ public struct Hints: Equatable, Sendable, Codable {
     public static let none = Hints(cash: "", expenses: "", revenue: "", growth: "")
 
     public subscript(row: Row) -> String {
-        switch row {
-        case .cash: cash
-        case .expenses: expenses
-        case .revenue: revenue
-        case .growth: growth
+        get {
+            switch row {
+            case .cash: cash
+            case .expenses: expenses
+            case .revenue: revenue
+            case .growth: growth
+            }
+        }
+        set {
+            switch row {
+            case .cash: cash = newValue
+            case .expenses: expenses = newValue
+            case .revenue: revenue = newValue
+            case .growth: growth = newValue
+            }
         }
     }
 }
@@ -115,17 +125,20 @@ private func hint(_ threshold: Threshold, _ format: (Double) -> String) -> Strin
     }
 }
 
-/// From monthly model inputs (nil if a field is unusable). Durations always read in months.
-/// With `taxes`, the projection runs on after-tax inputs and the hints are turned back into
-/// the pre-tax numbers you'd type.
-public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, taxes: TaxAssumptions? = nil, now: Date) -> Readout {
-    let taxed = inputs.flatMap { i in taxes.map { withTaxes(i, $0) } }
-    guard let inputs, let p = project(taxed?.inputs ?? inputs) else {
-        return Readout(
-            tone: .neutral, headline: "—",
-            line1: filledIn ? "Check the numbers in red" : "Enter all four numbers", line2: "", hints: .none)
+/// From monthly model inputs, each empty box standing in as 0 (nil if a typed box can't be
+/// read), and the list of empty boxes. With exactly one empty, the line says what that box
+/// has to be: each lever's threshold holds the other three fixed, so its own value never
+/// enters. Durations always read in months. With `taxes`, the projection runs on after-tax
+/// inputs and the hints are turned back into the pre-tax numbers you'd type.
+public func readout(_ inputs: Inputs?, empty: [Row], units: Units, taxes: TaxAssumptions? = nil, now: Date) -> Readout {
+    func neutral(_ line1: String, _ hints: Hints = .none) -> Readout {
+        Readout(tone: .neutral, headline: "—", line1: line1, line2: "", hints: hints)
     }
-
+    guard let inputs else { return neutral("Check the numbers in red") }
+    if empty.count > 1 { return neutral("Enter at least three numbers") }
+    // With revenue the empty box, taxes are judged at the stand-in 0, so one that only
+    // starts above some revenue (Texas's $2.65M) is left out of that answer.
+    let taxed = taxes.map { withTaxes(inputs, $0) }
     let b = taxed.map { $0.gross(breakevens($0.inputs)) } ?? breakevens(inputs)
     let hints = Hints(
         cash: hint(b.cash) { "≥ " + formatMoneyBound($0, roundUp: true) },
@@ -136,6 +149,13 @@ public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, taxes: TaxA
                 ? "≥ " + formatMoneyBound(linearToUnit($0, units.growth, revenue: units.revenue), roundUp: true)
                 : "≥ " + formatPercentBound(growthToUnit($0, units.growth), roundUp: true)
         })
+
+    if let row = empty.first {
+        var only = Hints.none
+        only[row] = hints[row]
+        return neutral(solvedLine(row, b[row], hints[row], units), only)
+    }
+    guard let p = project(taxed?.inputs ?? inputs) else { return neutral("Check the numbers in red") }
 
     // One line under the verdict: when, as a duration and a day. (What it costs and what's
     // left are in the "alive if" column and the chart's tooltip.)
@@ -150,17 +170,39 @@ public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, taxes: TaxA
         line1: "Out of cash in \(formatMonths(runway)) · \(formatDate(months: runway, from: now))", line2: "", hints: hints)
 }
 
+/// "Default alive with revenue ≥ $28.7k / month": the one empty box, solved.
+private func solvedLine(_ row: Row, _ threshold: Threshold, _ hint: String, _ units: Units) -> String {
+    let noun = switch row {
+    case .cash: "cash"
+    case .expenses: "expenses"
+    case .revenue: "revenue"
+    case .growth: "growth"
+    }
+    switch threshold {
+    case .never: return "Not default alive at any \(noun)"
+    case .any: return "Default alive at any \(noun)"
+    case .value:
+        let per = switch row {
+        case .cash: ""
+        case .expenses: " / \(units.expenses.rawValue)"
+        case .revenue: " / \(units.revenue.rawValue)"
+        case .growth: " / \(units.growth.rawValue)"
+        }
+        return "Default alive with \(noun) \(hint)\(per)"
+    }
+}
+
 /// The same, straight from the typed strings.
 public func readout(_ raw: RawInputs, units: Units = .monthly, linear: Bool = false, taxes: TaxAssumptions? = nil, now: Date) -> Readout {
     let texts: [(Row, String, Period)] = [
         (.cash, raw.cash, .month), (.expenses, raw.expenses, units.expenses),
         (.revenue, raw.revenue, units.revenue), (.growth, raw.growth, units.growth),
     ]
-    let values = texts.map { fieldValue($0.0, text: $0.1, unit: $0.2, linear: linear, revenueUnit: units.revenue) }
-    let filledIn = texts.allSatisfy { !$0.1.trimmingCharacters(in: .whitespaces).isEmpty }
+    let empty = texts.filter { $0.1.trimmingCharacters(in: .whitespaces).isEmpty }.map(\.0)
+    let values = texts.map { empty.contains($0.0) ? 0 : fieldValue($0.0, text: $0.1, unit: $0.2, linear: linear, revenueUnit: units.revenue) }
     guard let c = values[0], let e = values[1], let r = values[2], let g = values[3] else {
-        return readout(nil, filledIn: filledIn, units: units, taxes: taxes, now: now)
+        return readout(nil, empty: empty, units: units, taxes: taxes, now: now)
     }
     let inputs = Inputs(cash: c, monthlyExpenses: e, monthlyRevenue: r, monthlyGrowth: g, linear: linear)
-    return readout(inputs, filledIn: filledIn, units: units, taxes: taxes, now: now)
+    return readout(inputs, empty: empty, units: units, taxes: taxes, now: now)
 }

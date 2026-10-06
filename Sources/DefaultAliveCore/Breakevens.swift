@@ -18,6 +18,15 @@ public struct Breakevens: Equatable, Sendable {
     public var expenses: Threshold
     public var revenue: Threshold
     public var growth: Threshold
+
+    public subscript(row: Row) -> Threshold {
+        switch row {
+        case .cash: cash
+        case .expenses: expenses
+        case .revenue: revenue
+        case .growth: growth
+        }
+    }
 }
 
 public func breakevens(_ inputs: Inputs) -> Breakevens {

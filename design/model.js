@@ -449,17 +449,26 @@ function hint(key, threshold, units, linear) {
 
 const NO_HINTS = { cash: "", expenses: "", revenue: "", growth: "" };
 
-/// Everything the result area and the "alive if" column say, from monthly model inputs
-/// (null if a field is unusable). Durations always read in months.
-/// `taxes` (prototype, browser only): null, or the assumptions for withTaxes() below.
-export function readoutFor(inputs, filledIn, units, now, taxes = null) {
-  const taxed = inputs && taxes ? withTaxes(inputs, taxes) : null;
-  const p = inputs && project(taxed?.inputs ?? inputs);
-  if (!p) {
-    return { tone: "neutral", headline: "—", line1: filledIn ? "Check the numbers in red" : "Enter all four numbers", line2: "", hints: NO_HINTS };
-  }
+/// Everything the result area and the "alive if" column say. `inputs` are monthly model
+/// inputs with each empty box standing in as 0 (null if a typed box can't be read), and
+/// `empty` lists the empty boxes. With exactly one empty, the line says what that box has
+/// to be: each lever's threshold holds the other three fixed, so its own value never
+/// enters. Durations always read in months.
+export function readoutFor(inputs, empty, units, now, taxes = null) {
+  const neutral = (line1, hints = NO_HINTS) => ({ tone: "neutral", headline: "—", line1, line2: "", hints });
+  if (!inputs) return neutral("Check the numbers in red");
+  if (empty.length > 1) return neutral("Enter at least three numbers");
+  // With revenue the empty box, taxes are judged at the stand-in 0, so one that only starts
+  // above some revenue (Texas's $2.65M) is left out of that answer.
+  const taxed = taxes ? withTaxes(inputs, taxes) : null;
   const b = taxed ? taxed.gross(breakevens(taxed.inputs)) : breakevens(inputs);
   const hints = Object.fromEntries(KEYS.map((k) => [k, hint(k, b[k], units, inputs.linear)]));
+  if (empty.length === 1) {
+    const [key] = empty;
+    return neutral(solvedLine(key, b[key], hints[key], units), { ...NO_HINTS, [key]: hints[key] });
+  }
+  const p = project(taxed?.inputs ?? inputs);
+  if (!p) return neutral("Check the numbers in red");
 
   // One line under the verdict: when, as a duration and a day.
   if (p.verdict === "alive") {
@@ -471,12 +480,20 @@ export function readoutFor(inputs, filledIn, units, now, taxes = null) {
   return { tone: "dead", headline: "DEFAULT DEAD", line1: `Out of cash in ${formatMonths(runway)} · ${formatDate(runway, now)}`, line2: "", hints };
 }
 
+/// "Default alive with revenue ≥ $28.7k / month": the one empty box, solved.
+function solvedLine(key, threshold, hintText, units) {
+  if (threshold === "never") return `Not default alive at any ${key}`;
+  if (threshold === "any") return `Default alive at any ${key}`;
+  return `Default alive with ${key} ${hintText}${key === "cash" ? "" : ` / ${units[key]}`}`;
+}
+
 /// readoutFor, straight from the typed strings.
 export function readout(raw, now, units = MONTHLY, linear = false, taxes = null) {
-  const values = KEYS.map((k) => fieldValue(k, raw[k], units[k], linear, units.revenue));
+  const empty = KEYS.filter((k) => raw[k].trim() === "");
+  const values = KEYS.map((k) => (empty.includes(k) ? 0 : fieldValue(k, raw[k], units[k], linear, units.revenue)));
   const inputs = values.includes(null) ? null
     : { cash: values[0], expenses: values[1], revenue: values[2], growth: values[3], linear };
-  return readoutFor(inputs, KEYS.every((k) => raw[k].trim() !== ""), units, now, taxes);
+  return readoutFor(inputs, empty, units, now, taxes);
 }
 
 // ── BalanceCurve.swift ───────────────────────────────────────────────────────

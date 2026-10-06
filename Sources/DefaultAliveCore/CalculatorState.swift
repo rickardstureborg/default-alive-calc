@@ -268,8 +268,14 @@ public struct CalculatorState: Equatable, Sendable {
     }
 
     public func readout(now: Date) -> Readout {
-        let filledIn = Row.allCases.allSatisfy { !self[$0].text.trimmingCharacters(in: .whitespaces).isEmpty }
-        return DefaultAliveCore.readout(inputs, filledIn: filledIn, units: units, taxes: taxAssumptions, now: now)
+        // An empty box stands in as 0; with exactly one empty, the readout solves for it.
+        let empty = Row.allCases.filter { self[$0].text.trimmingCharacters(in: .whitespaces).isEmpty }
+        let values = Row.allCases.map { empty.contains($0) ? 0 : monthly($0) }
+        guard let c = values[0], let e = values[1], let r = values[2], let g = values[3] else {
+            return DefaultAliveCore.readout(nil, empty: empty, units: units, taxes: taxAssumptions, now: now)
+        }
+        let inputs = Inputs(cash: c, monthlyExpenses: e, monthlyRevenue: r, monthlyGrowth: g, linear: linear)
+        return DefaultAliveCore.readout(inputs, empty: empty, units: units, taxes: taxAssumptions, now: now)
     }
 }
 

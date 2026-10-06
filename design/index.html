@@ -748,11 +748,12 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     renderLabels();
     for (const key of KEYS) inputs[key].classList.toggle("invalid", field(key).text.trim() !== "" && !valid(key));
 
-    const m = KEYS.map((k) => monthly(fieldKey(k)));
+    // An empty box stands in as 0; with exactly one empty, the readout solves for it.
+    const empty = KEYS.filter((k) => field(k).text.trim() === "");
+    const m = KEYS.map((k) => (empty.includes(k) ? 0 : monthly(fieldKey(k))));
     const modelInputs = m.includes(null) ? null
       : { cash: m[0], expenses: m[1], revenue: m[2], growth: m[3], linear: state.linear };
     const units = { expenses: fields.expenses.unit, revenue: fields.revenue.unit, growth: field("growth").unit };
-    const filledIn = KEYS.every((k) => field(k).text.trim() !== "");
 
     taxBox.checked = state.taxes.on;
     assumptions.hidden = !assumptionsOpen;
@@ -761,11 +762,12 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
       [id, taxPlace(id).rate > 0 ? shareValue(state.taxes.shares[id] ?? "") : 0]));
     for (const [id, input] of Object.entries(shareInputs)) input.classList.toggle("invalid", shares[id] === null);
     const taxAssumptions = state.taxes.on && !Object.values(shares).includes(null) ? shares : null;
-    const taxed = taxAssumptions && modelInputs ? withTaxes(modelInputs, taxAssumptions) : null;
+    // Only with all four in, as in the app: a stand-in 0 would size the effect wrong.
+    const taxed = taxAssumptions && modelInputs && empty.length === 0 ? withTaxes(modelInputs, taxAssumptions) : null;
     // The size of the tax effect only shows with the assumptions it summarizes.
     taxEffect.textContent = taxed && assumptionsOpen ? `≈ ${formatRate(taxed.revenueRate, 2)} + ${formatMoney(taxed.fixedMonthly * 12)}/yr` : "";
 
-    const r = readoutFor(modelInputs, filledIn, units, new Date(), taxAssumptions);
+    const r = readoutFor(modelInputs, empty, units, new Date(), taxAssumptions);
     headline.textContent = r.headline;
     headline.className = `headline tone-${r.tone}`;
     // " " holds an empty line open, like the app, so the height never changes.

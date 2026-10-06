@@ -96,6 +96,72 @@
       }
     },
     {
+      "name": "solve cash",
+      "input": { "cash": "", "expenses": "80k", "revenue": "20k", "growth": "8%" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Default alive with cash ≥ $661.5k", "line2": "",
+        "hints": { "cash": "≥ $661.5k", "expenses": "", "revenue": "", "growth": "" }
+      }
+    },
+    {
+      "name": "solve revenue",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "", "growth": "8%" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Default alive with revenue ≥ $28.7k / month", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "≥ $28.7k", "growth": "" }
+      }
+    },
+    {
+      "name": "solve growth",
+      "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "20k", "growth": "" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Default alive with growth ≥ 4.34% / month", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "≥ 4.34%" }
+      }
+    },
+    {
+      "name": "solve expenses, weekly",
+      "input": { "cash": "$85k", "expenses": "", "revenue": "100", "growth": "2.5%" },
+      "units": { "expenses": "week", "revenue": "week", "growth": "week" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Default alive with expenses ≤ $1.28k / week", "line2": "",
+        "hints": { "cash": "", "expenses": "≤ $1.28k", "revenue": "", "growth": "" }
+      }
+    },
+    {
+      "name": "solve $ growth",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "" },
+      "linear": true,
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Default alive with growth ≥ $4.5k / month", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "≥ $4.5k" }
+      }
+    },
+    {
+      "name": "solve, never",
+      "input": { "cash": "0", "expenses": "80k", "revenue": "20k", "growth": "" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Not default alive at any growth", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "never" }
+      }
+    },
+    {
+      "name": "two empty",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "", "growth": "" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Enter at least three numbers", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "" }
+      }
+    },
+    {
+      "name": "invalid, one empty",
+      "input": { "cash": "$1.2M", "expenses": "", "revenue": "abc", "growth": "8%" },
+      "expect": {
+        "tone": "neutral", "headline": "—", "line1": "Check the numbers in red", "line2": "",
+        "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "" }
+      }
+    },
+    {
       "name": "invalid",
       "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "abc", "growth": "8%" },
       "expect": {
@@ -107,7 +173,7 @@
       "name": "empty",
       "input": { "cash": "", "expenses": "", "revenue": "", "growth": "" },
       "expect": {
-        "tone": "neutral", "headline": "—", "line1": "Enter all four numbers", "line2": "",
+        "tone": "neutral", "headline": "—", "line1": "Enter at least three numbers", "line2": "",
         "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "" }
       }
     }
