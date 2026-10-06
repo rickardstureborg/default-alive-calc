@@ -236,7 +236,7 @@
         Reloads itself when anything in <code>design/</code> or the snapshot changes.
       </p>
       <div class="keys">
-        <kbd>Esc</kbd> <kbd>C</kbd> <kbd>⌘⌫</kbd> clear all · <kbd>Return</kbd> next field<br>
+        <kbd>Esc</kbd> <kbd>C</kbd> <kbd>Clear</kbd> clear all, as does <kbd>⌘⌫</kbd> with no box selected (in a box it deletes to the start) · <kbd>Tab</kbd>/<kbd>Return</kbd> next box, with <kbd>⇧</kbd> previous<br>
         Click a unit (<u>week</u>/<u>month</u>/<u>year</u>) to cycle it; click <u>%</u> in growth for $ (linear) growth.<br>
         Live window follows the system appearance; inputs persist in this browser.<br>
         <b>Alive if</b>: what that one value would need to be for default alive, the other three unchanged.
@@ -586,11 +586,15 @@ const live = calculator(document.getElementById("live"),
   { editable: true, onChange: (s) => { if (!pinned) localStorage.setItem(STORE, JSON.stringify(s)); } });
 live.inputs[0].focus();
 
-// Same keys as the app's NSEvent monitor: Esc, C (no ⌘/⌥/⌃), ⌘⌫.
+// Same keys as the app's NSEvent monitor. Clear everything: Esc, C (no ⌘/⌥/⌃), the keypad
+// Clear key (Macally/Apple extended keyboards), or ⌘⌫ when no box has the cursor. ⌘⌫ inside
+// a box keeps its normal meaning: delete back to the start of that box.
 document.addEventListener("keydown", (e) => {
   const c = e.key.toLowerCase() === "c" && !e.metaKey && !e.ctrlKey && !e.altKey;
-  const cmdDelete = e.key === "Backspace" && e.metaKey;
-  if (e.key !== "Escape" && !c && !cmdDelete) return;
+  const keypadClear = e.key === "Clear" || e.code === "NumLock";
+  const inBox = document.activeElement?.tagName === "INPUT" && document.activeElement.type !== "checkbox";
+  const cmdDelete = e.key === "Backspace" && e.metaKey && !inBox;
+  if (e.key !== "Escape" && !c && !keypadClear && !cmdDelete) return;
   e.preventDefault();
   live.clear();
 }, true);
