@@ -252,7 +252,7 @@
 <script type="module">
 import {
   KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatPercent,
-  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind,
+  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField,
   formatMoney, formatMonths, formatMonthYear,
 } from "./model.js";
 
@@ -534,6 +534,11 @@ function calculator(host, state, { editable, onChange = () => {} }) {
       inputs[key].addEventListener("keydown", (e) => {
         if (e.key !== "Enter" && e.key !== "Tab") return;
         e.preventDefault();
+        // Return also rewrites an expression ("163+5") to its result; Tab leaves it as typed.
+        if (e.key === "Enter") {
+          const compact = compactField(key, field(key).text, state.linear);
+          if (compact !== null) { Object.assign(field(key), { text: compact, origin: null, exact: null }); sync(); }
+        }
         const next = inputs[KEYS[(i + (e.shiftKey ? KEYS.length - 1 : 1)) % KEYS.length]];
         next.focus();
         // Forward selects the whole box (to overwrite); backward parks the cursor at the end
