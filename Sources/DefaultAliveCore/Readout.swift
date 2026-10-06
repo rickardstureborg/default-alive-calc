@@ -113,14 +113,17 @@ private func hint(_ threshold: Threshold, _ format: (Double) -> String) -> Strin
 }
 
 /// From monthly model inputs (nil if a field is unusable). Durations always read in months.
-public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, now: Date) -> Readout {
-    guard let inputs, let p = project(inputs) else {
+/// With `taxes`, the projection runs on after-tax inputs and the hints are turned back into
+/// the pre-tax numbers you'd type.
+public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, taxes: TaxAssumptions? = nil, now: Date) -> Readout {
+    let taxed = inputs.flatMap { i in taxes.map { withTaxes(i, $0) } }
+    guard let inputs, let p = project(taxed?.inputs ?? inputs) else {
         return Readout(
             tone: .neutral, headline: "—",
             line1: filledIn ? "Check the numbers in red" : "Enter all four numbers", line2: "", hints: .none)
     }
 
-    let b = breakevens(inputs)
+    let b = taxed.map { $0.gross(breakevens($0.inputs)) } ?? breakevens(inputs)
     let hints = Hints(
         cash: hint(b.cash) { "≥ " + formatMoneyBound($0, roundUp: true) },
         expenses: hint(b.expenses) { "≤ " + formatMoneyBound(amountToUnit($0, units.expenses), roundUp: false) },
@@ -156,7 +159,7 @@ public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, now: Date) 
 }
 
 /// The same, straight from the typed strings.
-public func readout(_ raw: RawInputs, units: Units = .monthly, linear: Bool = false, now: Date) -> Readout {
+public func readout(_ raw: RawInputs, units: Units = .monthly, linear: Bool = false, taxes: TaxAssumptions? = nil, now: Date) -> Readout {
     let texts: [(Row, String, Period)] = [
         (.cash, raw.cash, .month), (.expenses, raw.expenses, units.expenses),
         (.revenue, raw.revenue, units.revenue), (.growth, raw.growth, units.growth),
@@ -164,8 +167,8 @@ public func readout(_ raw: RawInputs, units: Units = .monthly, linear: Bool = fa
     let values = texts.map { fieldValue($0.0, text: $0.1, unit: $0.2, linear: linear) }
     let filledIn = texts.allSatisfy { !$0.1.trimmingCharacters(in: .whitespaces).isEmpty }
     guard let c = values[0], let e = values[1], let r = values[2], let g = values[3] else {
-        return readout(nil, filledIn: filledIn, units: units, now: now)
+        return readout(nil, filledIn: filledIn, units: units, taxes: taxes, now: now)
     }
     let inputs = Inputs(cash: c, monthlyExpenses: e, monthlyRevenue: r, monthlyGrowth: g, linear: linear)
-    return readout(inputs, filledIn: filledIn, units: units, now: now)
+    return readout(inputs, filledIn: filledIn, units: units, taxes: taxes, now: now)
 }

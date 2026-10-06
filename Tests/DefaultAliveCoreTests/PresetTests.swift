@@ -10,7 +10,18 @@ struct PresetFile: Decodable {
         var input: RawInputs
         var units: Units?
         var linear: Bool?
+        var taxes: TaxAssumptions?
         var expect: Readout
+
+        var state: CalculatorState {
+            var s = CalculatorState(input: input, units: units ?? .monthly, linear: linear ?? false)
+            if let taxes {
+                s.taxesOn = true
+                s.oaklandShare = trimZeros(String(format: "%.4f", taxes.oaklandShare * 100))
+                s.washingtonShare = trimZeros(String(format: "%.4f", taxes.washingtonShare * 100))
+            }
+            return s
+        }
     }
     var now: String
     var presets: [Preset]
@@ -38,7 +49,7 @@ struct PresetTests {
         #expect(!file.presets.isEmpty)
         let now = try file.nowDate
         for p in file.presets {
-            let r = readout(p.input, units: p.units ?? .monthly, linear: p.linear ?? false, now: now)
+            let r = readout(p.input, units: p.units ?? .monthly, linear: p.linear ?? false, taxes: p.taxes, now: now)
             #expect(r == p.expect, "preset \(p.name)")
         }
     }
@@ -48,8 +59,7 @@ struct PresetTests {
         let file = try PresetFile.load()
         let now = try file.nowDate
         for p in file.presets {
-            let state = CalculatorState(input: p.input, units: p.units ?? .monthly, linear: p.linear ?? false)
-            #expect(state.readout(now: now) == p.expect, "preset \(p.name)")
+            #expect(p.state.readout(now: now) == p.expect, "preset \(p.name)")
         }
     }
 

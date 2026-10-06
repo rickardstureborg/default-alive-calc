@@ -43,6 +43,30 @@ public struct CalculatorState: Equatable, Sendable {
     public var growthPercent = Field()
     public var growthDollar = Field()
     public var linear = false
+    public var taxesOn = false
+    /// Percent of revenue sourced to Oakland / Washington, as typed.
+    public var oaklandShare = "100"
+    public var washingtonShare = "10"
+
+    /// nil when taxes are off or a share isn't a number.
+    public var taxAssumptions: TaxAssumptions? {
+        guard taxesOn, let oakland = parsePercent(oaklandShare), let washington = parsePercent(washingtonShare) else { return nil }
+        return TaxAssumptions(oaklandShare: oakland, washingtonShare: washington)
+    }
+
+    /// The size of the tax effect for the checkbox line, "≈ 0.36% + $450/yr"; "" when off.
+    public var taxSummary: String {
+        guard let taxed = taxed else { return "" }
+        return "≈ \(formatPercent(taxed.revenueRate)) + $\(Int((taxed.fixedMonthly * 12).rounded()))/yr"
+    }
+
+    private var taxed: Taxed? {
+        guard let inputs, let a = taxAssumptions else { return nil }
+        return withTaxes(inputs, a)
+    }
+
+    /// What the chart plots: after-tax when taxes are on.
+    public var chartInputs: Inputs? { taxed?.inputs ?? inputs }
 
     public init() {}
 
@@ -160,6 +184,6 @@ public struct CalculatorState: Equatable, Sendable {
 
     public func readout(now: Date) -> Readout {
         let filledIn = Row.allCases.allSatisfy { !self[$0].text.trimmingCharacters(in: .whitespaces).isEmpty }
-        return DefaultAliveCore.readout(inputs, filledIn: filledIn, units: units, now: now)
+        return DefaultAliveCore.readout(inputs, filledIn: filledIn, units: units, taxes: taxAssumptions, now: now)
     }
 }

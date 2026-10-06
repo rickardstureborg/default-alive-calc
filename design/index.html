@@ -572,10 +572,11 @@ function calculator(host, state, { editable, onChange = () => {} }) {
 
 const blank = (unit = "month") => ({ text: "", unit, origin: null, exact: null });
 // A preset (or nothing) as calculator state. `input.growth` goes to whichever kind it is.
-function freshState({ input = {}, units = {}, linear = false } = {}) {
+function freshState({ input = {}, units = {}, linear = false, taxes = null } = {}) {
   const fields = { cash: blank(), expenses: blank(units.expenses), revenue: blank(units.revenue), growthPercent: blank(units.growth), growthDollar: blank(units.growth) };
   for (const key of KEYS) fields[key === "growth" ? (linear ? "growthDollar" : "growthPercent") : key].text = input[key] ?? "";
-  return { fields, linear, chart: true };
+  const pct = (x) => String(+(x * 100).toFixed(4));
+  return { fields, linear, chart: true, taxes: taxes ? { on: true, oakland: pct(taxes.oaklandShare), washington: pct(taxes.washingtonShare) } : { on: false, oakland: "100", washington: "10" } };
 }
 
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
@@ -596,7 +597,7 @@ scheme.addEventListener("change", applyScheme);
 applyScheme();
 
 const live = calculator(document.getElementById("live"),
-  pinned ? { ...freshState(pinned), taxes: { on: params.get("taxes") === "1", oakland: "100", washington: "10" } }
+  pinned ? { ...freshState(pinned), ...(params.get("taxes") === "1" ? { taxes: { on: true, oakland: "100", washington: "10" } } : {}) }
     : JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
   { editable: true, onChange: (s) => { if (!pinned) localStorage.setItem(STORE, JSON.stringify(s)); } });
 live.inputs[0].focus();

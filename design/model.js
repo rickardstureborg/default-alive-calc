@@ -446,11 +446,11 @@ export function readoutFor(inputs, filledIn, units, now, taxes = null) {
 }
 
 /// readoutFor, straight from the typed strings.
-export function readout(raw, now, units = MONTHLY, linear = false) {
+export function readout(raw, now, units = MONTHLY, linear = false, taxes = null) {
   const values = KEYS.map((k) => fieldValue(k, raw[k], units[k], linear));
   const inputs = values.includes(null) ? null
     : { cash: values[0], expenses: values[1], revenue: values[2], growth: values[3], linear };
-  return readoutFor(inputs, KEYS.every((k) => raw[k].trim() !== ""), units, now);
+  return readoutFor(inputs, KEYS.every((k) => raw[k].trim() !== ""), units, now, taxes);
 }
 
 // ── BalanceCurve.swift ───────────────────────────────────────────────────────
@@ -479,9 +479,7 @@ export function balanceCurve(inputs, samples = 160) {
   return { points, horizon, marker, verdict: p.verdict };
 }
 
-// ═════════════════════════════════════════════════════════════════════════════
-// Prototype: not in Swift yet. Taxes, for review in the browser.
-// ═════════════════════════════════════════════════════════════════════════════
+// ── Taxes.swift ───────────────────────────────────────────────────────────────
 //
 // Only taxes that cost money before profitability can change the verdict, because
 // default alive asks whether you reach breakeven, and at breakeven profit is zero:

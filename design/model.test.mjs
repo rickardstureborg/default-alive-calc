@@ -11,7 +11,7 @@ const now = new Date(y, mo - 1, d); // local midnight, as in PresetTests.swift
 
 for (const p of spec.presets) {
   test(`preset ${p.name}`, () => {
-    assert.deepEqual(m.readout(p.input, now, { ...m.MONTHLY, ...p.units }, p.linear ?? false), p.expect);
+    assert.deepEqual(m.readout(p.input, now, { ...m.MONTHLY, ...p.units }, p.linear ?? false, p.taxes ?? null), p.expect);
   });
 }
 
