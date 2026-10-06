@@ -7,7 +7,9 @@ INSTALLED := $(HOME)/Applications/$(APP_NAME).app
 PORT      := 8765
 PREVIEW   := http://127.0.0.1:$(PORT)/design/
 
-.PHONY: all app test bundle snapshot install selftest preview preview-serve preview-shot preview-stop uninstall clean
+.PHONY: all app test bundle snapshot screenshots install selftest preview preview-serve preview-shot preview-stop uninstall clean
+
+# Using the app: `make install`. Working on it: `make` (see docs/DEVELOPING.md).
 
 # The whole loop: test, build, refresh the snapshot, swap the installed app, relaunch it.
 all: test app
@@ -24,6 +26,9 @@ test:
 # SwiftPM builds the binary; the .app wrapper is just a folder with the binary and
 # Info.plist, so assembling it by hand avoids needing an Xcode project.
 bundle:
+	@# /usr/bin/swift exists even without the tools (it's a stub that offers to install
+	@# them), so ask xcode-select whether there's a developer directory at all.
+	@xcode-select -p >/dev/null 2>&1 || { echo "Needs Apple's command line tools. Run: xcode-select --install"; exit 1; }
 	swift build -c release --product $(EXEC)
 	rm -rf "$(BUILT_APP)"
 	mkdir -p "$(BUILT_APP)/Contents/MacOS"
@@ -37,8 +42,13 @@ bundle:
 snapshot: bundle
 	"$(BUILT_APP)/Contents/MacOS/$(EXEC)" --snapshot design/presets.json build/snapshot.png
 
+# The README's pictures: real views from presets.json, dressed as windows.
+screenshots: bundle
+	"$(BUILT_APP)/Contents/MacOS/$(EXEC)" --screenshot design/presets.json alive light docs/screenshots/alive.png
+	"$(BUILT_APP)/Contents/MacOS/$(EXEC)" --screenshot design/presets.json "dead, taxes" dark docs/screenshots/taxes.png
+
 # Inputs are written to UserDefaults on every keystroke, so killing the running copy loses nothing.
-install:
+install: bundle
 	@pkill -x $(EXEC) || true
 	@while pgrep -x $(EXEC) >/dev/null; do sleep 0.1; done
 	mkdir -p "$(HOME)/Applications"
