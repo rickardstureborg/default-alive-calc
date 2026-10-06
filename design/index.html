@@ -111,6 +111,21 @@
     white-space: nowrap;
   }
 
+  /* Taxes (prototype). Checking the box reveals the assumptions behind it. */
+  .taxes { margin-top: 12px; font-size: 12px; color: var(--secondary); }
+  .taxes label { display: flex; align-items: center; gap: 6px; color: var(--label); font-size: var(--label-size); }
+  .taxes label .effect { margin-left: auto; color: var(--secondary); font-size: var(--hint-size); font-variant-numeric: tabular-nums; }
+  .assumptions[hidden] { display: none; }
+  .assumptions { margin: 8px 0 0 22px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: baseline; font-size: 11px; line-height: 1.35; }
+  .assumptions b { font-weight: 600; color: var(--label); }
+  .assumptions .share { display: flex; align-items: baseline; gap: 2px; justify-self: end; }
+  .assumptions .share input {
+    width: 38px; height: 20px; box-sizing: border-box; padding: 0 5px; border: 0; border-radius: 4px;
+    background: var(--fill); color: var(--text); font: inherit; font-variant-numeric: tabular-nums; text-align: right; outline: none;
+  }
+  .assumptions .share input.invalid { color: var(--dead); }
+  .assumptions .note { grid-column: 1 / -1; margin-top: 2px; }
+
   hr { border: 0; height: 1px; background: var(--separator); margin: var(--divider-spacing) 0; }
   .result {
     display: flex;
@@ -236,7 +251,7 @@
 
 <script type="module">
 import {
-  KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve,
+  KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatPercent,
   NEXT_UNIT, fieldValue, fieldText, switchGrowthKind,
   formatMoney, formatMonths, formatMonthYear,
 } from "./model.js";
@@ -378,6 +393,27 @@ function calculator(host, state, { editable, onChange = () => {} }) {
     hints[key] = el("div", { className: "hint", title: HINT_HELP[key] });
     rows.append(el("div", { className: "row" }, labels[key], inputs[key], hints[key]));
   }
+
+  // Taxes (prototype): the checkbox, a one-line size of the effect, and when checked the
+  // assumptions behind it, with the two business-specific shares editable.
+  state.taxes ??= { on: false, oakland: "100", washington: "10" };
+  const taxBox = el("input", { type: "checkbox", tabIndex: -1, disabled: !editable });
+  const taxEffect = el("span", { className: "effect" });
+  const share = (key) => {
+    const i = el("input", { value: state.taxes[key], tabIndex: -1, readOnly: !editable, spellcheck: false });
+    i.addEventListener("input", () => { state.taxes[key] = i.value; update(); });
+    return i;
+  };
+  const oaklandInput = share("oakland"), washingtonInput = share("washington");
+  const shareCell = (input) => el("span", { className: "share" }, input, "%");
+  const assumptions = el("div", { className: "assumptions" },
+    el("div", {}, el("b", { textContent: "Oakland business tax" }), " · 0.36% of gross receipts (Class F, no small-business exemption). 100% is the upper bound."), shareCell(oaklandInput),
+    el("div", {}, el("b", { textContent: "Washington B&O" }), " · nothing under about $140k a year of Washington receipts; above it, 0.471% of them."), shareCell(washingtonInput),
+    el("div", {}, el("b", { textContent: "Delaware" }), " · $400 franchise tax (assumed par value method) + $50 annual report."), el("span", { textContent: "$450/yr" }),
+    el("div", { className: "note", textContent: "Not counted: income taxes (federal 21%, California 8.84% of profit) are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales tax, and count payroll taxes in expenses." }));
+  const taxes = el("div", { className: "taxes" }, el("label", {}, taxBox, "Include taxes", taxEffect), assumptions);
+  taxBox.addEventListener("change", () => { state.taxes.on = taxBox.checked; update(); });
+  calc.append(taxes);
   calc.append(el("hr"));
   const headline = el("div", { className: "headline" }), line1 = el("div"), line2 = el("div");
   calc.append(el("div", { className: "result" }, headline, line1, line2));
@@ -454,7 +490,17 @@ function calculator(host, state, { editable, onChange = () => {} }) {
       : { cash: m[0], expenses: m[1], revenue: m[2], growth: m[3], linear: state.linear };
     const units = { expenses: fields.expenses.unit, revenue: fields.revenue.unit, growth: field("growth").unit };
     const filledIn = KEYS.every((k) => field(k).text.trim() !== "");
-    const r = readoutFor(modelInputs, filledIn, units, new Date());
+
+    taxBox.checked = state.taxes.on;
+    assumptions.hidden = !state.taxes.on;
+    const shares = { oaklandShare: parsePercent(state.taxes.oakland), washingtonShare: parsePercent(state.taxes.washington) };
+    oaklandInput.classList.toggle("invalid", shares.oaklandShare === null);
+    washingtonInput.classList.toggle("invalid", shares.washingtonShare === null);
+    const taxAssumptions = state.taxes.on && shares.oaklandShare !== null && shares.washingtonShare !== null ? shares : null;
+    const taxed = taxAssumptions && modelInputs ? withTaxes(modelInputs, taxAssumptions) : null;
+    taxEffect.textContent = taxed ? `≈ ${formatPercent(taxed.revenueRate)} of revenue + $${Math.round(taxed.fixedMonthly * 12)}/yr` : "";
+
+    const r = readoutFor(modelInputs, filledIn, units, new Date(), taxAssumptions);
     headline.textContent = r.headline;
     headline.className = `headline tone-${r.tone}`;
     // " " holds an empty line open, like the app, so the height never changes.
@@ -467,7 +513,7 @@ function calculator(host, state, { editable, onChange = () => {} }) {
     disclosure.hidden = !plottable;
     // Nothing to plot until all four numbers are usable; an empty frame reads as broken.
     chart.hidden = !(state.chart && plottable);
-    if (!chart.hidden) drawChart(chart, modelInputs, new Date());
+    if (!chart.hidden) drawChart(chart, taxed?.inputs ?? modelInputs, new Date());
     onChange(state);
   };
   const sync = () => {
@@ -519,7 +565,8 @@ function freshState({ input = {}, units = {}, linear = false } = {}) {
 
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
 
-// ?preset=<name> loads a preset into the live window (not saved) and ?theme=light|dark
+// ?preset=<name> loads a preset into the live window (not saved), &taxes=1 ticks the tax
+// box, and ?theme=light|dark
 // pins its appearance, so `node design/shot.mjs '<url>?preset=dead' out.png '#live-window'`
 // captures one exact state.
 const spec = await (await fetch("presets.json", { cache: "no-store" })).json();
@@ -534,7 +581,8 @@ scheme.addEventListener("change", applyScheme);
 applyScheme();
 
 const live = calculator(document.getElementById("live"),
-  pinned ? freshState(pinned) : JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
+  pinned ? { ...freshState(pinned), taxes: { on: params.get("taxes") === "1", oakland: "100", washington: "10" } }
+    : JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
   { editable: true, onChange: (s) => { if (!pinned) localStorage.setItem(STORE, JSON.stringify(s)); } });
 live.inputs[0].focus();
 

@@ -338,12 +338,14 @@ const NO_HINTS = { cash: "", expenses: "", revenue: "", growth: "" };
 
 /// Everything the result area and the "alive if" column say, from monthly model inputs
 /// (null if a field is unusable). Durations always read in months.
-export function readoutFor(inputs, filledIn, units, now) {
-  const p = inputs && project(inputs);
+/// `taxes` (prototype, browser only): null, or the assumptions for withTaxes() below.
+export function readoutFor(inputs, filledIn, units, now, taxes = null) {
+  const taxed = inputs && taxes ? withTaxes(inputs, taxes) : null;
+  const p = inputs && project(taxed?.inputs ?? inputs);
   if (!p) {
     return { tone: "neutral", headline: "—", line1: filledIn ? "Check the numbers in red" : "Enter all four numbers", line2: "", hints: NO_HINTS };
   }
-  const b = breakevens(inputs);
+  const b = taxed ? taxed.gross(breakevens(taxed.inputs)) : breakevens(inputs);
   const hints = Object.fromEntries(KEYS.map((k) => [k, hint(k, b[k], units, inputs.linear)]));
 
   if (p.verdict === "alive") {
@@ -401,4 +403,58 @@ export function balanceCurve(inputs, samples = 160) {
     points.push({ t, balance: inputs.cash - cumulativeBurn(inputs, t) });
   }
   return { points, horizon, marker, verdict: p.verdict };
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// Prototype: not in Swift yet. Taxes, for review in the browser.
+// ═════════════════════════════════════════════════════════════════════════════
+//
+// Only taxes that cost money before profitability can change the verdict, because
+// default alive asks whether you reach breakeven, and at breakeven profit is zero:
+// income taxes (federal 21%, California 8.84%) are all zero on the way there.
+// What's left for an Oakland company
+// incorporated in Delaware and registered in WA/DE/CA (rates from oaklandca.gov,
+// dor.wa.gov, corp.delaware.gov, ftb.ca.gov, checked Oct 2026):
+
+export const TAX_RATES = {
+  // Oakland business tax, Class F (professional services), 2026: 0.36% of gross
+  // receipts, with no small-business exemption.
+  oaklandReceipts: 0.0036,
+  // Washington B&O tax on retailing (SaaS), 2026: a small business credit clears it up to
+  // about $140k a year of Washington receipts; above that, 0.471% of them.
+  washingtonBO: 0.00471,
+  washingtonCredit: 140_000,
+  // Delaware franchise tax minimum under the assumed par value capital method ($400) plus
+  // the $50 annual report fee. (The authorized shares method can bill far more; file
+  // with assumed par value.)
+  delawarePerYear: 450,
+};
+
+/// taxes: { oaklandShare, washingtonShare } as fractions of revenue sourced there.
+/// Returns { inputs, gross, revenueRate, fixedMonthly }: the inputs after taxes (revenue
+/// net of receipts taxes, Delaware added to expenses), and gross() to turn breakevens
+/// computed on those back into the numbers you'd type. Washington switches on from current
+/// revenue only; a forecast that crosses its credit mid-way is ignored (worth ~0.05%).
+export function withTaxes(inputs, { oaklandShare, washingtonShare }) {
+  const overWashington = inputs.revenue * 12 * washingtonShare > TAX_RATES.washingtonCredit;
+  const revenueRate = TAX_RATES.oaklandReceipts * oaklandShare + (overWashington ? TAX_RATES.washingtonBO * washingtonShare : 0);
+  const fixedMonthly = TAX_RATES.delawarePerYear / 12;
+  const keep = 1 - revenueRate;
+  const after = {
+    ...inputs,
+    revenue: inputs.revenue * keep,
+    // Linear growth adds taxed revenue too; a % growth rate is unchanged by a flat cut.
+    growth: inputs.linear ? inputs.growth * keep : inputs.growth,
+    expenses: inputs.expenses + fixedMonthly,
+  };
+  const gross = (b) => {
+    const back = (v, f) => (typeof v === "number" ? f(v) : v);
+    return {
+      cash: b.cash,
+      expenses: back(b.expenses, (v) => Math.max(0, v - fixedMonthly)),
+      revenue: back(b.revenue, (v) => v / keep),
+      growth: inputs.linear ? back(b.growth, (v) => v / keep) : b.growth,
+    };
+  };
+  return { inputs: after, gross, revenueRate, fixedMonthly };
 }
