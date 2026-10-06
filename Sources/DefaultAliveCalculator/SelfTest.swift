@@ -46,6 +46,14 @@ enum SelfTest {
                 }
                 await settle()
             }
+            @MainActor func mouse(_ type: NSEvent.EventType, _ point: NSPoint) async {
+                let event = NSEvent.mouseEvent(
+                    with: type, location: point, modifierFlags: [], timestamp: ProcessInfo.processInfo.systemUptime,
+                    windowNumber: window.windowNumber, context: nil, eventNumber: 0, clickCount: 1,
+                    pressure: type == .leftMouseUp ? 0 : 1)!
+                NSApp.postEvent(event, atStart: false)
+                await settle()
+            }
             /// Which box has the cursor (by its text, all distinct here) and what's selected.
             @MainActor func where_() -> (row: String, selection: NSRange) {
                 guard let editor = window.firstResponder as? NSTextView else { return ("none", NSRange()) }
@@ -185,6 +193,33 @@ enum SelfTest {
             await key(21, "$", .shift)
             check("a typed $ is dropped (the box draws it)", model.state.field(.cash).text == "1630000" && where_().selection == NSRange(location: 1, length: 0),
                   "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
+
+            // Dragging the chart's profitability dot sets growth and outlines the growth box.
+            model.chartShown = true
+            model.state = CalculatorState(input: RawInputs(cash: "1.2M", expenses: "80k", revenue: "20k", growth: "8"))
+            try? await Task.sleep(for: .milliseconds(400))
+            if let dot = SelfTestProbe.profitDot {
+                // SwiftUI's global space runs top-down from the window's top edge, title bar
+                // included; window coordinates run bottom-up. (Measured: converting with the
+                // content height instead missed by exactly the 28pt title bar.)
+                let start = NSPoint(x: dot.x, y: window.frame.height - dot.y)
+                await mouse(.leftMouseDown, start)
+                await mouse(.leftMouseDragged, NSPoint(x: start.x + 30, y: start.y - 15))
+                let during = model.state.field(.growth).text
+                check("dragging the dot right and down lowers growth, outline green",
+                      (Double(during) ?? 99) < 8 && SelfTestProbe.growthOutline == "green",
+                      "growth \(during), outline \(SelfTestProbe.growthOutline ?? "none")")
+                await mouse(.leftMouseDragged, NSPoint(x: start.x + 400, y: start.y - 400))
+                check("held at the zero line: the default-alive minimum, outline red",
+                      model.state.field(.growth).text == "4.33" && SelfTestProbe.growthOutline == "red",
+                      "growth \(model.state.field(.growth).text), outline \(SelfTestProbe.growthOutline ?? "none")")
+                await mouse(.leftMouseUp, NSPoint(x: start.x + 400, y: start.y - 400))
+                check("letting go keeps the growth and clears the outline",
+                      model.state.field(.growth).text == "4.33" && SelfTestProbe.growthOutline == nil,
+                      "growth \(model.state.field(.growth).text), outline \(SelfTestProbe.growthOutline ?? "none")")
+            } else {
+                check("profitability dot on the chart", false, "not found")
+            }
 
             if let interrupted {
                 lines.append("INTERRUPTED at \"\(interrupted)\": the window lost keyboard focus (someone used the Mac). Rerun when it is idle.")

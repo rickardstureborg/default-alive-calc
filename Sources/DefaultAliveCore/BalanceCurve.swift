@@ -5,6 +5,11 @@ public struct BalanceCurve: Equatable, Sendable {
     public struct Point: Equatable, Sendable {
         public var t: Double
         public var balance: Double
+
+        public init(t: Double, balance: Double) {
+            self.t = t
+            self.balance = balance
+        }
     }
 
     public enum MarkerKind: Equatable, Sendable { case profitable, broke }
@@ -13,6 +18,12 @@ public struct BalanceCurve: Equatable, Sendable {
         public var t: Double
         public var balance: Double
         public var kind: MarkerKind
+
+        public init(t: Double, balance: Double, kind: MarkerKind) {
+            self.t = t
+            self.balance = balance
+            self.kind = kind
+        }
     }
 
     public var points: [Point]

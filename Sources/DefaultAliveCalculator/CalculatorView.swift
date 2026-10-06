@@ -32,6 +32,10 @@ struct CalculatorForm: View {
     /// Which box has the cursor, kept current by NumberField.
     @State private var focus: Row?
     @State private var focusRequest: FocusRequest?
+    /// Set while the chart's profitability dot is dragged: outlines the growth box it sets.
+    @State private var dragOutline: Color? {
+        didSet { SelfTestProbe.growthOutline = dragOutline == nil ? nil : dragOutline == Style.dead ? "red" : "green" }
+    }
     /// Not persisted: the assumptions always start closed.
     @State private var assumptionsOpen: Bool
 
@@ -76,17 +80,18 @@ struct CalculatorForm: View {
             taxes.padding(.top, 12)
             Divider().padding(.vertical, Style.dividerSpacing)
             result(r)
-            if r.tone != .neutral {
-                // Mouse-only, like the unit toggles: Tab and Return stay in the boxes.
-                Button(model.chartShown ? "Hide chart" : "Show chart") { model.chartShown.toggle() }
-                    .buttonStyle(.plain)
-                    .font(.system(size: 11))
-                    .foregroundStyle(.secondary)
-                    .focusable(false)
-                    .padding(.top, 10)
-                if model.chartShown, let inputs = model.state.chartInputs, let curve = balanceCurve(inputs) {
-                    BalanceChart(curve: curve, now: .now).padding(.top, 8)
+            if r.tone != .neutral, model.chartShown, let inputs = model.state.chartInputs, let curve = balanceCurve(inputs) {
+                BalanceChart(curve: curve, inputs: inputs, revenueUnit: model.state.revenue.unit, now: .now) { drag in
+                    // Dragging the profitability dot sets growth; the growth box is outlined
+                    // while it does: green, red once held at the default-alive limit.
+                    if let drag {
+                        model.state.setGrowth(monthly: model.state.growthFromChart(drag.monthlyGrowth))
+                        dragOutline = drag.pinned ? Style.dead : Style.alive
+                    } else {
+                        dragOutline = nil
+                    }
                 }
+                .padding(.top, 8)
             }
         }
         .padding(Style.padding)
@@ -136,9 +141,12 @@ struct CalculatorForm: View {
                 .foregroundStyle(.secondary)
                 .focusable(false)
                 Spacer(minLength: 0)
-                Text(model.state.taxSummary)
-                    .font(.system(size: Style.hintSize).monospacedDigit())
-                    .foregroundStyle(.secondary)
+                // The size of the tax effect only shows with the assumptions it summarizes.
+                if assumptionsOpen {
+                    Text(model.state.taxSummary)
+                        .font(.system(size: Style.hintSize).monospacedDigit())
+                        .foregroundStyle(.secondary)
+                }
             }
             .lineLimit(1)
             if assumptionsOpen { assumptions.padding(.leading, 22) }
@@ -243,6 +251,7 @@ struct CalculatorForm: View {
             .padding(.vertical, 5)
             .frame(width: Style.fieldWidth)
             .background(RoundedRectangle(cornerRadius: Style.fieldRadius).fill(.quaternary))
+            .overlay(RoundedRectangle(cornerRadius: Style.fieldRadius).strokeBorder(row == .growth ? dragOutline ?? .clear : .clear, lineWidth: 1))
             // The unit is drawn, not typed, so the text is just the number.
             .overlay(alignment: .leading) {
                 Text(unit)
@@ -261,7 +270,7 @@ struct CalculatorForm: View {
         case .dead: Style.dead
         case .neutral: .secondary
         }
-        // Always three lines (" " holds an empty one open) so the window never changes
+        // Always two lines (" " holds an empty one open) so the window never changes
         // height as you type.
         return VStack(spacing: 4) {
             Text(r.headline)
@@ -269,8 +278,21 @@ struct CalculatorForm: View {
                 .tracking(1)
                 .foregroundStyle(color)
                 .padding(.bottom, 2)
+                .frame(maxWidth: .infinity)
+                // The chart toggle is a small icon beside the verdict, not a row of its own.
+                // Mouse-only like the unit toggles: Tab and Return stay in the boxes.
+                .overlay(alignment: .trailing) {
+                    if r.tone != .neutral {
+                        Button { model.chartShown.toggle() } label: {
+                            Image(systemName: "chart.xyaxis.line").font(.system(size: 12))
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(model.chartShown ? .secondary : .tertiary)
+                        .focusable(false)
+                        .help(model.chartShown ? "Hide chart" : "Show chart")
+                    }
+                }
             Text(r.line1.isEmpty ? " " : r.line1)
-            Text(r.line2.isEmpty ? " " : r.line2)
         }
         .font(.system(size: Style.detailSize).monospacedDigit())
         .foregroundStyle(.secondary)
