@@ -7,7 +7,7 @@ INSTALLED := $(HOME)/Applications/$(APP_NAME).app
 PORT      := 8765
 PREVIEW   := http://127.0.0.1:$(PORT)/design/
 
-.PHONY: all app test bundle snapshot install preview preview-serve preview-shot preview-stop uninstall clean
+.PHONY: all app test bundle snapshot install selftest preview preview-serve preview-shot preview-stop uninstall clean
 
 # The whole loop: test, build, refresh the snapshot, swap the installed app, relaunch it.
 all: test app
@@ -71,6 +71,15 @@ preview-shot: preview-serve
 
 preview-stop:
 	@lsof -ti tcp:$(PORT) -sTCP:LISTEN | xargs kill 2>/dev/null || true
+
+# Real key events through the app's own event queue (Tab/Return order + selection,
+# Esc/C/⌘⌫ clearing) → build/selftest.txt. Opens a second, storage-free copy of the app
+# for a couple of seconds; the installed one and its saved input are untouched.
+selftest: bundle
+	@rm -f build/selftest.txt
+	@open -W -n "$(BUILT_APP)" --args --selftest "$(CURDIR)/build/selftest.txt"
+	@cat build/selftest.txt
+	@grep -q '^ALL PASS' build/selftest.txt
 
 uninstall:
 	@pkill -x $(EXEC) || true

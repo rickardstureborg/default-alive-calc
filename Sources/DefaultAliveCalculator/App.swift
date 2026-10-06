@@ -29,7 +29,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.mainMenu = makeMainMenu()
 
-        let model = CalculatorModel.load(from: .standard)
+        let args = CommandLine.arguments
+        let selfTestOutput = args.firstIndex(of: "--selftest").flatMap { $0 + 1 < args.count ? args[$0 + 1] : nil }
+        let model = selfTestOutput == nil
+            ? CalculatorModel.load(from: .standard)
+            : CalculatorModel(state: SelfTest.state, chartShown: false, store: nil)
         let controller = NSHostingController(rootView: CalculatorForm(model: model))
         controller.sizingOptions = [.preferredContentSize]
         let window = NSWindow(contentViewController: controller)
@@ -69,6 +73,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             }
             return event
         }
+
+        if let selfTestOutput { SelfTest.run(window: window, model: model, output: selfTestOutput) }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
