@@ -1,9 +1,9 @@
 import DefaultAliveCore
 import SwiftUI
 
-/// "Add more…": every place with a checkbox, filtered on each keystroke (TaxCatalog.matching:
-/// name, state name or state code). A state shown with its cities heads them; a city shown
-/// without its state reads "Seattle, WA". Ticking adds and unticking removes, straight away;
+/// "Modify included locations": every place with a checkbox, filtered on each keystroke
+/// (TaxCatalog.matching: name, state name or state code). A state shown with its cities
+/// heads them; a city shown without its state reads "Seattle, WA". Ticking adds and unticking removes, straight away;
 /// "Add all" / "Remove all" act on what the filter shows. Twin of taxPicker() in
 /// design/index.html.
 ///

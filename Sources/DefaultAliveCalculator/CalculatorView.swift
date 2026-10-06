@@ -110,8 +110,8 @@ struct CalculatorForm: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .openTaxPicker)) { _ in
             assumptionsOpen = true
-            // The popover anchors on "Add more…", which only exists once the assumptions
-            // have been laid out.
+            // The popover anchors on "Modify included locations", which only exists once the
+            // assumptions have been laid out.
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(100))
                 pickerOpen = true
@@ -171,8 +171,8 @@ struct CalculatorForm: View {
     private static let placesScrollHeight: CGFloat = 200
 
     /// One row per place you're in: name and what it costs (the full assumption on hover),
-    /// your share of revenue there if it taxes receipts, and a remove link. Then "Add more…",
-    /// which opens the checklist of every state and city.
+    /// your share of revenue there if it taxes receipts, and a remove link. Then "Modify
+    /// included locations", which opens the checklist of every state and city.
     private var assumptions: some View {
         VStack(alignment: .leading, spacing: 6) {
             if model.state.taxPlaces.count > Self.placesBeforeScrolling {
@@ -180,7 +180,7 @@ struct CalculatorForm: View {
             } else {
                 placeGrid
             }
-            link("Add more…") { pickerOpen.toggle() }
+            link("Modify included locations") { pickerOpen.toggle() }
                 .popover(isPresented: $pickerOpen, arrowEdge: .bottom) { TaxPicker(state: $model.state) }
             Text("Not counted: income taxes are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales taxes (including Hawaii's and New Mexico's gross receipts taxes, which are itemized like sales tax), and count payroll taxes in expenses.")
         }
@@ -258,7 +258,8 @@ struct CalculatorForm: View {
         return toggle(unit.rawValue, help: "Switch to per \(unit.next.rawValue)") { model.state.cycleUnit(row) }
     }
 
-    /// "remove", "Add more…": secondary text with a dotted underline, never a Tab stop.
+    /// "remove", "Modify included locations": secondary text with a dotted underline, never a
+    /// Tab stop.
     private func link(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title).underline(true, pattern: .dot, color: .secondary)

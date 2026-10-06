@@ -152,8 +152,8 @@
   }
   .link:hover { color: var(--label); }
   .add-row { position: relative; margin-top: 6px; }
-  /* "Add more…" opens a checklist of every place, grouped by state. In the app it's a
-     popover; here it floats over the window the same way. */
+  /* "Modify included locations" opens a checklist of every place, grouped by state. In the
+     app it's a popover; here it floats over the window the same way. */
   .picker[hidden] { display: none; }
   .picker {
     position: absolute; top: calc(100% + 4px); left: -6px; z-index: 5; width: 300px; padding: 8px;
@@ -561,7 +561,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
 
   // Taxes: the checkbox, a one-line size of the effect, and when checked the assumptions
   // behind it: a row per place you're in, with your share of revenue there when it taxes
-  // receipts, and "Add more…" for the checklist of every state and city.
+  // receipts, and "Modify included locations" for the checklist of every state and city.
   if (!state.taxes?.places) state.taxes = { ...defaultTaxes(), on: state.taxes?.on ?? false };
   const taxBox = el("input", { type: "checkbox", tabIndex: -1, disabled: !editable });
   const taxEffect = el("span", { className: "effect" });
@@ -599,15 +599,15 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     update();
   };
   const setPlace = (id, on) => setPlaces([id], on);
-  const addMore = el("button", { className: "link", textContent: "Add more…", tabIndex: -1, disabled: !editable });
+  const modify = el("button", { className: "link", textContent: "Modify included locations", tabIndex: -1, disabled: !editable });
   const picker = taxPicker(() => state.taxes.places, setPlace, setPlaces);
-  addMore.addEventListener("click", () => (picker.isOpen() ? picker.close() : picker.open()));
+  modify.addEventListener("click", () => (picker.isOpen() ? picker.close() : picker.open()));
   document.addEventListener("pointerdown", (e) => {
-    if (picker.isOpen() && !picker.el.contains(e.target) && e.target !== addMore) picker.close();
+    if (picker.isOpen() && !picker.el.contains(e.target) && e.target !== modify) picker.close();
   });
   const assumptions = el("div", { className: "assumptions" },
     placeRows,
-    el("div", { className: "add-row" }, addMore, picker.el),
+    el("div", { className: "add-row" }, modify, picker.el),
     el("div", { className: "note", textContent: "Not counted: income taxes are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales taxes (including Hawaii's and New Mexico's gross receipts taxes, which are itemized like sales tax), and count payroll taxes in expenses." }));
   renderPlaces();
   // Ticking the box only turns taxes on; the italic link opens and closes the assumptions.
@@ -856,10 +856,11 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   };
 }
 
-// "Add more…": every place with a checkbox, filtered on each keystroke (matchingPlaces:
-// name, state name or state code). A state shown with its cities heads them; a city shown
-// without its state reads "Seattle, WA". Ticking adds and unticking removes, straight
-// away; "Add all" / "Remove all" act on what the filter shows. Mirrors TaxPicker.swift.
+// "Modify included locations": every place with a checkbox, filtered on each keystroke
+// (matchingPlaces: name, state name or state code). A state shown with its cities heads
+// them; a city shown without its state reads "Seattle, WA". Ticking adds and unticking
+// removes, straight away; "Add all" / "Remove all" act on what the filter shows. Mirrors
+// TaxPicker.swift.
 function taxPicker(selected, setPlace, setPlaces) {
   const filter = el("input", { className: "filter", placeholder: "Filter states and cities", spellcheck: false });
   const addAll = el("button", { className: "link", textContent: "Add all", tabIndex: -1 });
