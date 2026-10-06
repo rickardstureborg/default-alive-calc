@@ -30,6 +30,53 @@ public func formatMonths(_ months: Double) -> String {
     "\(oneDecimal(months)) months"
 }
 
+private func trimZeros(_ s: String) -> String {
+    guard s.contains(".") else { return s }
+    var t = s
+    while t.hasSuffix("0") { t.removeLast() }
+    if t.hasSuffix(".") { t.removeLast() }
+    return t
+}
+
+private func percentPlaces(_ v: Double) -> Int { abs(v) >= 100 ? 0 : abs(v) >= 10 ? 1 : 2 }
+
+/// 0.0179 → "1.79%", 0.105 → "10.5%", 1.52 → "152%": three significant digits.
+public func formatPercent(_ fraction: Double) -> String {
+    let v = fraction * 100
+    let f = pow(10, Double(percentPlaces(v)))
+    return trimZeros(String(format: "%.\(percentPlaces(v))f", (v * f).rounded(.toNearestOrAwayFromZero) / f)) + "%"
+}
+
+// Breakeven hints round toward the safe side ("≥" up, "≤" down), so the shown value
+// really flips the verdict: $241.04 needed must read "≥ $242", never "≥ $241". They also
+// carry one more digit than formatMoney ($7.46k, $252.1k) so the rounding costs little.
+// The 1e-9 slack keeps an exact grid value (360000) from stepping to the next one.
+private let boundSteps: [(from: Double, step: Double)] = [(1e10, 1e8), (1e9, 1e7), (1e7, 1e5), (1e6, 1e4), (1e4, 100), (1e3, 10), (0, 1)]
+
+private func directed(_ x: Double, up: Bool) -> Double {
+    up ? (x - 1e-9).rounded(.up) : (x + 1e-9).rounded(.down)
+}
+
+/// Breakeven hint amount, rounded toward the safe side: "$242", "$7.46k", "$252.1k".
+public func formatMoneyBound(_ value: Double, roundUp: Bool) -> String {
+    let v = max(0, value)
+    let step = boundSteps.first { v >= $0.from }!.step
+    let r = directed(v / step, up: roundUp) * step
+    for (scale, suffix) in [(1e9, "B"), (1e6, "M"), (1e3, "k")] where r >= scale {
+        let x = r / scale
+        return "$" + trimZeros(String(format: x < 10 ? "%.2f" : "%.1f", x)) + suffix
+    }
+    return "$" + String(Int(r))
+}
+
+/// Breakeven hint percentage, rounded toward the safe side: "13.6%", "4.34%".
+public func formatPercentBound(_ fraction: Double, roundUp: Bool) -> String {
+    let v = fraction * 100
+    let places = percentPlaces(v)
+    let f = pow(10, Double(places))
+    return trimZeros(String(format: "%.\(places)f", directed(v * f, up: roundUp) / f)) + "%"
+}
+
 /// The calendar month `months` from `start`, e.g. "Apr 2028".
 public func formatMonthYear(months: Double, from start: Date) -> String {
     let whole = Int(months.rounded(.down))

@@ -2,12 +2,14 @@ import Foundation
 import Testing
 @testable import DefaultAliveCore
 
-/// design/presets.json is the spec for the result text, shared with design/model.test.mjs,
-/// so the browser preview and the app can't quietly disagree.
+/// design/presets.json is the spec for the result text and hints, shared with
+/// design/model.test.mjs, so the browser preview and the app can't quietly disagree.
 struct PresetFile: Decodable {
     struct Preset: Decodable {
         var name: String
         var input: RawInputs
+        var units: Units?
+        var linear: Bool?
         var expect: Readout
     }
     var now: String
@@ -35,8 +37,19 @@ struct PresetTests {
         let file = try PresetFile.load()
         #expect(!file.presets.isEmpty)
         let now = try file.nowDate
-        for preset in file.presets {
-            #expect(readout(preset.input, now: now) == preset.expect, "preset \(preset.name)")
+        for p in file.presets {
+            let r = readout(p.input, units: p.units ?? .monthly, linear: p.linear ?? false, now: now)
+            #expect(r == p.expect, "preset \(p.name)")
+        }
+    }
+
+    /// The form state built from a preset reads the same as the raw strings do.
+    @Test func calculatorStateMatchesRawReadout() throws {
+        let file = try PresetFile.load()
+        let now = try file.nowDate
+        for p in file.presets {
+            let state = CalculatorState(input: p.input, units: p.units ?? .monthly, linear: p.linear ?? false)
+            #expect(state.readout(now: now) == p.expect, "preset \(p.name)")
         }
     }
 

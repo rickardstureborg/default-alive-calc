@@ -14,13 +14,14 @@ struct ParsingTests {
         ("2b", 2_000_000_000),
         ("$ 80k", 80_000),
         ("5.", 5),
+        ("-$1.6k", -1_600),
     ])
     func amounts(text: String, expected: Double) throws {
         let value = try #require(parseAmount(text))
         #expect(abs(value - expected) < 1e-6)
     }
 
-    @Test(arguments: ["", "abc", "1.2.3", "k", "$", "inf", "nan", "1e3", "12x"])
+    @Test(arguments: ["", "abc", "1.2.3", "k", "$", "inf", "nan", "1e3", "12x", "--5", "$-5"])
     func nonAmounts(text: String) {
         #expect(parseAmount(text) == nil)
     }
@@ -45,6 +46,31 @@ struct ParsingTests {
 
 @Suite("Formatting")
 struct FormattingTests {
+    // Breakeven hints round toward the side that really flips the verdict.
+    @Test(arguments: [
+        (241.04, true, "$242"),
+        (241.04, false, "$241"),
+        (360_000, true, "$360k"),
+        (7_461.06, false, "$7.46k"),
+        (999.7, true, "$1k"),
+        (1_234_567, true, "$1.24M"),
+        (252_083.33, true, "$252.1k"),
+        (0, true, "$0"),
+    ])
+    func moneyBounds(value: Double, up: Bool, expected: String) {
+        #expect(formatMoneyBound(value, roundUp: up) == expected)
+    }
+
+    @Test(arguments: [(0.13571, "13.6%"), (0.0999999, "10%"), (0.0433, "4.33%"), (3.6, "360%")])
+    func percentBoundsRoundUp(value: Double, expected: String) {
+        #expect(formatPercentBound(value, roundUp: true) == expected)
+    }
+
+    @Test(arguments: [(0.0179, "1.79%"), (0.105, "10.5%"), (1.52, "152%"), (0.08, "8%")])
+    func percents(value: Double, expected: String) {
+        #expect(formatPercent(value) == expected)
+    }
+
     @Test(arguments: [
         (270_000.0, "$270k"),
         (1_200_000, "$1.2M"),
