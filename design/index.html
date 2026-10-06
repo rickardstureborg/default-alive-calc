@@ -165,12 +165,21 @@
   .tone-alive { color: var(--alive); }
   .tone-dead { color: var(--dead); }
 
-  /* Chart toggle. In SwiftUI: a borderless Button. */
-  .disclosure[hidden] { display: none; }
-  .disclosure {
-    display: block; margin: 10px auto 0; border: 0; background: none; padding: 2px 6px;
-    font: inherit; font-size: 11px; color: var(--secondary);
+  /* The verdict row: headline centred, the chart toggle tucked at its right edge. */
+  .verdict { position: relative; align-self: stretch; text-align: center; }
+  .chart-toggle {
+    position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+    border: 0; background: none; padding: 3px; border-radius: 4px; cursor: pointer; line-height: 0;
   }
+  .chart-toggle[hidden] { display: none; }
+  .chart-toggle:hover { background: var(--fill); }
+  .chart-toggle svg { fill: none; stroke: var(--placeholder); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .chart-toggle[aria-pressed="true"] svg { stroke: var(--secondary); }
+
+  /* While the profitability dot is dragged, the growth box it's setting is outlined: green,
+     or red once it's held at the default-alive limit. */
+  .numbox.drag-alive { box-shadow: inset 0 0 0 1px var(--alive); }
+  .numbox.drag-pinned { box-shadow: inset 0 0 0 1px var(--dead); }
 
   /* Cash-in-bank chart: one series, so no legend; the caption names it. Thin line, 10%
      wash, hairline grid, one direct label at the moment that matters. */
@@ -189,7 +198,8 @@
     background: var(--bg); box-shadow: 0 0 0 .5px var(--axis), 0 4px 12px rgba(0, 0, 0, .2);
     font-size: 11px; color: var(--secondary); font-variant-numeric: tabular-nums;
   }
-  .chart .tooltip b { display: block; color: var(--label); font-size: 12px; }
+  .chart .tooltip { line-height: 1.35; }
+  .chart .tooltip b { color: var(--label); font-size: 12px; margin-right: 3px; }
 
   /* ── Page chrome (not part of the app) ────────────────────────────────────── */
 
@@ -271,7 +281,8 @@
 import {
   KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatPercent,
   NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing, groupBreaks,
-  formatMoney, formatMonths, formatMonthYear,
+  formatMoney, formatMonths, formatMonthYear, formatDate, cumulativeBurn, project, revenueAt, amountToUnit,
+  dragProfitPoint,
 } from "./model.js";
 
 // No units in prompts: the box draws "$" or "%" itself.
@@ -301,50 +312,72 @@ const niceStep = (range, count) => {
   return mag * (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10);
 };
 
+const UNIT_SHORT = { week: "wk", month: "mo", year: "yr" };
+
 // Cash balance over time, in months. Single series in the verdict color (a status: the
 // headline says ALIVE/DEAD in words), zero line slightly stronger than the grid because
-// crossing it is the whole question.
-function drawChart(host, inputs, now) {
+// crossing it is the whole question. Returns the plot geometry, which the calculator uses
+// to drag the profitability dot. While a drag is on (`drag.domain`), the axes stay where
+// they were when it began, so the plot doesn't rescale under the pointer.
+function drawChart(host, inputs, now, { revenueUnit = "month", drag = null } = {}) {
   host.replaceChildren();
   const caption = el("div", { className: "chart-caption", textContent: "Cash balance" });
   host.append(caption);
   const css = getComputedStyle(host);
   const W = parseFloat(css.getPropertyValue("--width")) - 2 * parseFloat(css.getPropertyValue("--padding"));
   const plotH = parseFloat(css.getPropertyValue("--chart-height"));
-  const left = 44, right = 8, top = 6, axisH = 18;
+  const left = 44, right = 8, top = 6, axisH = 18, plotW = W - left - right;
   const root = svg("svg", { width: W, height: plotH + axisH + top, viewBox: `0 0 ${W} ${plotH + axisH + top}` });
   host.append(root);
   const curve = balanceCurve(inputs);
-  if (!curve) return;
+  if (!curve) return null;
 
-  const balances = curve.points.map((p) => p.balance);
+  let { points, horizon, marker } = curve;
+  const frozen = drag?.domain;
+  if (frozen) {
+    horizon = frozen.horizon;
+    points = Array.from({ length: 161 }, (_, i) => {
+      const t = (horizon * i) / 160;
+      return { t, balance: inputs.cash - cumulativeBurn(inputs, t) };
+    });
+    const p = project(inputs);
+    marker = p.monthsToProfitability > 0 ? { t: p.monthsToProfitability, balance: p.cushion, kind: "profitable" } : null;
+  }
+  const balances = points.map((p) => p.balance);
   const lo0 = Math.min(0, ...balances), hi0 = Math.max(...balances, 1);
   const yStep = niceStep(hi0 - lo0, 3);
-  const lo = Math.floor(lo0 / yStep) * yStep, hi = Math.ceil(hi0 / yStep) * yStep;
-  const x = (t) => left + ((W - left - right) * t) / curve.horizon;
+  const lo = frozen ? frozen.lo : Math.floor(lo0 / yStep) * yStep;
+  const hi = frozen ? frozen.hi : Math.ceil(hi0 / yStep) * yStep;
+  const step = frozen ? niceStep(hi - lo, 3) : yStep;
+  const x = (t) => left + (plotW * t) / horizon;
   const y = (b) => top + (plotH * (hi - b)) / (hi - lo);
 
-  for (let v = lo; v <= hi + yStep / 2; v += yStep) {
-    root.append(svg("line", { class: Math.abs(v) < yStep / 1e6 ? "zero" : "grid", x1: left, x2: W - right, y1: y(v), y2: y(v) }));
+  for (let v = lo; v <= hi + step / 2; v += step) {
+    root.append(svg("line", { class: Math.abs(v) < step / 1e6 ? "zero" : "grid", x1: left, x2: W - right, y1: y(v), y2: y(v) }));
     const label = svg("text", { class: "tick", x: left - 6, y: y(v) + 3.5, "text-anchor": "end" });
     label.textContent = formatMoney(v);
     root.append(label);
   }
-  const xStep = niceStep(curve.horizon, 4);
-  for (let v = 0; v <= curve.horizon + 1e-9; v += xStep) {
+  const xStep = niceStep(horizon, 4);
+  for (let v = 0; v <= horizon + 1e-9; v += xStep) {
     const label = svg("text", { class: "tick", x: x(v), y: top + plotH + 14, "text-anchor": v === 0 ? "start" : "middle" });
-    label.textContent = v + xStep > curve.horizon + 1e-9 ? `${+v.toFixed(2)} mo` : `${+v.toFixed(2)}`;
+    label.textContent = v + xStep > horizon + 1e-9 ? `${+v.toFixed(2)} mo` : `${+v.toFixed(2)}`;
     root.append(label);
   }
 
+  // A frozen domain can leave the curve running past the plot's edges; clip it there.
+  const clipId = `plot-${Math.random().toString(36).slice(2)}`;
+  const clip = svg("clipPath", { id: clipId });
+  clip.append(svg("rect", { x: left, y: top - 4, width: plotW, height: plotH + 8 }));
+  root.append(clip);
   const color = curve.verdict === "alive" ? "var(--alive)" : "var(--dead)";
-  const d = curve.points.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.balance).toFixed(1)}`).join("");
-  const last = curve.points.at(-1);
-  root.append(svg("path", { d: `${d}L${x(last.t)},${y(0)}L${x(0)},${y(0)}Z`, fill: color, "fill-opacity": 0.1, stroke: "none" }));
-  root.append(svg("path", { class: "line", d, stroke: color }));
+  const d = points.map((p, i) => `${i ? "L" : "M"}${x(p.t).toFixed(1)},${y(p.balance).toFixed(1)}`).join("");
+  const last = points.at(-1);
+  root.append(svg("path", { d: `${d}L${x(last.t)},${y(0)}L${x(0)},${y(0)}Z`, fill: color, "fill-opacity": 0.1, stroke: "none", "clip-path": `url(#${clipId})` }));
+  root.append(svg("path", { class: "line", d, stroke: color, "clip-path": `url(#${clipId})` }));
 
-  if (curve.marker) {
-    const { t, balance, kind } = curve.marker;
+  if (marker) {
+    const { t, balance, kind } = marker;
     const mx = x(t), my = y(balance);
     root.append(svg("circle", { class: "marker", cx: mx, cy: my, r: 4, fill: color }));
     const label = (content, xFor, yAt) => {
@@ -364,31 +397,46 @@ function drawChart(host, inputs, now) {
     else label(formatMonthYear(t, now), () => mx - 4, my - 9);
   }
 
-  // Hover: crosshair snaps to the nearest sample; the tooltip leads with the value.
+  // Hover: crosshair snaps to the nearest sample. The tooltip leads with the balance and
+  // the day, then the revenue and burn rates there, in the Revenue box's unit.
   const cross = svg("line", { class: "crosshair", y1: top, y2: top + plotH, visibility: "hidden" });
   const dot = svg("circle", { class: "marker", r: 4, fill: color, visibility: "hidden" });
-  const hit = svg("rect", { x: left, y: 0, width: W - left - right, height: top + plotH, fill: "transparent" });
+  const hit = svg("rect", { x: left, y: 0, width: plotW, height: top + plotH, fill: "transparent" });
   root.append(cross, dot, hit);
   const tip = el("div", { className: "tooltip" });
   tip.style.visibility = "hidden";
   host.append(tip);
+  const per = UNIT_SHORT[revenueUnit];
+  const rate = (monthly) => `${formatMoney(amountToUnit(monthly, revenueUnit))}/${per}`;
+  const hide = () => {
+    for (const m of [cross, dot]) m.setAttribute("visibility", "hidden");
+    tip.style.visibility = "hidden";
+  };
   hit.addEventListener("pointermove", (e) => {
+    if (drag?.active) return hide();
     const bounds = root.getBoundingClientRect();
-    const t = ((e.clientX - bounds.left - left) / (W - left - right)) * curve.horizon;
-    const p = curve.points.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
+    const t = ((e.clientX - bounds.left - left) / plotW) * horizon;
+    const p = points.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
+    const revenue = revenueAt(inputs, p.t);
+    const net = revenue - inputs.expenses;
+    const margin = revenue > 0 ? ` (${formatPercent(net / revenue)} margin)` : "";
+    tip.replaceChildren(
+      el("div", {}, el("b", { textContent: formatMoney(p.balance) }), ` ${formatDate(p.t, now)}`),
+      el("div", { textContent: `Revenue ${rate(revenue)}` }),
+      el("div", { textContent: `${net < 0 ? "Burn" : "Profit"} ${rate(Math.abs(net))}${margin}` }));
     cross.setAttribute("x1", x(p.t)); cross.setAttribute("x2", x(p.t));
     dot.setAttribute("cx", x(p.t)); dot.setAttribute("cy", y(p.balance));
-    tip.replaceChildren(el("b", { textContent: formatMoney(p.balance) }),
-      document.createTextNode(`${formatMonthYear(p.t, now)} · ${formatMonths(p.t)}`));
     tip.style.left = `${Math.min(x(p.t) + 8, W - tip.offsetWidth)}px`;
-    tip.style.top = `${caption.offsetHeight + y(p.balance) - 40}px`;
+    tip.style.top = `${caption.offsetHeight + Math.max(y(p.balance) - 58, 0)}px`;
     for (const m of [cross, dot]) m.setAttribute("visibility", "visible");
     tip.style.visibility = "visible";
   });
-  hit.addEventListener("pointerleave", () => {
-    for (const m of [cross, dot]) m.setAttribute("visibility", "hidden");
-    tip.style.visibility = "hidden";
-  });
+  hit.addEventListener("pointerleave", hide);
+
+  return {
+    svg: root, left, top, plotW, plotH, horizon, lo, hi,
+    marker: marker && { x: x(marker.t), y: y(marker.balance), kind: marker.kind },
+  };
 }
 
 // A one-line editable box that draws grey thousands commas without putting them in its
@@ -505,12 +553,62 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   taxBox.addEventListener("change", () => { state.taxes.on = taxBox.checked; update(); });
   calc.append(taxes);
   calc.append(el("hr"));
-  const headline = el("div", { className: "headline" }), line1 = el("div"), line2 = el("div");
-  calc.append(el("div", { className: "result" }, headline, line1, line2));
-  // Tab and Return only stop in the input boxes; the unit, %/$ and chart controls are mouse-only.
-  const disclosure = el("button", { className: "disclosure", tabIndex: -1 });
+  const headline = el("div", { className: "headline" }), line1 = el("div");
+  // The chart toggle is a small icon beside the verdict, not a row of its own. Like the
+  // other secondary controls it's mouse-only: Tab and Return stay in the boxes.
+  const chartToggle = el("button", { className: "chart-toggle", tabIndex: -1 });
+  chartToggle.innerHTML = `<svg viewBox="0 0 16 12" width="16" height="12" aria-hidden="true"><path d="M1 1v10h14" /><path d="M3.5 8l3.5-3.5 2.5 2.5 4.5-5" /></svg>`;
+  calc.append(el("div", { className: "result" }, el("div", { className: "verdict" }, headline, chartToggle), line1));
   const chart = el("div", { className: "chart" });
-  calc.append(disclosure, chart);
+  calc.append(chart);
+
+  // Dragging the profitability dot sets growth (see dragProfitPoint). The listeners live on
+  // the chart's container, which survives redraws; drawChart reports where the dot is.
+  const drag = { active: false, domain: null, pinned: false };
+  let chartInputs = null, growthFromChart = (g) => g;
+  let geometry = null;
+  const local = (e) => {
+    const r = geometry.svg.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  };
+  const nearDot = (p) => geometry?.marker?.kind === "profitable" && Math.hypot(p.x - geometry.marker.x, p.y - geometry.marker.y) <= 12;
+  chart.addEventListener("pointerdown", (e) => {
+    if (!editable || !geometry || !nearDot(local(e))) return;
+    e.preventDefault();
+    chart.setPointerCapture(e.pointerId);
+    Object.assign(drag, { active: true, domain: { horizon: geometry.horizon, lo: geometry.lo, hi: geometry.hi } });
+    update();
+  });
+  chart.addEventListener("pointermove", (e) => {
+    if (!geometry) return;
+    const p = local(e);
+    if (!drag.active) {
+      chart.style.cursor = nearDot(p) && editable ? "grab" : "";
+      return;
+    }
+    const { left, top, plotW, plotH, horizon, lo, hi } = geometry;
+    const t = ((p.x - left) / plotW) * horizon;
+    const b = hi - ((p.y - top) / plotH) * (hi - lo);
+    const moved = dragProfitPoint(t, b, chartInputs, plotW / horizon, plotH / (hi - lo));
+    if (!moved) return;
+    // The axes hold still while dragging, except that the time axis widens when the dot
+    // nears its right edge; otherwise the zero line (the default-alive limit) can sit out
+    // of reach past the frozen horizon.
+    if (moved.monthsToProfitability > horizon * 0.92) drag.domain.horizon = moved.monthsToProfitability / 0.85;
+    drag.pinned = moved.pinned;
+    const g = fields[fieldKey("growth")];
+    const growth = growthFromChart(moved.monthlyGrowth);
+    Object.assign(g, { text: fieldText("growth", growth, g.unit, state.linear, fields.revenue.unit), origin: null, exact: growth });
+    sync();
+  });
+  const endDrag = () => {
+    if (!drag.active) return;
+    Object.assign(drag, { active: false, domain: null, pinned: false });
+    chart.style.cursor = "";
+    update();
+  };
+  chart.addEventListener("pointerup", endDrag);
+  chart.addEventListener("pointercancel", endDrag);
 
   const fields = state.fields;
   // The field behind a row: growth's row shows whichever kind is active.
@@ -518,7 +616,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   const field = (key) => fields[fieldKey(key)];
   const monthly = (fk) => {
     const f = fields[fk];
-    return f.exact ?? fieldValue(fk.startsWith("growth") ? "growth" : fk, f.text, f.unit, fk === "growthDollar");
+    return f.exact ?? fieldValue(fk.startsWith("growth") ? "growth" : fk, f.text, f.unit, fk === "growthDollar", fields.revenue.unit);
   };
   const valid = (key) => {
     const t = field(key).text;
@@ -542,10 +640,20 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   };
 
   function cycleUnit(key) {
+    // $ growth adds to the Revenue box's figure, so a new revenue unit re-expresses it.
+    const dollars = key === "revenue" && fields.growthDollar.text.trim() !== "" ? monthly("growthDollar") : null;
+    cycleOnly(key);
+    if (dollars !== null) {
+      const g = fields.growthDollar;
+      Object.assign(g, { text: fieldText("growth", dollars, g.unit, true, fields.revenue.unit), origin: null, exact: dollars });
+    }
+    sync();
+  }
+  function cycleOnly(key) {
     const fk = fieldKey(key), f = fields[fk];
     if (!f.origin) {
       const v = monthly(fk);
-      if (v === null) { f.unit = NEXT_UNIT[f.unit]; return sync(); }
+      if (v === null) { f.unit = NEXT_UNIT[f.unit]; return; }
       f.origin = { text: f.text, unit: f.unit };
       f.exact = v;
     }
@@ -554,9 +662,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
       f.text = f.origin.text;
       f.origin = f.exact = null;
     } else {
-      f.text = fieldText(key, f.exact, f.unit, fk === "growthDollar");
+      f.text = fieldText(key, f.exact, f.unit, fk === "growthDollar", fields.revenue.unit);
     }
-    sync();
   }
   function toggleKind() {
     const from = fieldKey("growth");
@@ -565,8 +672,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     // Convenience only: seed an empty box from the other kind, in the same period.
     const seed = monthly(from), revenue = monthly("revenue");
     if (fields[to].text.trim() === "" && seed !== null && revenue !== null) {
-      const v = switchGrowthKind(seed, state.linear, revenue, fields[from].unit);
-      if (v !== null) Object.assign(fields[to], { unit: fields[from].unit, text: fieldText("growth", v, fields[from].unit, state.linear), origin: null, exact: v });
+      const v = switchGrowthKind(seed, state.linear, revenue, fields[from].unit, fields.revenue.unit);
+      if (v !== null) Object.assign(fields[to], { unit: fields[from].unit, text: fieldText("growth", v, fields[from].unit, state.linear, fields.revenue.unit), origin: null, exact: v });
     }
     sync();
   }
@@ -588,22 +695,30 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     washingtonInput.classList.toggle("invalid", shares.washingtonShare === null);
     const taxAssumptions = state.taxes.on && shares.oaklandShare !== null && shares.washingtonShare !== null ? shares : null;
     const taxed = taxAssumptions && modelInputs ? withTaxes(modelInputs, taxAssumptions) : null;
-    taxEffect.textContent = taxed ? `≈ ${formatPercent(taxed.revenueRate)} + $${Math.round(taxed.fixedMonthly * 12)}/yr` : "";
+    // The size of the tax effect only shows with the assumptions it summarizes.
+    taxEffect.textContent = taxed && assumptionsOpen ? `≈ ${formatPercent(taxed.revenueRate)} + $${Math.round(taxed.fixedMonthly * 12)}/yr` : "";
 
     const r = readoutFor(modelInputs, filledIn, units, new Date(), taxAssumptions);
     headline.textContent = r.headline;
     headline.className = `headline tone-${r.tone}`;
     // " " holds an empty line open, like the app, so the height never changes.
     line1.textContent = r.line1 || " ";
-    line2.textContent = r.line2 || " ";
     for (const key of KEYS) hints[key].textContent = r.hints[key];
+    inputs.growth.classList.toggle("drag-alive", drag.active && !drag.pinned);
+    inputs.growth.classList.toggle("drag-pinned", drag.active && drag.pinned);
 
     const plottable = r.tone !== "neutral";
-    disclosure.textContent = state.chart ? "Hide chart" : "Show chart";
-    disclosure.hidden = !plottable;
+    chartToggle.hidden = !plottable;
+    chartToggle.setAttribute("aria-pressed", String(state.chart));
+    chartToggle.title = state.chart ? "Hide chart" : "Show chart";
     // Nothing to plot until all four numbers are usable; an empty frame reads as broken.
     chart.hidden = !(state.chart && plottable);
-    if (!chart.hidden) drawChart(chart, taxed?.inputs ?? modelInputs, new Date());
+    // The chart and the drag both work on what the chart plots (after taxes, if ticked);
+    // $ growth found that way is turned back into the pre-tax number you'd type.
+    chartInputs = taxed?.inputs ?? modelInputs;
+    growthFromChart = (g) => (taxed && state.linear ? g / (1 - taxed.revenueRate) : g);
+    geometry = chart.hidden ? null
+      : drawChart(chart, chartInputs, new Date(), { revenueUnit: fields.revenue.unit, drag: editable ? drag : null });
     onChange(state);
   };
   const sync = () => {
@@ -651,7 +766,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
         else next.select();
       });
     });
-    disclosure.addEventListener("click", () => { state.chart = !state.chart; update(); });
+    chartToggle.addEventListener("click", () => { state.chart = !state.chart; update(); });
   }
   sync();
   return {
