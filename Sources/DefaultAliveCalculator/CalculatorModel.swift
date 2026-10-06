@@ -4,8 +4,8 @@ import Observation
 
 /// The form's state plus whether the chart is open, persisted to UserDefaults on every
 /// change. That's the app's only stored state: the typed text and unit of each box (both
-/// growth kinds), which growth kind is showing, the tax checkbox and its two shares, and
-/// the chart toggle. Whether the tax assumptions are open is not stored. Each box's exact
+/// growth kinds), which growth kind is showing, the tax checkbox, the tax places and the
+/// shares typed for them, and the chart toggle. Whether the tax assumptions are open is not stored. Each box's exact
 /// value behind a converted display lives in memory only, so after a relaunch a converted
 /// box computes from its displayed text (a rounding-level difference at most).
 @MainActor
@@ -44,8 +44,11 @@ final class CalculatorModel {
         s.growthDollar = field("growthDollar")
         s.linear = d.bool(forKey: "growthLinear")
         s.taxesOn = d.bool(forKey: "taxesOn")
-        s.oaklandShare = d.string(forKey: "oaklandShare") ?? s.oaklandShare
-        s.washingtonShare = d.string(forKey: "washingtonShare") ?? s.washingtonShare
+        if let places = d.stringArray(forKey: "taxPlaces") { s.taxPlaces = places }
+        s.taxShares = d.dictionary(forKey: "taxShares") as? [String: String] ?? [:]
+        // v2 had fixed Oakland and Washington shares; the place list replaced them.
+        d.removeObject(forKey: "oaklandShare")
+        d.removeObject(forKey: "washingtonShare")
         return CalculatorModel(state: s, chartShown: d.object(forKey: "chartShown") as? Bool ?? true, store: d)
     }
 
@@ -59,7 +62,7 @@ final class CalculatorModel {
         }
         d.set(state.linear, forKey: "growthLinear")
         d.set(state.taxesOn, forKey: "taxesOn")
-        d.set(state.oaklandShare, forKey: "oaklandShare")
-        d.set(state.washingtonShare, forKey: "washingtonShare")
+        d.set(state.taxPlaces, forKey: "taxPlaces")
+        d.set(state.taxShares, forKey: "taxShares")
     }
 }

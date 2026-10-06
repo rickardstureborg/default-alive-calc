@@ -15,12 +15,15 @@ enum SelfTest {
             var lines: [String] = []
             var failures = 0
             var interrupted: String?
+            /// The window that should have the keyboard: the main one, or the tax checklist's
+            /// popover while that's being tested.
+            var keyWindow = window
             // Everything here needs the window to be key. If someone uses the Mac mid-run,
             // macOS hands focus to their app and every later check fails for that reason
             // alone; report that once instead of a pile of misleading FAILs.
             @MainActor func check(_ name: String, _ ok: Bool, _ detail: String) {
                 guard interrupted == nil else { return }
-                guard window.isKeyWindow else {
+                guard keyWindow.isKeyWindow else {
                     interrupted = name
                     return
                 }
@@ -31,7 +34,7 @@ enum SelfTest {
             @MainActor func key(_ code: UInt16, _ chars: String, _ mods: NSEvent.ModifierFlags = []) async {
                 let event = NSEvent.keyEvent(
                     with: .keyDown, location: .zero, modifierFlags: mods, timestamp: ProcessInfo.processInfo.systemUptime,
-                    windowNumber: window.windowNumber, context: nil, characters: chars, charactersIgnoringModifiers: chars,
+                    windowNumber: keyWindow.windowNumber, context: nil, characters: chars, charactersIgnoringModifiers: chars,
                     isARepeat: false, keyCode: code)!
                 NSApp.postEvent(event, atStart: false)
                 await settle()
@@ -193,6 +196,33 @@ enum SelfTest {
             await key(21, "$", .shift)
             check("a typed $ is dropped (the box draws it)", model.state.field(.cash).text == "1630000" && where_().selection == NSRange(location: 1, length: 0),
                   "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
+
+            // The tax checklist is a popover: its own window, which the key monitor leaves
+            // alone. Typing "c" in its filter types a c; Esc closes it without clearing.
+            model.state = state
+            model.state.taxesOn = true
+            await settle()
+            NotificationCenter.default.post(name: .openTaxPicker, object: nil)
+            try? await Task.sleep(for: .milliseconds(700))
+            if let popover = NSApp.windows.first(where: { $0 !== window && $0.isVisible && String(describing: type(of: $0)).contains("Popover") }) {
+                keyWindow = popover
+                let filter = { (popover.firstResponder as? NSTextView)?.string }
+                check("the checklist opens with its filter focused", filter() == "", "filter \(filter() ?? "not focused")")
+                await key(8, "c")
+                check("typing c in the filter types it, and clears nothing",
+                      filter() == "c" && model.state.field(.cash).text == "400k", "filter \(filter() ?? "-"), cash \(model.state.field(.cash).text)")
+                await key(53, "\u{1b}")
+                // The popover fades out: at 300ms it was still visible, which read as a bug.
+                try? await Task.sleep(for: .milliseconds(1000))
+                keyWindow = window
+                check("Esc closes the checklist, clearing nothing",
+                      !popover.isVisible && model.state.field(.cash).text == "400k",
+                      "visible \(popover.isVisible), cash \(model.state.field(.cash).text)")
+                await key(53, "\u{1b}")
+                check("then Esc clears all", Row.allCases.allSatisfy { model.state.field($0).text.isEmpty }, "cash \(model.state.field(.cash).text)")
+            } else {
+                check("the checklist opens", false, "windows: \(NSApp.windows.map { String(describing: type(of: $0)) })")
+            }
 
             // Dragging the chart's profitability dot sets growth and outlines the growth box.
             model.chartShown = true

@@ -51,20 +51,64 @@ public struct CalculatorState: Equatable, Sendable {
     public var growthDollar = Field()
     public var linear = false
     public var taxesOn = false
-    /// Percent of revenue sourced to Oakland / Washington, as typed.
-    public var oaklandShare = "100"
-    public var washingtonShare = "10"
+    private var places: [String] = TaxCatalog.defaultPlaces
+    /// Share of revenue counted to each place, as typed (percent). Kept when a place is
+    /// removed, so adding it back restores it; untouched places show their default.
+    public var taxShares: [String: String] = [:]
 
-    /// nil when taxes are off or a share isn't a number.
-    public var taxAssumptions: TaxAssumptions? {
-        guard taxesOn, let oakland = parsePercent(oaklandShare), let washington = parsePercent(washingtonShare) else { return nil }
-        return TaxAssumptions(oaklandShare: oakland, washingtonShare: washington)
+    /// The places you're in, in catalog order. Unknown ids (a place dropped from a newer
+    /// catalog) are ignored.
+    public var taxPlaces: [String] {
+        get { places }
+        set {
+            let ids = Set(newValue)
+            places = TaxCatalog.places.map(\.id).filter(ids.contains)
+        }
     }
 
-    /// The size of the tax effect for the checkbox line, "≈ 0.36% + $450/yr"; "" when off.
+    public mutating func setTaxPlace(_ id: String, included: Bool) {
+        setTaxPlaces([id], included: included)
+    }
+
+    /// "Add all" / "Remove all".
+    public mutating func setTaxPlaces(_ ids: [String], included: Bool) {
+        var set = Set(places)
+        if included { set.formUnion(ids) } else { set.subtract(ids) }
+        taxPlaces = Array(set)
+    }
+
+    /// The share box's text: what was typed, else the place's default.
+    public func shareText(_ id: String) -> String {
+        taxShares[id] ?? TaxCatalog.place(id).map { percentText($0.share) } ?? ""
+    }
+
+    /// Red text in a share box.
+    public func isInvalidShare(_ id: String) -> Bool {
+        guard let place = TaxCatalog.place(id), place.rate > 0 else { return false }
+        return shareValue(shareText(id)) == nil
+    }
+
+    /// nil when taxes are off or a share isn't a percentage. Places without a receipts tax
+    /// have no share box, so their share is never checked.
+    public var taxAssumptions: TaxAssumptions? {
+        guard taxesOn else { return nil }
+        var shares: [String: Double] = [:]
+        for id in places {
+            guard let place = TaxCatalog.place(id) else { continue }
+            if place.rate == 0 {
+                shares[id] = 0
+            } else {
+                guard let share = shareValue(shareText(id)) else { return nil }
+                shares[id] = share
+            }
+        }
+        return TaxAssumptions(shares)
+    }
+
+    /// The size of the tax effect for the checkbox line, "≈ 0.36% + $959/yr"; "" when off.
     public var taxSummary: String {
-        guard let taxed = taxed else { return "" }
-        return "≈ \(formatPercent(taxed.revenueRate)) + $\(Int((taxed.fixedMonthly * 12).rounded()))/yr"
+        guard let taxed else { return "" }
+        return "≈ \(formatRate(taxed.revenueRate, digits: 2)) + \(formatMoney(taxed.fixedMonthly * 12))/yr"
     }
 
     var taxed: Taxed? {
@@ -88,8 +132,8 @@ public struct CalculatorState: Equatable, Sendable {
         self[.growth].text = normalizeField(input.growth)
         if let taxes {
             taxesOn = true
-            oaklandShare = trimZeros(String(format: "%.4f", taxes.oaklandShare * 100))
-            washingtonShare = trimZeros(String(format: "%.4f", taxes.washingtonShare * 100))
+            taxPlaces = Array(taxes.shares.keys)
+            taxShares = taxes.shares.mapValues(percentText)
         }
     }
 

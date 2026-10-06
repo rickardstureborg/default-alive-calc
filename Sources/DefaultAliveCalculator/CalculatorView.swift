@@ -25,6 +25,8 @@ extension Notification.Name {
     static let clearInputs = Notification.Name("clearInputs")
     /// userInfo["forward"]: Bool. Tab/Return forward, with Shift backward.
     static let moveFocus = Notification.Name("moveFocus")
+    /// `--selftest` only: open the assumptions and the tax checklist.
+    static let openTaxPicker = Notification.Name("openTaxPicker")
 }
 
 struct CalculatorForm: View {
@@ -38,6 +40,7 @@ struct CalculatorForm: View {
     }
     /// Not persisted: the assumptions always start closed.
     @State private var assumptionsOpen: Bool
+    @State private var pickerOpen = false
 
     /// `assumptionsOpen` is only for `--snapshot`; the app always starts with them closed.
     init(model: CalculatorModel, assumptionsOpen: Bool = false) {
@@ -105,6 +108,15 @@ struct CalculatorForm: View {
             model.state.clear()
             request(.cash)
         }
+        .onReceive(NotificationCenter.default.publisher(for: .openTaxPicker)) { _ in
+            assumptionsOpen = true
+            // The popover anchors on "Add more…", which only exists once the assumptions
+            // have been laid out.
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(100))
+                pickerOpen = true
+            }
+        }
         .onReceive(NotificationCenter.default.publisher(for: .moveFocus)) { note in
             let forward = note.userInfo?["forward"] as? Bool ?? true
             let arrow = note.userInfo?["arrow"] as? Bool == true
@@ -153,48 +165,69 @@ struct CalculatorForm: View {
         }
     }
 
+    /// Past this many places ("Add all" makes 148) the list scrolls instead of stretching
+    /// the window off the screen.
+    private static let placesBeforeScrolling = 8
+    private static let placesScrollHeight: CGFloat = 200
+
+    /// One row per place you're in: name and what it costs (the full assumption on hover),
+    /// your share of revenue there if it taxes receipts, and a remove link. Then "Add more…",
+    /// which opens the checklist of every state and city.
     private var assumptions: some View {
-        Grid(alignment: .leadingFirstTextBaseline, horizontalSpacing: 10, verticalSpacing: 4) {
-            GridRow {
-                assumption("Oakland business tax", "0.36% of gross receipts (Class F, no small-business exemption). 100% is the upper bound.")
-                share($model.state.oaklandShare)
+        VStack(alignment: .leading, spacing: 6) {
+            if model.state.taxPlaces.count > Self.placesBeforeScrolling {
+                ScrollView { placeGrid }.frame(height: Self.placesScrollHeight)
+            } else {
+                placeGrid
             }
-            GridRow {
-                assumption("Washington B&O", "nothing under about $140k a year of Washington receipts; above it, 0.471% of them.")
-                share($model.state.washingtonShare)
-            }
-            GridRow {
-                assumption("Delaware", "$400 franchise tax (assumed par value method) + $50 annual report.")
-                Text("$450/yr").gridColumnAlignment(.trailing)
-            }
-            Text("Not counted: income taxes (federal 21%, California 8.84% of profit) are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales tax, and count payroll taxes in expenses.")
-                .gridCellColumns(2)
-                .padding(.top, 2)
+            link("Add more…") { pickerOpen.toggle() }
+                .popover(isPresented: $pickerOpen, arrowEdge: .bottom) { TaxPicker(state: $model.state) }
+            Text("Not counted: income taxes are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales taxes (including Hawaii's and New Mexico's gross receipts taxes, which are itemized like sales tax), and count payroll taxes in expenses.")
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
         .fixedSize(horizontal: false, vertical: true)
     }
 
-    private func assumption(_ name: String, _ detail: String) -> some View {
-        (Text(name).bold().foregroundStyle(.primary) + Text(" · " + detail))
-            .fixedSize(horizontal: false, vertical: true)
+    /// Rows rather than a Grid: a Grid sized its text column to about half the width here
+    /// and left the right quarter of the window empty, wrapping every name early. The share
+    /// box gets a fixed slot so the boxes and remove links line up.
+    private var placeGrid: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            ForEach(model.state.taxPlaces.compactMap(TaxCatalog.place)) { place in
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    (Text(place.name).bold().foregroundStyle(.primary)
+                        + Text(place.local ? ", \(place.state)" : "")
+                        + Text(" · " + placeSummary(place)))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .help(place.note)
+                    Group {
+                        if place.rate > 0 { share(place) } else { Color.clear.frame(height: 0) }
+                    }
+                    .frame(width: 52, alignment: .trailing)
+                    link("remove") { model.state.setTaxPlace(place.id, included: false) }
+                }
+            }
+        }
     }
 
-    /// A share of revenue, in percent. Mouse-only like the other secondary controls: Tab
-    /// and Return still cycle just the four main boxes.
-    private func share(_ text: Binding<String>) -> some View {
-        HStack(spacing: 2) {
+    /// The share of revenue counted to a place, in percent. Mouse-only like the other
+    /// secondary controls: Tab and Return still cycle just the four main boxes.
+    private func share(_ place: TaxPlace) -> some View {
+        let text = Binding(get: { model.state.shareText(place.id) }, set: { model.state.taxShares[place.id] = $0 })
+        return HStack(spacing: 2) {
             TextField("", text: text)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.trailing)
                 .monospacedDigit()
-                .foregroundStyle(parsePercent(text.wrappedValue) == nil ? Style.dead : Color.primary)
+                .foregroundStyle(model.state.isInvalidShare(place.id) ? Style.dead : Color.primary)
                 .padding(.horizontal, 5)
                 .frame(width: 38, height: 20)
                 .background(RoundedRectangle(cornerRadius: 4).fill(.quaternary))
             Text("%")
         }
+        .help("Your share of revenue counted to \(place.name)")
     }
 
     // MARK: Labels with clickable units
@@ -223,6 +256,16 @@ struct CalculatorForm: View {
     private func unitToggle(_ row: Row) -> some View {
         let unit = model.state.field(row).unit
         return toggle(unit.rawValue, help: "Switch to per \(unit.next.rawValue)") { model.state.cycleUnit(row) }
+    }
+
+    /// "remove", "Add more…": secondary text with a dotted underline, never a Tab stop.
+    private func link(_ title: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(title).underline(true, pattern: .dot, color: .secondary)
+        }
+        .buttonStyle(.plain)
+        .foregroundStyle(.secondary)
+        .focusable(false)
     }
 
     /// A word in a label that changes something when clicked: dotted underline, and never a

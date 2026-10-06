@@ -47,6 +47,15 @@ public func formatPercent(_ fraction: Double) -> String {
     return trimZeros(String(format: "%.\(percentPlaces(v))f", (v * f).rounded(.toNearestOrAwayFromZero) / f)) + "%"
 }
 
+/// Tax rates keep their significant digits, however small: 0.3983%, 0.00052%.
+public func formatRate(_ fraction: Double, digits: Int = 4) -> String {
+    let v = fraction * 100
+    if v == 0 { return "0%" }
+    let places = max(0, digits - 1 - Int(floor(log10(abs(v)))))
+    let f = pow(10, Double(places))
+    return trimZeros(String(format: "%.\(places)f", (v * f).rounded(.toNearestOrAwayFromZero) / f)) + "%"
+}
+
 // Breakeven hints round toward the safe side ("≥" up, "≤" down), so the shown value
 // really flips the verdict: $241.04 needed must read "≥ $242", never "≥ $241". They also
 // carry one more digit than formatMoney ($7.46k, $252.1k) so the rounding costs little.

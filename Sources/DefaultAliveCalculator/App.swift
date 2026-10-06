@@ -60,6 +60,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         // stops on the unit/kind buttons whenever System Settings' keyboard navigation is
         // on; this way only the four boxes are ever stops.
         keyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            // Only the main window. The tax checklist is a popover, a window of its own, so its
+            // keys are its own: "c" in its filter types a c, and Esc closes it (natively).
             guard event.window === self?.window else { return event }
             let mods = event.modifierFlags.intersection([.command, .option, .control, .shift])
             let esc = event.keyCode == 53 && mods.isEmpty
