@@ -46,9 +46,6 @@ final class CalculatorModel {
         s.taxesOn = d.bool(forKey: "taxesOn")
         if let places = d.stringArray(forKey: "taxPlaces") { s.taxPlaces = places }
         s.taxShares = d.dictionary(forKey: "taxShares") as? [String: String] ?? [:]
-        // v2 had fixed Oakland and Washington shares; the place list replaced them.
-        d.removeObject(forKey: "oaklandShare")
-        d.removeObject(forKey: "washingtonShare")
         return CalculatorModel(state: s, chartShown: d.object(forKey: "chartShown") as? Bool ?? true, store: d)
     }
 
