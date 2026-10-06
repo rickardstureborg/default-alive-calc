@@ -6,7 +6,6 @@ INSTALLED := $(HOME)/Applications/$(APP_NAME).app
 
 PORT      := 8765
 PREVIEW   := http://127.0.0.1:$(PORT)/design/
-CHROME    := /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
 
 .PHONY: all app test bundle snapshot install preview preview-serve preview-shot preview-stop uninstall clean
 
@@ -62,12 +61,13 @@ preview-serve:
 	fi
 	@echo "→ $(PREVIEW)"
 
-# Headless screenshot of the preview page into build/preview.png, so Claude can look at a
+# Headless screenshots of the preview: build/preview.png (whole page) and
+# build/preview-live.png (just the live window), so Claude can look at a
 # design without driving your browser. Light appearance; the gallery shows dark anyway.
 preview-shot: preview-serve
-	@"$(CHROME)" --headless=new --disable-gpu --hide-scrollbars --force-device-scale-factor=2 \
-		--window-size=1600,4900 --virtual-time-budget=3000 --user-data-dir="$${TMPDIR:-/tmp}/dac-chrome" \
-		--screenshot="$(CURDIR)/build/preview.png" "$(PREVIEW)" 2>&1 | grep -o "written to.*" || true
+	@mkdir -p build
+	@node design/shot.mjs "$(PREVIEW)" build/preview.png
+	@node design/shot.mjs "$(PREVIEW)" build/preview-live.png "#live-window"
 
 preview-stop:
 	@lsof -ti tcp:$(PORT) -sTCP:LISTEN | xargs kill 2>/dev/null || true

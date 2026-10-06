@@ -133,6 +133,7 @@
   .tone-dead { color: var(--dead); }
 
   /* Chart toggle. In SwiftUI: a borderless Button. */
+  .disclosure[hidden] { display: none; }
   .disclosure {
     display: block; margin: 10px auto 0; border: 0; background: none; padding: 2px 6px;
     font: inherit; font-size: 11px; color: var(--secondary);
@@ -566,6 +567,8 @@ spec.presets.forEach((p, row) => {
     gallery.append(appTile?.(row, col) ?? el("div", { className: "missing", textContent: "run make snapshot" }));
   });
 });
+// design/shot.mjs waits for this before screenshotting.
+document.body.dataset.ready = "1";
 
 // ── Live reload: poll the served files; any change reloads the page ──
 
