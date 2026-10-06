@@ -2,6 +2,9 @@
 // preview shows the numbers the app will. design/presets.json pins both sides: change
 // wording or math in one and `make test` fails until the other (and the `expect`s) match.
 
+// The tax checklist: the very file the app compiles in (Package.swift, .embedInCode).
+import taxCatalog from "../Sources/DefaultAliveCore/TaxPlaces.json" with { type: "json" };
+
 const SUFFIXES = { k: 1e3, m: 1e6, b: 1e9 };
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 export const KEYS = ["cash", "expenses", "revenue", "growth"];
@@ -370,6 +373,14 @@ export function formatMoneyBound(value, roundUp) {
   return `$${r}`;
 }
 
+/// Tax rates keep their significant digits, however small: 0.3983%, 0.00052%.
+export function formatRate(fraction, digits = 4) {
+  const v = fraction * 100;
+  if (v === 0) return "0%";
+  const places = Math.max(0, digits - 1 - Math.floor(Math.log10(Math.abs(v))));
+  return `${trimZeros((Math.round(v * 10 ** places) / 10 ** places).toFixed(places))}%`;
+}
+
 export function formatPercentBound(fraction, roundUp) {
   const v = fraction * 100;
   const places = Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 10 ? 1 : 2;
@@ -497,35 +508,61 @@ export function balanceCurve(inputs, samples = 160) {
 // ── Taxes.swift ───────────────────────────────────────────────────────────────
 //
 // Only taxes that cost money before profitability can change the verdict, because
-// default alive asks whether you reach breakeven, and at breakeven profit is zero:
-// income taxes (federal 21%, California 8.84%) are all zero on the way there.
-// What's left for an Oakland company
-// incorporated in Delaware and registered in WA/DE/CA (rates from oaklandca.gov,
-// dor.wa.gov, corp.delaware.gov, ftb.ca.gov, checked Oct 2026):
+// default alive asks whether you reach breakeven, and at breakeven profit is zero, so
+// income taxes are zero all the way there. What's left are receipts taxes and fixed
+// yearly amounts, per state and city, in TAX_PLACES (TaxPlaces.json, built from
+// research/ by research/places.mjs; the app compiles in the same file).
 
-export const TAX_RATES = {
-  // Oakland business tax, Class F (professional services), 2026: 0.36% of gross
-  // receipts, with no small-business exemption.
-  oaklandReceipts: 0.0036,
-  // Washington B&O tax on retailing (SaaS), 2026: a small business credit clears it up to
-  // about $140k a year of Washington receipts; above that, 0.471% of them.
-  washingtonBO: 0.00471,
-  washingtonCredit: 140_000,
-  // Delaware franchise tax minimum under the assumed par value capital method ($400) plus
-  // the $50 annual report fee. (The authorized shares method can bill far more; file
-  // with assumed par value.)
-  delawarePerYear: 450,
-};
+export const { places: TAX_PLACES, nothingOwed: TAX_NOTHING_OWED, checked: TAX_CHECKED } = taxCatalog;
+const placeById = new Map(TAX_PLACES.map((p) => [p.id, p]));
+export const taxPlace = (id) => placeById.get(id) ?? null;
+/// Most venture-backed startups are Delaware corporations; every other place is the
+/// user's to add.
+export const DEFAULT_TAX_PLACES = ["DE"];
 
-/// taxes: { oaklandShare, washingtonShare } as fractions of revenue sourced there.
+/// The share of revenue a place's receipts tax takes, at `annual` revenue: rate × share,
+/// or nothing at or under its threshold, or only the part above it for an exclusion.
+/// Thresholds are judged on current revenue only; a forecast that crosses one mid-way is
+/// ignored (Texas's is worth ~0.03% of revenue).
+export function placeRate(place, share, annual) {
+  if (place.rate === 0) return 0;
+  const t = place.threshold;
+  if (!t) return place.rate * share;
+  const there = annual * share;
+  if ((t.on === "total" ? annual : there) <= t.perYear) return 0;
+  return t.excess ? place.rate * share * (1 - t.perYear / there) : place.rate * share;
+}
+
+/// "0.36% of revenue there + $64/yr": what a place costs,
+/// in a line. `short` drops the threshold, for the checklist.
+export function placeSummary(place, short = false) {
+  const parts = [];
+  if (place.rate > 0) {
+    const t = place.threshold;
+    const when = !t || short ? ""
+      : t.excess ? ` above ${formatMoneyBound(t.perYear, true)}/yr`
+      : t.on === "total" ? `, once revenue tops ${formatMoneyBound(t.perYear, true)}/yr`
+      : `, once it tops ${formatMoneyBound(t.perYear, true)}/yr`;
+    parts.push(short ? formatRate(place.rate) : `${formatRate(place.rate)} of revenue there${when}`);
+  }
+  if (place.perYear > 0) parts.push(`${formatMoney(place.perYear)}/yr`);
+  return parts.join(" + ") || "$0";
+}
+
+/// taxes: { [place id]: share }, the share of revenue counted to each place you're in.
 /// Returns { inputs, gross, revenueRate, fixedMonthly }: the inputs after taxes (revenue
-/// net of receipts taxes, Delaware added to expenses), and gross() to turn breakevens
-/// computed on those back into the numbers you'd type. Washington switches on from current
-/// revenue only; a forecast that crosses its credit mid-way is ignored (worth ~0.05%).
-export function withTaxes(inputs, { oaklandShare, washingtonShare }) {
-  const overWashington = inputs.revenue * 12 * washingtonShare > TAX_RATES.washingtonCredit;
-  const revenueRate = TAX_RATES.oaklandReceipts * oaklandShare + (overWashington ? TAX_RATES.washingtonBO * washingtonShare : 0);
-  const fixedMonthly = TAX_RATES.delawarePerYear / 12;
+/// net of receipts taxes, fixed amounts added to expenses), and gross() to turn
+/// breakevens computed on those back into the numbers you'd type.
+export function withTaxes(inputs, taxes) {
+  const annual = inputs.revenue * 12;
+  let revenueRate = 0, perYear = 0;
+  // Catalog order, not the selection's, so the sum (and its last bit) matches Swift.
+  for (const place of TAX_PLACES) {
+    if (!(place.id in taxes)) continue;
+    revenueRate += placeRate(place, taxes[place.id], annual);
+    perYear += place.perYear;
+  }
+  const fixedMonthly = perYear / 12;
   const keep = 1 - revenueRate;
   const after = {
     ...inputs,

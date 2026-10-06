@@ -134,7 +134,10 @@
     font-style: italic; cursor: pointer; text-decoration: underline dotted var(--placeholder); text-underline-offset: 3px;
   }
   .assumptions[hidden] { display: none; }
-  .assumptions { margin: 8px 0 0 22px; display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: baseline; font-size: 11px; line-height: 1.35; }
+  /* One row per place you're in: name and what it costs (the full assumption on hover),
+     your share of revenue there if it taxes receipts, and a remove link. */
+  .assumptions { margin: 8px 0 0 22px; font-size: 11px; line-height: 1.35; }
+  .places { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 8px; align-items: baseline; }
   .assumptions b { font-weight: 600; color: var(--label); }
   .assumptions .share { display: flex; align-items: baseline; gap: 2px; justify-self: end; }
   .assumptions .share input {
@@ -142,7 +145,33 @@
     background: var(--fill); color: var(--text); font: inherit; font-variant-numeric: tabular-nums; text-align: right; outline: none;
   }
   .assumptions .share input.invalid { color: var(--dead); }
-  .assumptions .note { grid-column: 1 / -1; margin-top: 2px; }
+  .assumptions .note { margin-top: 6px; }
+  .link {
+    border: 0; padding: 0; background: none; color: var(--secondary); font: inherit; cursor: pointer;
+    text-decoration: underline dotted var(--placeholder); text-underline-offset: 3px;
+  }
+  .link:hover { color: var(--label); }
+  .add-row { position: relative; margin-top: 6px; }
+  /* "Add more…" opens a checklist of every place, grouped by state. In the app it's a
+     popover; here it floats over the window the same way. */
+  .picker[hidden] { display: none; }
+  .picker {
+    position: absolute; top: calc(100% + 4px); left: -6px; z-index: 5; width: 300px; padding: 8px;
+    border-radius: 8px; background: var(--bg); box-shadow: 0 0 0 .5px var(--axis), 0 8px 24px rgba(0, 0, 0, .25);
+    font-size: 12px; color: var(--label);
+  }
+  .picker .filter {
+    width: 100%; height: 22px; box-sizing: border-box; padding: 0 7px; border: 0; border-radius: 5px;
+    background: var(--fill); color: var(--text); font: inherit; outline: none;
+  }
+  .picker .filter::placeholder { color: var(--placeholder); }
+  .picker .list { max-height: 248px; overflow-y: auto; margin: 6px -8px 0; padding: 0 8px; }
+  .picker .item { display: flex; align-items: center; gap: 6px; padding: 2px 0; white-space: nowrap; }
+  .picker .item.state { font-weight: 600; padding-top: 5px; }
+  .picker .item.local { padding-left: 20px; }
+  .picker .item input { margin: 0; }
+  .picker .item .sum { margin-left: auto; padding-left: 8px; font-weight: 400; font-size: 11px; color: var(--secondary); font-variant-numeric: tabular-nums; }
+  .picker .foot { margin-top: 6px; font-size: 11px; color: var(--secondary); white-space: normal; }
 
   hr { border: 0; height: 1px; background: var(--separator); margin: var(--divider-spacing) 0; }
   .result {
@@ -279,7 +308,8 @@
 
 <script type="module">
 import {
-  KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatPercent,
+  KEYS, amountValue, growthValue, parseAmount, readoutFor, balanceCurve, withTaxes, parsePercent, formatRate,
+  TAX_PLACES, TAX_NOTHING_OWED, DEFAULT_TAX_PLACES, taxPlace, placeSummary,
   NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing, groupBreaks,
   formatMoney, formatMonths, formatMonthYear, formatDate, cumulativeBurn, project, revenueAt, amountToUnit,
   dragProfitPoint,
@@ -526,23 +556,55 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     rows.append(el("div", { className: "row" }, labels[key], el("div", { className: "box" }, units[key], inputs[key]), hints[key]));
   }
 
-  // Taxes (prototype): the checkbox, a one-line size of the effect, and when checked the
-  // assumptions behind it, with the two business-specific shares editable.
-  state.taxes ??= { on: false, oakland: "100", washington: "10" };
+  // Taxes: the checkbox, a one-line size of the effect, and when checked the assumptions
+  // behind it: a row per place you're in, with your share of revenue there when it taxes
+  // receipts, and "Add more…" for the checklist of every state and city.
+  if (!state.taxes?.places) state.taxes = { ...defaultTaxes(), on: state.taxes?.on ?? false };
   const taxBox = el("input", { type: "checkbox", tabIndex: -1, disabled: !editable });
   const taxEffect = el("span", { className: "effect" });
-  const share = (key) => {
-    const i = el("input", { value: state.taxes[key], tabIndex: -1, readOnly: !editable, spellcheck: false });
-    i.addEventListener("input", () => { state.taxes[key] = i.value; update(); });
-    return i;
+  const shareInputs = {};
+  const placeRows = el("div", { className: "places" });
+  const renderPlaces = () => {
+    placeRows.replaceChildren();
+    for (const id in shareInputs) delete shareInputs[id];
+    for (const id of state.taxes.places) {
+      const place = taxPlace(id);
+      const name = place.local ? [el("b", { textContent: place.name }), `, ${place.state}`] : [el("b", { textContent: place.name })];
+      placeRows.append(el("div", { title: place.note }, ...name, ` · ${placeSummary(place)}`));
+      if (place.rate > 0) {
+        state.taxes.shares[id] ??= shareText(place);
+        const i = el("input", { value: state.taxes.shares[id], tabIndex: -1, readOnly: !editable, spellcheck: false, title: `Your share of revenue counted to ${place.name}` });
+        i.addEventListener("input", () => { state.taxes.shares[id] = i.value; update(); });
+        shareInputs[id] = i;
+        placeRows.append(el("span", { className: "share" }, i, "%"));
+      } else {
+        placeRows.append(el("span"));
+      }
+      const remove = el("button", { className: "link", textContent: "remove", tabIndex: -1, disabled: !editable });
+      remove.addEventListener("click", () => setPlace(id, false));
+      placeRows.append(remove);
+    }
   };
-  const oaklandInput = share("oakland"), washingtonInput = share("washington");
-  const shareCell = (input) => el("span", { className: "share" }, input, "%");
+  // A removed place keeps its typed share, so adding it back restores it.
+  const setPlace = (id, on) => {
+    const ids = new Set(state.taxes.places);
+    if (on) ids.add(id); else ids.delete(id);
+    state.taxes.places = TAX_PLACES.map((p) => p.id).filter((p) => ids.has(p));
+    renderPlaces();
+    picker.refresh();
+    update();
+  };
+  const addMore = el("button", { className: "link", textContent: "Add more…", tabIndex: -1, disabled: !editable });
+  const picker = taxPicker(() => state.taxes.places, setPlace);
+  addMore.addEventListener("click", () => (picker.isOpen() ? picker.close() : picker.open()));
+  document.addEventListener("pointerdown", (e) => {
+    if (picker.isOpen() && !picker.el.contains(e.target) && e.target !== addMore) picker.close();
+  });
   const assumptions = el("div", { className: "assumptions" },
-    el("div", {}, el("b", { textContent: "Oakland business tax" }), " · 0.36% of gross receipts (Class F, no small-business exemption). 100% is the upper bound."), shareCell(oaklandInput),
-    el("div", {}, el("b", { textContent: "Washington B&O" }), " · nothing under about $140k a year of Washington receipts; above it, 0.471% of them."), shareCell(washingtonInput),
-    el("div", {}, el("b", { textContent: "Delaware" }), " · $400 franchise tax (assumed par value method) + $50 annual report."), el("span", { textContent: "$450/yr" }),
-    el("div", { className: "note", textContent: "Not counted: income taxes (federal 21%, California 8.84% of profit) are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales tax, and count payroll taxes in expenses." }));
+    placeRows,
+    el("div", { className: "add-row" }, addMore, picker.el),
+    el("div", { className: "note", textContent: "Not counted: income taxes are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales taxes (including Hawaii's and New Mexico's gross receipts taxes, which are itemized like sales tax), and count payroll taxes in expenses." }));
+  renderPlaces();
   // Ticking the box only turns taxes on; the italic link opens and closes the assumptions.
   let assumptionsOpen = startOpen || (editable && new URLSearchParams(location.search).get("assumptions") === "1");
   const assumptionsLink = el("button", { className: "assumptions-link", textContent: "assumptions", tabIndex: -1 });
@@ -689,13 +751,14 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
 
     taxBox.checked = state.taxes.on;
     assumptions.hidden = !assumptionsOpen;
-    const shares = { oaklandShare: parsePercent(state.taxes.oakland), washingtonShare: parsePercent(state.taxes.washington) };
-    oaklandInput.classList.toggle("invalid", shares.oaklandShare === null);
-    washingtonInput.classList.toggle("invalid", shares.washingtonShare === null);
-    const taxAssumptions = state.taxes.on && shares.oaklandShare !== null && shares.washingtonShare !== null ? shares : null;
+    // Places without a receipts tax have no share box; their share never matters.
+    const shares = Object.fromEntries(state.taxes.places.map((id) =>
+      [id, taxPlace(id).rate > 0 ? parsePercent(state.taxes.shares[id] ?? "") : 0]));
+    for (const [id, input] of Object.entries(shareInputs)) input.classList.toggle("invalid", shares[id] === null);
+    const taxAssumptions = state.taxes.on && !Object.values(shares).includes(null) ? shares : null;
     const taxed = taxAssumptions && modelInputs ? withTaxes(modelInputs, taxAssumptions) : null;
     // The size of the tax effect only shows with the assumptions it summarizes.
-    taxEffect.textContent = taxed && assumptionsOpen ? `≈ ${formatPercent(taxed.revenueRate)} + $${Math.round(taxed.fixedMonthly * 12)}/yr` : "";
+    taxEffect.textContent = taxed && assumptionsOpen ? `≈ ${formatRate(taxed.revenueRate, 2)} + ${formatMoney(taxed.fixedMonthly * 12)}/yr` : "";
 
     const r = readoutFor(modelInputs, filledIn, units, new Date(), taxAssumptions);
     headline.textContent = r.headline;
@@ -729,6 +792,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     update();
   };
 
+  // ?picker=1 (with &assumptions=1) opens the checklist, for screenshots.
+  if (editable && assumptionsOpen && new URLSearchParams(location.search).get("picker") === "1") queueMicrotask(() => picker.open());
   if (editable) {
     KEYS.forEach((key, i) => {
       inputs[key].addEventListener("input", () => {
@@ -770,6 +835,12 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   sync();
   return {
     inputs: KEYS.map((k) => inputs[k]),
+    /// Esc closes the checklist first; true if it was open.
+    closePicker() {
+      if (!picker.isOpen()) return false;
+      picker.close();
+      return true;
+    },
     clear() {
       for (const f of Object.values(fields)) Object.assign(f, { text: "", origin: null, exact: null });
       sync();
@@ -778,13 +849,62 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   };
 }
 
+// "Add more…": every place with a checkbox, grouped by state (the state's own row first,
+// its cities indented under it), filtered by name or state. Ticking adds, unticking
+// removes, straight away. Mirrors TaxPicker in CalculatorView.swift.
+function taxPicker(selected, setPlace) {
+  const filter = el("input", { className: "filter", placeholder: "Filter states and cities", spellcheck: false });
+  const list = el("div", { className: "list" });
+  const hidden = TAX_NOTHING_OWED.length;
+  const foot = el("div", { className: "foot", textContent: `${hidden} more cities checked owe nothing before profit.`, title: TAX_NOTHING_OWED.join(", ") });
+  const panel = el("div", { className: "picker", hidden: true }, filter, list, foot);
+  const stateName = Object.fromEntries(TAX_PLACES.filter((p) => !p.local).map((p) => [p.state, p.name]));
+  const boxes = {};
+  for (const place of TAX_PLACES) {
+    const box = el("input", { type: "checkbox", tabIndex: -1 });
+    box.addEventListener("change", () => setPlace(place.id, box.checked));
+    boxes[place.id] = box;
+    list.append(el("label", { className: `item ${place.local ? "local" : "state"}`, title: place.note },
+      box, place.name, el("span", { className: "sum", textContent: placeSummary(place, true) })));
+  }
+  const items = [...list.children];
+  const applyFilter = () => {
+    const q = filter.value.trim().toLowerCase();
+    const hit = (p) => !q || p.name.toLowerCase().includes(q) || stateName[p.state].toLowerCase().includes(q) || p.state.toLowerCase() === q;
+    // A state's row shows whenever any of its places match, as their heading.
+    const states = new Set(TAX_PLACES.filter(hit).map((p) => p.state));
+    TAX_PLACES.forEach((p, i) => (items[i].hidden = p.local ? !hit(p) : !states.has(p.state)));
+  };
+  filter.addEventListener("input", applyFilter);
+  const refresh = () => {
+    const on = new Set(selected());
+    for (const [id, box] of Object.entries(boxes)) box.checked = on.has(id);
+  };
+  return {
+    el: panel,
+    isOpen: () => !panel.hidden,
+    open() { refresh(); filter.value = ""; applyFilter(); panel.hidden = false; list.scrollTop = 0; filter.focus(); },
+    close() { panel.hidden = true; },
+    refresh,
+  };
+}
+
+const shareText = (place) => String(+(place.share * 100).toFixed(4));
+const defaultTaxes = () => ({ on: false, places: [...DEFAULT_TAX_PLACES], shares: {} });
+
 const blank = (unit = "month") => ({ text: "", unit, origin: null, exact: null });
-// A preset (or nothing) as calculator state. `input.growth` goes to whichever kind it is.
+// A preset (or nothing) as calculator state. `input.growth` goes to whichever kind it is;
+// `taxes` is { [place id]: share }.
 function freshState({ input = {}, units = {}, linear = false, taxes = null } = {}) {
   const fields = { cash: blank(), expenses: blank(units.expenses), revenue: blank(units.revenue), growthPercent: blank(units.growth), growthDollar: blank(units.growth) };
   for (const key of KEYS) fields[key === "growth" ? (linear ? "growthDollar" : "growthPercent") : key].text = normalizeField(input[key] ?? "");
   const pct = (x) => String(+(x * 100).toFixed(4));
-  return { fields, linear, chart: true, taxes: taxes ? { on: true, oakland: pct(taxes.oaklandShare), washington: pct(taxes.washingtonShare) } : { on: false, oakland: "100", washington: "10" } };
+  return {
+    fields, linear, chart: true,
+    taxes: taxes
+      ? { on: true, places: TAX_PLACES.map((p) => p.id).filter((id) => id in taxes), shares: Object.fromEntries(Object.entries(taxes).map(([id, s]) => [id, pct(s)])) }
+      : defaultTaxes(),
+  };
 }
 
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
@@ -805,7 +925,7 @@ scheme.addEventListener("change", applyScheme);
 applyScheme();
 
 const live = calculator(document.getElementById("live"),
-  pinned ? { ...freshState(pinned), ...(params.get("taxes") === "1" ? { taxes: { on: true, oakland: "100", washington: "10" } } : {}) }
+  pinned ? { ...freshState(pinned), ...(params.get("taxes") === "1" ? { taxes: { ...defaultTaxes(), on: true } } : {}) }
     : JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
   { editable: true, onChange: (s) => { if (!pinned) localStorage.setItem(STORE, JSON.stringify(s)); } });
 live.inputs[0].focus();
@@ -814,6 +934,9 @@ live.inputs[0].focus();
 // Clear key (Macally/Apple extended keyboards), or ⌘⌫ when no box has the cursor. ⌘⌫ inside
 // a box keeps its normal meaning: delete back to the start of that box.
 document.addEventListener("keydown", (e) => {
+  // The checklist is its own little window: Esc closes it, and nothing typed there clears.
+  if (e.key === "Escape" && live.closePicker()) { e.preventDefault(); return; }
+  if (e.target.closest?.(".picker")) return;
   const c = e.key.toLowerCase() === "c" && !e.metaKey && !e.ctrlKey && !e.altKey;
   const keypadClear = e.key === "Clear" || e.code === "NumLock";
   const a = document.activeElement;
