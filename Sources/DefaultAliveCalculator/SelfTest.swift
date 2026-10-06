@@ -152,22 +152,38 @@ enum SelfTest {
                       "at \(row), selection \(sel.location)+\(sel.length)")
             }
 
-            // Live thousands separators, typed key by key in cash (where the arrows left us).
+            // Thousands commas are drawn by the field editor, never stored: typed key by key in
+            // cash (where the arrows left us).
             (window.firstResponder as? NSTextView)?.selectAll(nil)
             for (code, ch) in [(18, "1"), (22, "6"), (20, "3"), (29, "0"), (29, "0"), (29, "0"), (29, "0")] as [(UInt16, String)] {
                 await key(code, ch)
             }
-            check("typing 1630000 shows 1,630,000, cursor at end",
-                  model.state.field(.cash).text == "1,630,000" && where_().selection == NSRange(location: 9, length: 0),
-                  "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
-            (window.firstResponder as? NSTextView)?.setSelectedRange(NSRange(location: 2, length: 0))
+            let editor = window.firstResponder as? NSTextView
+            let kerned = (0..<(editor?.textStorage?.length ?? 0)).filter { editor?.textStorage?.attribute(.kern, at: $0, effectiveRange: nil) != nil }
+            check("typing 1630000 keeps the text raw, cursor at end",
+                  model.state.field(.cash).text == "1630000" && editor?.string == "1630000" && where_().selection == NSRange(location: 7, length: 0),
+                  "text \(model.state.field(.cash).text), box \(editor?.string ?? "-"), selection \(where_().selection.location)+\(where_().selection.length)")
+            check("commas drawn after 1 and 1630", kerned == [0, 3], "comma gaps after characters \(kerned), editor \(editor.map { String(describing: type(of: $0)) } ?? "none")")
+            // A picture of the box mid-edit, to eyeball the drawn commas.
+            // The editing text view itself, at 2x: its own draw() puts the commas in.
+            if let editor {
+                let rep = NSBitmapImageRep(
+                    bitmapDataPlanes: nil, pixelsWide: Int(editor.bounds.width) * 2, pixelsHigh: Int(editor.bounds.height) * 2,
+                    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false, colorSpaceName: .deviceRGB,
+                    bytesPerRow: 0, bitsPerPixel: 0)!
+                rep.size = editor.bounds.size
+                editor.cacheDisplay(in: editor.bounds, to: rep)
+                try? rep.representation(using: .png, properties: [:])?.write(to: URL(fileURLWithPath: output + ".editing.png"))
+            }
+            editor?.setSelectedRange(NSRange(location: 1, length: 0))
             await key(23, "5")
-            check("typing mid-number regroups and keeps the cursor",
-                  model.state.field(.cash).text == "15,630,000" && where_().selection == NSRange(location: 2, length: 0),
+            check("typing mid-number keeps the cursor", model.state.field(.cash).text == "15630000" && where_().selection == NSRange(location: 2, length: 0),
+                  "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
+            await key(51, "\u{7f}")
+            check("Backspace deletes a digit, never a comma", model.state.field(.cash).text == "1630000" && where_().selection == NSRange(location: 1, length: 0),
                   "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
             await key(21, "$", .shift)
-            check("a typed $ is dropped (the box draws it)",
-                  model.state.field(.cash).text == "15,630,000" && where_().selection == NSRange(location: 2, length: 0),
+            check("a typed $ is dropped (the box draws it)", model.state.field(.cash).text == "1630000" && where_().selection == NSRange(location: 1, length: 0),
                   "text \(model.state.field(.cash).text), selection \(where_().selection.location)+\(where_().selection.length)")
 
             if let interrupted {

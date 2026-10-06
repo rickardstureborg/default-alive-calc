@@ -3,9 +3,10 @@ import SwiftUI
 
 @main
 @MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var window: NSWindow?
     private var keyMonitor: Any?
+    private let fieldEditor = GroupingFieldEditor()
 
     static func main() {
         let args = CommandLine.arguments
@@ -42,6 +43,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // The last input is the only thing this app remembers: no restored windows, no
         // saved frame. Opens centered every time.
         window.isRestorable = false
+        window.delegate = self
         window.center()
         window.makeKeyAndOrderFront(nil)
         self.window = window
@@ -88,6 +90,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let selfTestOutput { SelfTest.run(window: window, model: model, output: selfTestOutput) }
     }
+
+    /// Every box edits through the comma-drawing field editor.
+    func windowWillReturnFieldEditor(_ sender: NSWindow, to client: Any?) -> Any? { fieldEditor }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 

@@ -29,7 +29,9 @@ extension Notification.Name {
 
 struct CalculatorForm: View {
     @Bindable var model: CalculatorModel
-    @FocusState private var focus: Row?
+    /// Which box has the cursor, kept current by NumberField.
+    @State private var focus: Row?
+    @State private var focusRequest: FocusRequest?
     /// Not persisted: the assumptions always start closed.
     @State private var assumptionsOpen: Bool
 
@@ -92,11 +94,11 @@ struct CalculatorForm: View {
         // Clicking empty space takes the cursor out of the boxes, as in a browser. That's
         // the "no box selected" state where ⌘⌫ clears everything.
         .contentShape(Rectangle())
-        .onTapGesture { focus = nil }
-        .onAppear { focus = .cash }
+        .onTapGesture { request(nil) }
+        .onAppear { request(.cash) }
         .onReceive(NotificationCenter.default.publisher(for: .clearInputs)) { _ in
             model.state.clear()
-            focus = .cash
+            request(.cash)
         }
         .onReceive(NotificationCenter.default.publisher(for: .moveFocus)) { note in
             let forward = note.userInfo?["forward"] as? Bool ?? true
@@ -105,31 +107,15 @@ struct CalculatorForm: View {
             let target = focus.map { arrow ? $0.stepped(down: forward) : $0.moved(forward: forward) } ?? .cash
             // At the top or bottom an arrow has nowhere to go; leave the cursor where it is.
             guard target != focus else { return }
-            let previous = (NSApp.keyWindow?.firstResponder as? NSTextView)?.delegate
-            focus = target
             // Tab and Return forward select the box to overwrite; going back, and arrows,
             // park the cursor at the end.
-            Self.placeCursor(selectAll: forward && !arrow, awayFrom: previous)
+            request(target, selectAll: forward && !arrow)
         }
     }
 
-    /// Forward selects the whole box (to overwrite); backward parks the cursor at the end
-    /// (to fix up what you just typed). SwiftUI moves first responder on a later run-loop
-    /// pass, and AppKit selects all when it does, so a selection set right away lands on the
-    /// old box and then gets overridden (`make selftest` caught exactly that). Wait until the
-    /// shared field editor belongs to a different box, then set it.
-    private static func placeCursor(selectAll: Bool, awayFrom previous: NSTextViewDelegate?, tries: Int = 0) {
-        DispatchQueue.main.async {
-            guard let editor = NSApp.keyWindow?.firstResponder as? NSTextView, editor.delegate !== previous else {
-                if tries < 20 { placeCursor(selectAll: selectAll, awayFrom: previous, tries: tries + 1) }
-                return
-            }
-            if selectAll {
-                editor.selectAll(nil)
-            } else {
-                editor.setSelectedRange(NSRange(location: (editor.string as NSString).length, length: 0))
-            }
-        }
+    /// Move the cursor to `row` (nil: out of every box). NumberField applies it.
+    private func request(_ row: Row?, selectAll: Bool = false) {
+        focusRequest = FocusRequest(row: row, selectAll: selectAll, serial: (focusRequest?.serial ?? 0) + 1)
     }
 
     // MARK: Taxes
@@ -245,27 +231,13 @@ struct CalculatorForm: View {
     // MARK: Fields
 
     private func field(_ row: Row) -> some View {
-        let text = Binding(get: { model.state.field(row).text }, set: { typed in
-            // edit() regroups thousands and drops "$"/"%" live. When that rewrites the text,
-            // SwiftUI pushes it into the field editor and the cursor jumps to the end, so put
-            // it back where it was among the surviving characters.
-            let editor = NSApp.keyWindow?.firstResponder as? NSTextView
-            let caret = editor?.selectedRange().location
-            model.state.edit(row, text: typed)
-            let shown = model.state.field(row).text
-            if shown != typed, let editor, let caret {
-                Self.placeCaret(editor, at: caretAfterNormalizing(typed, caret: caret, shown), once: shown)
-            }
-        })
+        let text = Binding(get: { model.state.field(row).text }, set: { model.state.edit(row, text: $0) })
         let prompt = row == .growth ? (model.state.linear ? "1.6k" : "8") : Self.prompts[row] ?? ""
         let unit = row == .growth && !model.state.linear ? "%" : "$"
-        return TextField(prompt, text: text, prompt: Text(prompt))
-            .textFieldStyle(.plain)
-            .multilineTextAlignment(.trailing)
-            .font(.system(size: Style.fieldSize).monospacedDigit())
-            // Empty isn't an error, just incomplete; only flag text that can't be a number.
-            .foregroundStyle(model.state.isInvalid(row) ? Style.dead : Color.primary)
-            .focused($focus, equals: row)
+        // Empty isn't an error, just incomplete; isInvalid only flags text that can't be a number.
+        return NumberField(text: text, row: row, prompt: prompt, invalid: model.state.isInvalid(row),
+                           focus: $focus, request: focusRequest)
+            .frame(height: 18)
             .padding(.leading, 22)
             .padding(.trailing, 8)
             .padding(.vertical, 5)
@@ -279,17 +251,6 @@ struct CalculatorForm: View {
                     .padding(.leading, 8)
                     .allowsHitTesting(false)
             }
-    }
-
-    /// Once the field editor shows `text`, put the cursor at `location`.
-    private static func placeCaret(_ editor: NSTextView, at location: Int, once text: String, tries: Int = 0) {
-        DispatchQueue.main.async {
-            guard editor.string == text else {
-                if tries < 20 { placeCaret(editor, at: location, once: text, tries: tries + 1) }
-                return
-            }
-            editor.setSelectedRange(NSRange(location: location, length: 0))
-        }
     }
 
     // MARK: Result
