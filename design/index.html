@@ -419,11 +419,10 @@ function drawChart(host, inputs, now, { revenueUnit = "month", drag = null } = {
     const p = points.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
     const revenue = revenueAt(inputs, p.t);
     const net = revenue - inputs.expenses;
-    const margin = revenue > 0 ? ` (${formatPercent(net / revenue)} margin)` : "";
     tip.replaceChildren(
       el("div", {}, el("b", { textContent: formatMoney(p.balance) }), ` ${formatDate(p.t, now)}`),
       el("div", { textContent: `Revenue ${rate(revenue)}` }),
-      el("div", { textContent: `${net < 0 ? "Burn" : "Profit"} ${rate(Math.abs(net))}${margin}` }));
+      el("div", { textContent: `${net < 0 ? "Burn" : "Profit"} ${rate(Math.abs(net))}` }));
     cross.setAttribute("x1", x(p.t)); cross.setAttribute("x2", x(p.t));
     dot.setAttribute("cx", x(p.t)); dot.setAttribute("cy", y(p.balance));
     tip.style.left = `${Math.min(x(p.t) + 8, W - tip.offsetWidth)}px`;

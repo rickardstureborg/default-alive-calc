@@ -190,7 +190,7 @@ struct BalanceChart: View {
     }
 
     /// The balance and the day, then the revenue and burn rates there, in the Revenue box's
-    /// unit, with the margin.
+    /// unit.
     private func tooltip(_ p: BalanceCurve.Point) -> some View {
         let revenue = revenueAt(inputs, months: p.t)
         let net = revenue - inputs.monthlyExpenses
@@ -200,12 +200,11 @@ struct BalanceChart: View {
         case .year: "yr"
         }
         let rate = { (monthly: Double) in "\(formatMoney(amountToUnit(monthly, revenueUnit)))/\(short)" }
-        let margin = revenue > 0 ? " (\(formatPercent(net / revenue)) margin)" : ""
         return VStack(alignment: .leading, spacing: 1) {
             (Text(formatMoney(p.balance)).font(.system(size: 12, weight: .semibold)).foregroundColor(.primary)
                 + Text("  " + formatDate(months: p.t, from: now)))
             Text("Revenue \(rate(revenue))")
-            Text("\(net < 0 ? "Burn" : "Profit") \(rate(abs(net)))\(margin)")
+            Text("\(net < 0 ? "Burn" : "Profit") \(rate(abs(net)))")
         }
         .font(.system(size: 11))
         .foregroundStyle(.secondary)
