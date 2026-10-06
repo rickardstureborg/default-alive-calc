@@ -11,6 +11,14 @@
       }
     },
     {
+      "name": "expressions",
+      "input": { "cash": "$1M+200k", "expenses": "60k+20k", "revenue": "(15k+25k)/2", "growth": "4+4" },
+      "expect": {
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $539k to spare",
+        "hints": { "cash": "≥ $661.5k", "expenses": "≤ $106.9k", "revenue": "≥ $10.6k", "growth": "≥ 4.34%" }
+      }
+    },
+    {
       "name": "dead",
       "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
       "expect": {

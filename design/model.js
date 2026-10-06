@@ -8,38 +8,112 @@ export const KEYS = ["cash", "expenses", "revenue", "growth"];
 
 // ── Parsing.swift ────────────────────────────────────────────────────────────
 
-// Digits with at most one decimal point and an optional leading minus. Number() alone
-// also accepts "Infinity", "1e3" and hex, none of which belong in a money field.
+// "250k", "$1.2M", "1,500", "-$1.6k", and arithmetic on those ("163+5") → number.
+export const parseAmount = (text) => evaluate(text, false);
+
+// "8", "8%", "-3", "8+2" → fraction.
+export function parsePercent(text) {
+  const v = evaluate(text, true);
+  return v === null ? null : v / 100;
+}
+
+// Arithmetic over the boxes' number syntax: + − * / × ÷ and parentheses, with unary minus
+// only at the start of an expression or a parenthesis, so "--5" and "5--3" stay invalid.
+// Amounts take "$" and k/m/b; percentages take "%".
+export function evaluate(text, percent) {
+  const s = [...text];
+  let i = 0;
+  const peek = () => {
+    while (i < s.length && (s[i] === " " || s[i] === "\t")) i++;
+    return i < s.length ? s[i] : null;
+  };
+  const number = () => {
+    if (!percent && peek() === "$") i++;
+    peek();
+    const start = i;
+    while (i < s.length && /[0-9.,]/.test(s[i])) i++;
+    const n = plainNumber(s.slice(start, i).join("").replaceAll(",", ""));
+    if (n === null) return null;
+    if (percent) {
+      if (peek() === "%") i++;
+      return n;
+    }
+    const suffix = s[i]?.toLowerCase();
+    if (suffix && Object.hasOwn(SUFFIXES, suffix)) {
+      i++;
+      return n * SUFFIXES[suffix];
+    }
+    return n;
+  };
+  const factor = () => {
+    if (peek() !== "(") return number();
+    i++;
+    const v = expression();
+    if (v === null || peek() !== ")") return null;
+    i++;
+    return v;
+  };
+  const term = () => {
+    let value = factor();
+    if (value === null) return null;
+    for (let op = peek(); op !== null && "*×/÷".includes(op); op = peek()) {
+      i++;
+      const rhs = factor();
+      if (rhs === null) return null;
+      value = op === "*" || op === "×" ? value * rhs : value / rhs;
+      if (!Number.isFinite(value)) return null;
+    }
+    return value;
+  };
+  const expression = () => {
+    const negate = peek() === "-";
+    if (negate) i++;
+    let value = term();
+    if (value === null) return null;
+    if (negate) value = -value;
+    for (let op = peek(); op === "+" || op === "-"; op = peek()) {
+      i++;
+      const rhs = term();
+      if (rhs === null) return null;
+      value = op === "+" ? value + rhs : value - rhs;
+    }
+    return value;
+  };
+  const v = expression();
+  return v !== null && peek() === null && Number.isFinite(v) ? v : null;
+}
+
+// Digits with at most one decimal point. Number() alone also accepts "Infinity", "1e3"
+// and hex, none of which belong in a money field.
 function plainNumber(s) {
-  const body = s.startsWith("-") ? s.slice(1) : s;
-  if (!/^\d*\.?\d*$/.test(body) || !/\d/.test(body)) return null;
+  if (!/^\d*\.?\d*$/.test(s) || !/\d/.test(s)) return null;
   return Number(s);
 }
 
-// "250k", "$1.2M", "1,500", "-$1.6k" → number. The sign goes before the "$" because
-// that's how formatMoney writes negative $ growth back into the field.
-export function parseAmount(text) {
-  let s = text.trim().toLowerCase();
-  const negative = s.startsWith("-");
-  if (negative) s = s.slice(1);
-  if (s.startsWith("$")) s = s.slice(1);
-  if (s.startsWith("-")) return null;
-  s = s.replaceAll(",", "");
-  let multiplier = 1;
-  const last = s.at(-1);
-  if (last && Object.hasOwn(SUFFIXES, last)) {
-    multiplier = SUFFIXES[last];
-    s = s.slice(0, -1);
-  }
-  const n = plainNumber(s.trim());
-  return n === null ? null : (negative ? -n : n) * multiplier;
+// If `text` is arithmetic ("163+5"), its result in the field's shortest exact form
+// ("168", "85k", "10%", "$2k"); null for plain numbers and anything that doesn't evaluate.
+export function compactField(row, text, linear) {
+  const t = text.trim();
+  if (!(t.startsWith("(") || /[+\-*/×÷()]/.test(t.slice(1)))) return null;
+  const percent = row === "growth" && !linear;
+  const v = evaluate(t, percent);
+  if (v === null) return null;
+  const sign = v < 0 ? "-" : "";
+  if (percent) return `${sign}${compactNumber(Math.abs(v))}%`;
+  const dollar = (row === "growth" && linear) || t.startsWith("$") || t.startsWith("-$");
+  return `${sign}${dollar ? "$" : ""}${compactNumber(Math.abs(v))}`;
 }
 
-export function parsePercent(text) {
-  let s = text.trim();
-  if (s.endsWith("%")) s = s.slice(0, -1);
-  const n = plainNumber(s.trim());
-  return n === null ? null : n / 100;
+// Shortest exact spelling: 168, 85k, 1.234k, 1.2M; otherwise up to four decimals.
+function compactNumber(a) {
+  for (const [scale, suffix] of [[1e9, "B"], [1e6, "M"], [1e3, "k"]]) {
+    if (a >= scale) {
+      const x = a / scale;
+      const r = Math.round(x * 1000) / 1000;
+      if (Math.abs(x - r) < 1e-9 * Math.max(1, x)) return `${trimZeros(r.toFixed(3))}${suffix}`;
+    }
+  }
+  return trimZeros((Math.round(a * 10_000) / 10_000).toFixed(4));
 }
 
 // ── Units.swift ──────────────────────────────────────────────────────────────

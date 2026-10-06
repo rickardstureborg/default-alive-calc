@@ -15,6 +15,19 @@ for (const p of spec.presets) {
   });
 }
 
+test("arithmetic in boxes (same cases as TextTests.swift)", () => {
+  const amounts = [["163+5", 168], ["80k + 5k", 85_000], ["$1.2M-200k", 1_000_000], ["(20k+5k)*2", 50_000],
+    ["100/4", 25], ["2×3k", 6_000], ["90k÷3", 30_000], ["-$1k+500", -500], ["1+2*3", 7], ["(1+2)*3", 9], ["10-(-2)", 12]];
+  for (const [t, v] of amounts) assert.ok(Math.abs(m.parseAmount(t) - v) < 1e-6, t);
+  for (const t of ["10/0", "1+", "(1+2", "1+2)", "()", "+", "5 5", "abc+1"]) assert.equal(m.parseAmount(t), null, t);
+  for (const [t, v] of [["8+2", 0.10], ["8%+1%", 0.09], ["12/2", 0.06], ["-2+5%", 0.03]]) assert.ok(Math.abs(m.parsePercent(t) - v) < 1e-12, t);
+  const compacts = [["cash", "163+5", false, "168"], ["cash", "$163k+5k", false, "$168k"], ["expenses", "80k+5k", false, "85k"],
+    ["expenses", "1234+0", false, "1.234k"], ["revenue", "1000/3", false, "333.3333"], ["cash", "$1.2M-200k", false, "$1M"],
+    ["growth", "8+2", false, "10%"], ["growth", "$1.6k+400", true, "$2k"], ["growth", "-1k-600", true, "-$1.6k"]];
+  for (const [row, t, linear, out] of compacts) assert.equal(m.compactField(row, t, linear), out, t);
+  for (const t of ["163", "$1.2M", "80k", "-$1.6k", "8%", "abc+1", "1+", ""]) assert.equal(m.compactField("expenses", t, false), null, t);
+});
+
 test("linear growth closed forms", () => {
   // E 80k, R 20k, +5k/mo: T = 60k/5k, C = 60k²/(2·5k).
   const p = m.project({ cash: 400_000, expenses: 80_000, revenue: 20_000, growth: 5_000, linear: true });

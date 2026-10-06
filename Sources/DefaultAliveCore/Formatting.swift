@@ -30,7 +30,7 @@ public func formatMonths(_ months: Double) -> String {
     "\(oneDecimal(months)) months"
 }
 
-private func trimZeros(_ s: String) -> String {
+func trimZeros(_ s: String) -> String {
     guard s.contains(".") else { return s }
     var t = s
     while t.hasSuffix("0") { t.removeLast() }

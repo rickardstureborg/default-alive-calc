@@ -15,15 +15,55 @@ struct ParsingTests {
         ("$ 80k", 80_000),
         ("5.", 5),
         ("-$1.6k", -1_600),
+        // Arithmetic: a box's value is its expression's result.
+        ("163+5", 168),
+        ("80k + 5k", 85_000),
+        ("$1.2M-200k", 1_000_000),
+        ("(20k+5k)*2", 50_000),
+        ("100/4", 25),
+        ("2×3k", 6_000),
+        ("90k÷3", 30_000),
+        ("-$1k+500", -500),
+        ("1+2*3", 7),
+        ("(1+2)*3", 9),
+        ("10-(-2)", 12),
     ])
     func amounts(text: String, expected: Double) throws {
         let value = try #require(parseAmount(text))
         #expect(abs(value - expected) < 1e-6)
     }
 
-    @Test(arguments: ["", "abc", "1.2.3", "k", "$", "inf", "nan", "1e3", "12x", "--5", "$-5"])
+    @Test(arguments: ["", "abc", "1.2.3", "k", "$", "inf", "nan", "1e3", "12x", "--5", "$-5",
+                      "10/0", "1+", "(1+2", "1+2)", "()", "+", "5 5", "abc+1"])
     func nonAmounts(text: String) {
         #expect(parseAmount(text) == nil)
+    }
+
+    @Test(arguments: [("8+2", 0.10), ("8%+1%", 0.09), ("12/2", 0.06), ("-2+5%", 0.03)])
+    func percentArithmetic(text: String, expected: Double) throws {
+        let value = try #require(parsePercent(text))
+        #expect(abs(value - expected) < 1e-12)
+    }
+
+    // Return rewrites an expression to the shortest exact form; plain numbers stay as typed.
+    @Test(arguments: [
+        (Row.cash, "163+5", false, "168"),
+        (Row.cash, "$163k+5k", false, "$168k"),
+        (Row.expenses, "80k+5k", false, "85k"),
+        (Row.expenses, "1234+0", false, "1.234k"),
+        (Row.revenue, "1000/3", false, "333.3333"),
+        (Row.cash, "$1.2M-200k", false, "$1M"),
+        (Row.growth, "8+2", false, "10%"),
+        (Row.growth, "$1.6k+400", true, "$2k"),
+        (Row.growth, "-1k-600", true, "-$1.6k"),
+    ])
+    func compactsExpressions(row: Row, text: String, linear: Bool, expected: String) {
+        #expect(compactField(row, text: text, linear: linear) == expected)
+    }
+
+    @Test(arguments: ["163", "$1.2M", "80k", "-$1.6k", "8%", "abc+1", "1+", ""])
+    func leavesNonExpressionsAlone(text: String) {
+        #expect(compactField(.expenses, text: text, linear: false) == nil)
     }
 
     @Test(arguments: [

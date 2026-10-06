@@ -68,6 +68,18 @@ struct CalculatorStateTests {
         #expect(s.expenses.text == "1M")
     }
 
+    @Test func expressionsCountLiveAndCompactOnCommit() {
+        var s = filled()
+        let plain = s.readout(now: now)
+        s.edit(.expenses, text: "60k+20k")
+        #expect(s.readout(now: now) == plain)
+        #expect(s.expenses.text == "60k+20k")
+        s.commit(.expenses)
+        #expect(s.expenses.text == "80k")
+        s.commit(.expenses)
+        #expect(s.expenses.text == "80k")
+    }
+
     @Test func clearEmptiesBothGrowthKinds() {
         var s = filled()
         s.toggleGrowthKind()

@@ -126,6 +126,14 @@ public struct CalculatorState: Equatable, Sendable {
         self[.growth] = to
     }
 
+    /// Return: rewrite an expression in the box to its result. Tab doesn't, so "163+5"
+    /// stays visible until you say you're done with it.
+    public mutating func commit(_ row: Row) {
+        if let compact = compactField(row, text: self[row].text, linear: linear) {
+            edit(row, text: compact)
+        }
+    }
+
     public mutating func clear() {
         for keyPath in [\Self.cash, \.expenses, \.revenue, \.growthPercent, \.growthDollar] {
             self[keyPath: keyPath] = Field(unit: self[keyPath: keyPath].unit)
