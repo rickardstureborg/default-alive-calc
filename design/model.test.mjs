@@ -21,16 +21,19 @@ test("arithmetic in boxes (same cases as TextTests.swift)", () => {
   for (const [t, v] of amounts) assert.ok(Math.abs(m.parseAmount(t) - v) < 1e-6, t);
   for (const t of ["10/0", "1+", "(1+2", "1+2)", "()", "+", "5 5", "abc+1"]) assert.equal(m.parseAmount(t), null, t);
   for (const [t, v] of [["8+2", 0.10], ["8%+1%", 0.09], ["12/2", 0.06], ["-2+5%", 0.03]]) assert.ok(Math.abs(m.parsePercent(t) - v) < 1e-12, t);
-  const compacts = [["cash", "163+5", false, "168"], ["cash", "$163k+5k", false, "168,000"], ["expenses", "80k+5k", false, "85,000"],
-    ["expenses", "1234+0", false, "1,234"], ["revenue", "1000/3", false, "333.3333"], ["cash", "$1.2M-200k", false, "1,000,000"],
-    ["growth", "8+2", false, "10"], ["growth", "$1.6k+400", true, "2,000"], ["growth", "-1k-600", true, "-1,600"]];
+  const compacts = [["cash", "163+5", false, "168"], ["cash", "$163k+5k", false, "168000"], ["expenses", "80k+5k", false, "85000"],
+    ["expenses", "1234+0", false, "1234"], ["revenue", "1000/3", false, "333.3333"], ["cash", "$1.2M-200k", false, "1000000"],
+    ["growth", "8+2", false, "10"], ["growth", "$1.6k+400", true, "2000"], ["growth", "-1k-600", true, "-1600"]];
   for (const [row, t, linear, out] of compacts) assert.equal(m.compactField(row, t, linear), out, t);
   for (const t of ["163", "$1.2M", "80k", "-$1.6k", "8%", "abc+1", "1+", ""]) assert.equal(m.compactField("expenses", t, false), null, t);
-  // Box text: commas regrouped live, "$"/"%" dropped (the box draws the unit), decimals alone.
-  const shown = [["1000", "1,000"], ["1000000", "1,000,000"], ["163000+5000", "163,000+5,000"], ["1,0000", "10,000"], ["999", "999"],
-    ["1234.5678", "1,234.5678"], ["0.12345", "0.12345"], ["$400k", "400k"], ["-$1600", "-1,600"], ["8%", "8"], ["1500k", "1,500k"], ["", ""]];
-  for (const [typed, out] of shown) assert.equal(m.normalizeField(typed), out, typed);
-  for (const [old, caret, now, at] of [["1000", 4, "1,000", 5], ["1635000", 4, "1,635,000", 5], ["$400", 1, "400", 0], ["163,0000", 8, "1,630,000", 9]])
+  // Box text is raw: "$", "%" and "," dropped; the box draws the unit and the commas.
+  for (const [typed, kept] of [["1,000", "1000"], ["163,000+5,000", "163000+5000"], ["$400k", "400k"], ["-$1,600", "-1600"],
+    ["8%", "8"], ["1234.5678", "1234.5678"], ["", ""]]) assert.equal(m.normalizeField(typed), kept, typed);
+  const breaks = [["1630000", [1, 4]], ["1000", [1]], ["999", []], ["163000+5000", [3, 8]], ["1234.5678", [1]], ["12345.6789", [2]],
+    ["0.12345", []], ["-1600", [2]], ["1500k", [1]], ["", []]];
+  for (const [t, at] of breaks) assert.deepEqual(m.groupBreaks(t), at, t);
+  for (const [t, out] of [["1630000", "1,630,000"], ["163000+5000", "163,000+5,000"], ["-1600", "-1,600"], ["80k", "80k"]]) assert.equal(m.groupedText(t), out, t);
+  for (const [old, caret, now, at] of [["$400", 1, "400", 0], ["1,000", 5, "1000", 4], ["40$0", 3, "400", 2], ["163000", 6, "163000", 6]])
     assert.equal(m.caretAfterNormalizing(old, caret, now), at, old);
   assert.equal(m.fieldText("growth", 0.08, "year", false), "152");
   assert.equal(m.fieldText("growth", -1600, "month", true), "-1.6k");

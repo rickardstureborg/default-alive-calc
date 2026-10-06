@@ -84,9 +84,9 @@ struct CalculatorStateTests {
         #expect(s.readout(now: now) == plain)
         #expect(s.expenses.text == "60k+20k")
         s.commit(.expenses)
-        #expect(s.expenses.text == "80,000")
+        #expect(s.expenses.text == "80000")
         s.commit(.expenses)
-        #expect(s.expenses.text == "80,000")
+        #expect(s.expenses.text == "80000")
     }
 
     @Test func clearEmptiesBothGrowthKinds() {
@@ -114,13 +114,14 @@ struct CalculatorStateTests {
         #expect(s.isInvalid(.growth))
     }
 
-    @Test func editingGroupsThousandsLive() {
+    // Box text is raw; the commas are drawn (groupBreaks), never stored.
+    @Test func editingKeepsTextRaw() {
         var s = CalculatorState()
         s.edit(.cash, text: "1000000")
-        #expect(s.cash.text == "1,000,000")
+        #expect(s.cash.text == "1000000")
         #expect(fieldValue(.cash, text: s.cash.text, unit: .month, linear: false) == 1_000_000)
         s.edit(.cash, text: "$163000+5")
-        #expect(s.cash.text == "163,000+5")
-        #expect(CalculatorState(input: RawInputs(cash: "$1200000", expenses: "80k", revenue: "20k", growth: "8%")).cash.text == "1,200,000")
+        #expect(s.cash.text == "163000+5")
+        #expect(CalculatorState(input: RawInputs(cash: "$1200000", expenses: "80k", revenue: "20k", growth: "8%")).cash.text == "1200000")
     }
 }

@@ -45,18 +45,18 @@ struct ParsingTests {
         #expect(abs(value - expected) < 1e-12)
     }
 
-    // Return rewrites an expression to its exact result with thousands separators; the
-    // unit ($ or %) is drawn by the box, so it's never part of the text.
+    // Return rewrites an expression to its exact result. Box text is raw: the commas and
+    // the unit ($ or %) are drawn by the box, never part of the text.
     @Test(arguments: [
         (Row.cash, "163+5", false, "168"),
-        (Row.cash, "$163k+5k", false, "168,000"),
-        (Row.expenses, "80k+5k", false, "85,000"),
-        (Row.expenses, "1234+0", false, "1,234"),
+        (Row.cash, "$163k+5k", false, "168000"),
+        (Row.expenses, "80k+5k", false, "85000"),
+        (Row.expenses, "1234+0", false, "1234"),
         (Row.revenue, "1000/3", false, "333.3333"),
-        (Row.cash, "$1.2M-200k", false, "1,000,000"),
+        (Row.cash, "$1.2M-200k", false, "1000000"),
         (Row.growth, "8+2", false, "10"),
-        (Row.growth, "$1.6k+400", true, "2,000"),
-        (Row.growth, "-1k-600", true, "-1,600"),
+        (Row.growth, "$1.6k+400", true, "2000"),
+        (Row.growth, "-1k-600", true, "-1600"),
     ])
     func compactsExpressions(row: Row, text: String, linear: Bool, expected: String) {
         #expect(compactField(row, text: text, linear: linear) == expected)
@@ -67,34 +67,52 @@ struct ParsingTests {
         #expect(compactField(.expenses, text: text, linear: false) == nil)
     }
 
-    // What a box shows for what you typed: commas regrouped live, "$"/"%" dropped (the box
-    // draws the unit), decimals left alone, expressions grouped token by token.
+    // What a box holds for what you typed or pasted: "$", "%" and "," dropped, since the box
+    // draws the unit and the thousands commas itself.
     @Test(arguments: [
-        ("1000", "1,000"),
-        ("1000000", "1,000,000"),
-        ("163000+5000", "163,000+5,000"),
-        ("1,0000", "10,000"),
-        ("999", "999"),
-        ("1234.5678", "1,234.5678"),
-        ("0.12345", "0.12345"),
+        ("1,000", "1000"),
+        ("163,000+5,000", "163000+5000"),
         ("$400k", "400k"),
-        ("-$1600", "-1,600"),
+        ("-$1,600", "-1600"),
         ("8%", "8"),
-        ("1500k", "1,500k"),
+        ("1234.5678", "1234.5678"),
         ("", ""),
     ])
-    func boxText(typed: String, shown: String) {
-        #expect(normalizeField(typed) == shown)
+    func boxText(typed: String, kept: String) {
+        #expect(normalizeField(typed) == kept)
     }
 
-    // The cursor keeps its place among the characters that survive regrouping.
+    // Where the box draws a comma: before these UTF-16 offsets. Whole parts only, every
+    // number in an expression on its own.
     @Test(arguments: [
-        ("1000", 4, "1,000", 5),
-        ("1635000", 4, "1,635,000", 5),
+        ("1630000", [1, 4]),
+        ("1000", [1]),
+        ("999", []),
+        ("163000+5000", [3, 8]),
+        ("1234.5678", [1]),
+        ("12345.6789", [2]),
+        ("0.12345", []),
+        ("-1600", [2]),
+        ("1500k", [1]),
+        ("", []),
+    ] as [(String, [Int])])
+    func commaPositions(text: String, expected: [Int]) {
+        #expect(groupBreaks(text) == expected)
+    }
+
+    @Test(arguments: [("1630000", "1,630,000"), ("163000+5000", "163,000+5,000"), ("-1600", "-1,600"), ("80k", "80k")])
+    func groupedForDisplay(text: String, shown: String) {
+        #expect(groupedText(text) == shown)
+    }
+
+    // The cursor keeps its place among the characters that survive normalizing.
+    @Test(arguments: [
         ("$400", 1, "400", 0),
-        ("163,0000", 8, "1,630,000", 9),
+        ("1,000", 5, "1000", 4),
+        ("40$0", 3, "400", 2),
+        ("163000", 6, "163000", 6),
     ])
-    func caretFollowsRegroup(old: String, caret: Int, new: String, expected: Int) {
+    func caretFollowsNormalizing(old: String, caret: Int, new: String, expected: Int) {
         #expect(caretAfterNormalizing(old, caret: caret, new) == expected)
     }
 

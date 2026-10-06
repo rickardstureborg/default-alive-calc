@@ -101,66 +101,58 @@ private func plainNumber(_ s: String) -> Double? {
     return Double(s)
 }
 
-/// If `text` is arithmetic ("163+5"), its exact result with thousands separators ("168",
-/// "85,000", "333.3333"); nil for plain numbers and anything that doesn't evaluate. The
-/// box draws the unit ($ or %), so it's never part of the text.
+/// If `text` is arithmetic ("163+5"), its exact result ("168", "85000", "333.3333"); nil
+/// for plain numbers and anything that doesn't evaluate. Raw like all box text: the box
+/// draws the thousands commas and the unit ($ or %) itself.
 public func compactField(_ row: Row, text: String, linear: Bool) -> String? {
     let t = text.trimmingCharacters(in: .whitespaces)
     // An operator after the first character (a leading "-" is just a sign) or a "(".
     guard t.first == "(" || t.dropFirst().contains(where: { "+-*/×÷()".contains($0) }) else { return nil }
     guard let v = evaluate(t, percent: row == .growth && !linear) else { return nil }
-    return groupThousands(trimZeros(String(format: "%.4f", (v * 10_000).rounded() / 10_000)))
+    return trimZeros(String(format: "%.4f", (v * 10_000).rounded() / 10_000))
 }
 
-/// What a box shows for what was typed: "$" and "%" dropped (the box draws the unit) and
-/// every number's whole part grouped in threes, live: "1000000" → "1,000,000",
-/// "$163000+5" → "163,000+5". Decimals are left alone.
+/// What a box holds for what was typed or pasted: "$", "%" and "," dropped. The box draws
+/// the unit and the thousands commas itself, so they're never characters you'd have to
+/// delete, and the stored text never disagrees with what's on screen.
 public func normalizeField(_ text: String) -> String {
-    groupThousands(text.filter { $0 != "$" && $0 != "%" })
+    text.filter { $0 != "$" && $0 != "%" && $0 != "," }
 }
 
-func groupThousands(_ text: String) -> String {
-    var out = ""
-    var run = ""
-    var afterPoint = false
-    func flush() {
-        if afterPoint {
-            out += run
-        } else {
-            let digits = Array(run.filter { $0 != "," })
-            for (i, d) in digits.enumerated() {
-                if i > 0, (digits.count - i) % 3 == 0 { out.append(",") }
-                out.append(d)
+/// Where a box draws a thousands comma: before these UTF-16 offsets of `text`. Every
+/// number's whole part is grouped in threes; decimals aren't.
+public func groupBreaks(_ text: String) -> [Int] {
+    let units = Array(text.utf16)
+    let zero = UInt16(UInt8(ascii: "0")), nine = UInt16(UInt8(ascii: "9")), point = UInt16(UInt8(ascii: "."))
+    var breaks: [Int] = []
+    var i = 0
+    while i < units.count {
+        guard (zero...nine).contains(units[i]) else { i += 1; continue }
+        let start = i
+        while i < units.count, (zero...nine).contains(units[i]) { i += 1 }
+        let length = i - start
+        if length >= 4, start == 0 || units[start - 1] != point {
+            var at = start + (length % 3 == 0 ? 3 : length % 3)
+            while at < i {
+                breaks.append(at)
+                at += 3
             }
         }
-        run = ""
     }
-    for ch in text {
-        if ch.isASCII, ch.isNumber || ch == "," {
-            run.append(ch)
-            continue
-        }
-        flush()
-        out.append(ch)
-        afterPoint = ch == "."
-    }
-    flush()
-    return out
+    return breaks
 }
 
-/// Where the cursor goes after normalizeField rewrote `old` into `new`: after the same
-/// number of surviving characters (anything but "," "$" "%"). UTF-16 offsets, as NSRange
-/// and DOM selection use.
+/// `text` with the commas a box would draw, for places that show it as plain text.
+public func groupedText(_ text: String) -> String {
+    var out = Array(text.utf16)
+    for at in groupBreaks(text).reversed() { out.insert(UInt16(UInt8(ascii: ",")), at: at) }
+    return String(decoding: out, as: UTF16.self)
+}
+
+/// Where the cursor goes after normalizeField dropped characters from `old`: after the
+/// same number of surviving characters. UTF-16 offsets, as NSRange and DOM selection use.
 public func caretAfterNormalizing(_ old: String, caret: Int, _ new: String) -> Int {
-    let dropped: Set<UInt16> = [",", "$", "%"].map { Character($0).utf16.first! }.reduce(into: []) { $0.insert($1) }
+    let dropped = Set("$%,".utf16)
     let kept = old.utf16.prefix(caret).filter { !dropped.contains($0) }.count
-    let comma = Character(",").utf16.first!
-    var seen = 0
-    var i = 0
-    for unit in new.utf16 {
-        if seen == kept { break }
-        if unit != comma { seen += 1 }
-        i += 1
-    }
-    return i
+    return min(kept, new.utf16.count)
 }

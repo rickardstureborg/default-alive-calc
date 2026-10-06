@@ -90,52 +90,46 @@ function plainNumber(s) {
   return Number(s);
 }
 
-// If `text` is arithmetic ("163+5"), its exact result with thousands separators ("168",
-// "85,000", "333.3333"); null for plain numbers and anything that doesn't evaluate. The
-// box draws the unit ($ or %), so it's never part of the text.
+// If `text` is arithmetic ("163+5"), its exact result ("168", "85000", "333.3333"); null
+// for plain numbers and anything that doesn't evaluate. Raw like all box text: the box
+// draws the thousands commas and the unit ($ or %) itself.
 export function compactField(row, text, linear) {
   const t = text.trim();
   if (!(t.startsWith("(") || /[+\-*/×÷()]/.test(t.slice(1)))) return null;
   const v = evaluate(t, row === "growth" && !linear);
   if (v === null) return null;
   // Sign-aware so ties round away from zero like Swift's .rounded() (Math.round goes up).
-  return groupThousands(trimZeros((Math.sign(v) * Math.round(Math.abs(v) * 10_000) / 10_000).toFixed(4)));
+  return trimZeros((Math.sign(v) * Math.round(Math.abs(v) * 10_000) / 10_000).toFixed(4));
 }
 
-// What a box shows for what was typed: "$" and "%" dropped (the box draws the unit) and
-// every number's whole part grouped in threes, live. Decimals are left alone.
-export const normalizeField = (text) => groupThousands(text.replace(/[$%]/g, ""));
+// What a box holds for what was typed or pasted: "$", "%" and "," dropped. The box draws
+// the unit and the thousands commas itself.
+export const normalizeField = (text) => text.replace(/[$%,]/g, "");
 
-function groupThousands(text) {
-  let out = "", run = "", afterPoint = false;
-  const flush = () => {
-    if (afterPoint) out += run;
-    else {
-      const digits = run.replaceAll(",", "");
-      for (let i = 0; i < digits.length; i++) {
-        if (i > 0 && (digits.length - i) % 3 === 0) out += ",";
-        out += digits[i];
-      }
-    }
-    run = "";
-  };
-  for (const ch of text) {
-    if (/[0-9,]/.test(ch)) { run += ch; continue; }
-    flush();
-    out += ch;
-    afterPoint = ch === ".";
+// Where a box draws a thousands comma: before these UTF-16 offsets of `text`. Every
+// number's whole part is grouped in threes; decimals aren't.
+export function groupBreaks(text) {
+  const breaks = [];
+  for (const m of text.matchAll(/\d+/g)) {
+    const start = m.index, length = m[0].length, end = start + length;
+    if (length < 4 || text[start - 1] === ".") continue;
+    for (let at = start + (length % 3 || 3); at < end; at += 3) breaks.push(at);
   }
-  flush();
+  return breaks;
+}
+
+// `text` with the commas a box would draw, for places that show it as plain text.
+export function groupedText(text) {
+  let out = text;
+  for (const at of groupBreaks(text).reverse()) out = `${out.slice(0, at)},${out.slice(at)}`;
   return out;
 }
 
-// Where the cursor goes after normalizeField rewrote `old` into `now`: after the same
-// number of surviving characters (anything but "," "$" "%"). UTF-16 offsets.
+// Where the cursor goes after normalizeField dropped characters from `old`: after the
+// same number of surviving characters. UTF-16 offsets.
 export function caretAfterNormalizing(old, caret, now) {
-  const kept = [...old.slice(0, caret)].filter((c) => !",$%".includes(c)).length;
-  let seen = 0, i = 0;
-  for (; i < now.length && seen < kept; i++) if (now[i] !== ",") seen++;
-  return i;
+  const kept = [...old.slice(0, caret)].filter((c) => !"$%,".includes(c)).length;
+  return Math.min(kept, now.length);
 }
 
 // ── Units.swift ──────────────────────────────────────────────────────────────
