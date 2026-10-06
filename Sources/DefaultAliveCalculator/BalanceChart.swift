@@ -27,14 +27,23 @@ struct BalanceChart: View {
                 }
                 RuleMark(y: .value("Zero", 0)).foregroundStyle(Color.primary.opacity(0.3)).lineStyle(StrokeStyle(lineWidth: 1))
                 if let m = curve.marker {
-                    // The dip has clear air under it unless it sits within 18pt of the
-                    // plot's floor, where a label below would land on the axis labels.
-                    let roomBelow = (m.balance - y.lo) / (y.hi - y.lo) * Style.chartHeight
+                    // What happened goes along the top edge, over the marker (an invisible
+                    // point at the top carries it); when and how much sits right above the
+                    // dot. A dip has clear air above its low point. Out of cash ends a falling
+                    // line that arrives from the upper left, so its date hangs right, into the
+                    // empty space past the end, instead of sitting on the line.
+                    PointMark(x: .value("Month", m.t), y: .value("Cash", y.hi))
+                        .symbolSize(0)
+                        .annotation(position: .bottom, spacing: 2, overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
+                            markerLabel(m.kind == .profitable ? "Profitable" : "Out of cash")
+                        }
                     PointMark(x: .value("Month", m.t), y: .value("Cash", m.balance))
                         .symbol { dot }
-                        .annotation(position: roomBelow >= 18 ? .bottom : .top, alignment: .center, spacing: 6,
+                        .annotation(position: m.kind == .profitable ? .top : .topTrailing, spacing: 4,
                                     overflowResolution: .init(x: .fit(to: .chart), y: .fit(to: .chart))) {
-                            if m.kind == .profitable { markerLabel(m) }
+                            markerLabel(m.kind == .profitable
+                                ? "\(formatMonthYear(months: m.t, from: now)) · \(formatMoney(m.balance))"
+                                : formatMonthYear(months: m.t, from: now))
                         }
                 }
                 if let h = hover {
@@ -52,9 +61,11 @@ struct BalanceChart: View {
                 AxisMarks(values: xTicks) { value in
                     let v = value.as(Double.self) ?? 0
                     let last = v == xTicks.last
-                    // The last label carries " mo" and often sits near the right edge, where
-                    // a centered label got truncated to "1…"; hang it leftward instead.
-                    AxisValueLabel(anchor: last && curve.horizon - v < curve.horizon * 0.1 ? .topTrailing : .top) {
+                    // Edge labels hang inward, as in the mock: a centered "0" collided with the
+                    // y-axis labels and was dropped, and the last label (with " mo") near the
+                    // right edge got truncated to "1…".
+                    let anchor: UnitPoint = v == 0 ? .topLeading : last && curve.horizon - v < curve.horizon * 0.1 ? .topTrailing : .top
+                    AxisValueLabel(anchor: anchor) {
                         Text(last ? "\(Self.number(v)) mo" : Self.number(v))
                     }
                 }
@@ -80,11 +91,6 @@ struct BalanceChart: View {
                         }
                 }
             }
-            // Out of cash ends a falling line, which always leaves the top-right corner of
-            // the plot empty; next to the marker the label would sit on the line.
-            .overlay(alignment: .topTrailing) {
-                if let m = curve.marker, m.kind == .broke, hover == nil { markerLabel(m) }
-            }
             .font(.system(size: 10).monospacedDigit())
             .frame(height: Style.chartHeight + 18)
             // The top tick label sits centered on the top gridline, so it needs headroom
@@ -99,10 +105,8 @@ struct BalanceChart: View {
             .overlay(Circle().stroke(Color(nsColor: .windowBackgroundColor), lineWidth: 2))
     }
 
-    private func markerLabel(_ m: BalanceCurve.Marker) -> some View {
-        Text("\(m.kind == .profitable ? "Profitable" : "Out of cash") · \(formatMonthYear(months: m.t, from: now))")
-            .font(.system(size: 11))
-            .foregroundStyle(.secondary)
+    private func markerLabel(_ text: String) -> some View {
+        Text(text).font(.system(size: 11)).foregroundStyle(.secondary)
     }
 
     private func tooltip(_ p: BalanceCurve.Point) -> some View {
