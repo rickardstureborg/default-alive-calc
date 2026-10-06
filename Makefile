@@ -34,6 +34,17 @@ bundle:
 	mkdir -p "$(BUILT_APP)/Contents/MacOS"
 	cp "$$(swift build -c release --show-bin-path)/$(EXEC)" "$(BUILT_APP)/Contents/MacOS/"
 	cp Resources/Info.plist "$(BUILT_APP)/Contents/"
+	@# The icon: Resources/AppIcon.png (the logo on a transparent background) shrunk so
+	@# its artwork fills the 824px icon area of a 1024px canvas, like other Mac icons,
+	@# then every size an .icns holds. sips and iconutil ship with macOS.
+	mkdir -p "$(BUILT_APP)/Contents/Resources" build/AppIcon.iconset
+	sips -z 880 880 Resources/AppIcon.png --out build/AppIcon-880.png >/dev/null
+	sips -p 1024 1024 build/AppIcon-880.png --out build/AppIcon-1024.png >/dev/null
+	for s in 16 32 128 256 512; do \
+		sips -z $$s $$s build/AppIcon-1024.png --out build/AppIcon.iconset/icon_$${s}x$${s}.png >/dev/null; \
+		sips -z $$((s * 2)) $$((s * 2)) build/AppIcon-1024.png --out build/AppIcon.iconset/icon_$${s}x$${s}@2x.png >/dev/null; \
+	done
+	iconutil -c icns build/AppIcon.iconset -o "$(BUILT_APP)/Contents/Resources/AppIcon.icns"
 	codesign --force --sign - "$(BUILT_APP)"
 
 # Every preset in design/presets.json through the real SwiftUI view, light | dark, into

@@ -9,6 +9,7 @@ A SwiftPM package with no Xcode project and no dependencies. The `.app` is assem
 | `Sources/DefaultAliveCore/` | Everything testable: the math (`Projection`, `Breakevens`), units, parsing, formatting, taxes, the readout text, and the form's behavior (`CalculatorState`). |
 | `Sources/DefaultAliveCalculator/` | The app: AppKit shell and key handling (`App.swift`), SwiftUI view (`CalculatorView`), tax checklist (`TaxPicker`), chart (`BalanceChart`), persistence, and the `--snapshot` / `--screenshot` / `--selftest` modes. |
 | `Tests/` | Swift tests for the core. |
+| `Resources/` | `Info.plist`, and `AppIcon.png`: the logo, on a transparent background. The build turns it into the app's `.icns`. |
 | `design/` | Browser mock of the app, for trying UI changes before porting them. `model.js` is a JavaScript twin of the core. `presets.json` holds sample states and the expected text for each, checked by both test suites. |
 | `docs/tax-research/` | The tax research behind `TaxPlaces.json` and the script that builds it. |
 
