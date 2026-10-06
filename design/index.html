@@ -379,7 +379,8 @@ function calculator(host, state, { editable, onChange = () => {} }) {
   calc.append(el("hr"));
   const headline = el("div", { className: "headline" }), line1 = el("div"), line2 = el("div");
   calc.append(el("div", { className: "result" }, headline, line1, line2));
-  const disclosure = el("button", { className: "disclosure" });
+  // Tab and Return only stop in the input boxes; the unit, %/$ and chart controls are mouse-only.
+  const disclosure = el("button", { className: "disclosure", tabIndex: -1 });
   const chart = el("div", { className: "chart" });
   calc.append(disclosure, chart);
 
@@ -398,7 +399,7 @@ function calculator(host, state, { editable, onChange = () => {} }) {
   };
 
   const toggle = (text, title, onClick) => {
-    const b = el("button", { className: "toggle", textContent: text, title, tabIndex: editable ? 0 : -1 });
+    const b = el("button", { className: "toggle", textContent: text, title, tabIndex: -1 });
     b.addEventListener("click", onClick);
     return b;
   };
@@ -481,7 +482,12 @@ function calculator(host, state, { editable, onChange = () => {} }) {
         Object.assign(field(key), { text: inputs[key].value, origin: null, exact: null });
         update();
       });
-      inputs[key].addEventListener("keydown", (e) => { if (e.key === "Enter") inputs[KEYS[i + 1]]?.focus(); });
+      // Tab and Return move forward, with Shift backward, wrapping at both ends.
+      inputs[key].addEventListener("keydown", (e) => {
+        if (e.key !== "Enter" && e.key !== "Tab") return;
+        e.preventDefault();
+        inputs[KEYS[(i + (e.shiftKey ? KEYS.length - 1 : 1)) % KEYS.length]].focus();
+      });
     });
     disclosure.addEventListener("click", () => { state.chart = !state.chart; update(); });
   }
