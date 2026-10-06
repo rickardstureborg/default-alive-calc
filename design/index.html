@@ -385,7 +385,7 @@ function drawChart(host, inputs, now) {
 // { text, unit, origin, exact }; until the field is next edited:
 // - origin is what was actually typed (text, unit), so cycling back restores the string;
 // - exact is the precise monthly value, so the math never sees the rounded display.
-function calculator(host, state, { editable, onChange = () => {} }) {
+function calculator(host, state, { editable, onChange = () => {}, assumptionsOpen: startOpen = false }) {
   const calc = el("div", { className: "calc" });
   host.replaceChildren(calc);
   calc.append(el("div", { className: "head" }, el("div", { className: "column-head", textContent: "alive if" })));
@@ -417,7 +417,7 @@ function calculator(host, state, { editable, onChange = () => {} }) {
     el("div", {}, el("b", { textContent: "Delaware" }), " · $400 franchise tax (assumed par value method) + $50 annual report."), el("span", { textContent: "$450/yr" }),
     el("div", { className: "note", textContent: "Not counted: income taxes (federal 21%, California 8.84% of profit) are zero until you're profitable, so they can't change the verdict. Enter revenue net of sales tax, and count payroll taxes in expenses." }));
   // Ticking the box only turns taxes on; the italic link opens and closes the assumptions.
-  let assumptionsOpen = editable && new URLSearchParams(location.search).get("assumptions") === "1";
+  let assumptionsOpen = startOpen || (editable && new URLSearchParams(location.search).get("assumptions") === "1");
   const assumptionsLink = el("button", { className: "assumptions-link", textContent: "assumptions", tabIndex: -1 });
   assumptionsLink.addEventListener("click", () => { assumptionsOpen = !assumptionsOpen; update(); });
   const taxes = el("div", { className: "taxes" },
@@ -644,7 +644,7 @@ spec.presets.forEach((p, row) => {
   ["light", "dark"].forEach((theme, col) => {
     const tile = el("div", { className: theme });
     gallery.append(tile);
-    calculator(tile, freshState(p), { editable: false });
+    calculator(tile, freshState(p), { editable: false, assumptionsOpen: p.assumptionsOpen ?? false });
     gallery.append(appTile?.(row, col) ?? el("div", { className: "missing", textContent: "run make snapshot" }));
   });
 });

@@ -14,13 +14,7 @@ struct PresetFile: Decodable {
         var expect: Readout
 
         var state: CalculatorState {
-            var s = CalculatorState(input: input, units: units ?? .monthly, linear: linear ?? false)
-            if let taxes {
-                s.taxesOn = true
-                s.oaklandShare = trimZeros(String(format: "%.4f", taxes.oaklandShare * 100))
-                s.washingtonShare = trimZeros(String(format: "%.4f", taxes.washingtonShare * 100))
-            }
-            return s
+            CalculatorState(input: input, units: units ?? .monthly, linear: linear ?? false, taxes: taxes)
         }
     }
     var now: String

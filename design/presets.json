@@ -30,6 +30,7 @@
       "name": "dead, taxes",
       "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
       "taxes": { "oaklandShare": 1, "washingtonShare": 0.1 },
+      "assumptionsOpen": true,
       "expect": {
         "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.5 months · Aug 2026", "line2": "Needs $665k · $265k short",
         "hints": { "cash": "≥ $665k", "expenses": "≤ $64.1k", "revenue": "≥ $28.8k", "growth": "≥ 13.7%" }

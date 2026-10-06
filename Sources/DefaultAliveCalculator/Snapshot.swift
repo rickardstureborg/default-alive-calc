@@ -20,6 +20,8 @@ enum Snapshot {
         var input: RawInputs
         var units: Units?
         var linear: Bool?
+        var taxes: TaxAssumptions?
+        var assumptionsOpen: Bool?
     }
 
     static func run(presetsPath: String, outputPath: String) throws {
@@ -56,8 +58,8 @@ enum Snapshot {
     }
 
     private static func render(_ preset: Preset, _ appearance: NSAppearance) -> NSBitmapImageRep {
-        let state = CalculatorState(input: preset.input, units: preset.units ?? .monthly, linear: preset.linear ?? false)
-        let form = CalculatorForm(model: CalculatorModel(state: state, chartShown: true, store: nil))
+        let state = CalculatorState(input: preset.input, units: preset.units ?? .monthly, linear: preset.linear ?? false, taxes: preset.taxes)
+        let form = CalculatorForm(model: CalculatorModel(state: state, chartShown: true, store: nil), assumptionsOpen: preset.assumptionsOpen ?? false)
             .background(Color(nsColor: .windowBackgroundColor))
         let host = NSHostingView(rootView: form)
         let window = NSWindow(contentRect: .zero, styleMask: [.borderless], backing: .buffered, defer: false)

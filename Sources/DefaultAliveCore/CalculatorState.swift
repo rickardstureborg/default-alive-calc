@@ -71,7 +71,7 @@ public struct CalculatorState: Equatable, Sendable {
     public init() {}
 
     /// A preset: `input.growth` goes to whichever kind `linear` says.
-    public init(input: RawInputs, units: Units = .monthly, linear: Bool = false) {
+    public init(input: RawInputs, units: Units = .monthly, linear: Bool = false, taxes: TaxAssumptions? = nil) {
         cash.text = input.cash
         expenses = Field(text: input.expenses, unit: units.expenses)
         revenue = Field(text: input.revenue, unit: units.revenue)
@@ -79,6 +79,11 @@ public struct CalculatorState: Equatable, Sendable {
         growthDollar.unit = units.growth
         self.linear = linear
         self[.growth].text = input.growth
+        if let taxes {
+            taxesOn = true
+            oaklandShare = trimZeros(String(format: "%.4f", taxes.oaklandShare * 100))
+            washingtonShare = trimZeros(String(format: "%.4f", taxes.washingtonShare * 100))
+        }
     }
 
     private subscript(row: Row) -> Field {
