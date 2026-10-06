@@ -46,3 +46,44 @@ public func balanceCurve(_ inputs: Inputs, samples: Int = 160) -> BalanceCurve? 
     }
     return BalanceCurve(points: points, horizon: horizon, marker: marker, verdict: p.verdict)
 }
+
+/// Where dragging the profitability dot lands.
+public struct ProfitDrag: Equatable, Sendable {
+    public var monthlyGrowth: Double
+    public var monthsToProfitability: Double
+    public var balance: Double
+    /// Held at the zero line: the growth there is the default-alive minimum.
+    public var pinned: Bool
+}
+
+/// Dragging the profitability dot changes growth, the one thing the dot's position can say:
+/// expenses, revenue and cash stay put. As growth varies, the dot (T, cash − C) moves along a
+/// straight line, because capital needed is proportional to T: C = k·T with
+/// k = E − (E−R)/ln(E/R) for compounding growth (since ln(1+g) = ln(E/R)/T) and k = (E−R)/2
+/// for linear. So the drag projects the pointer onto that line, in screen space (the axes'
+/// scales decide what "nearest" means), then reads growth off T.
+///
+/// It stops at the zero line, where growth is exactly the default-alive minimum: past it the
+/// company is dead, the profitability dot vanishes from the chart, and there'd be nothing
+/// left to drag back. It also stops at half a month (growth runs away below that) and at
+/// `maxMonths`, the visible edge.
+public func dragProfitPoint(to t: Double, balance: Double, inputs: Inputs, pointsPerMonth px: Double,
+                            pointsPerDollar py: Double, maxMonths: Double = .infinity) -> ProfitDrag? {
+    let E = inputs.monthlyExpenses, R = inputs.monthlyRevenue, cash = inputs.cash
+    guard E > R, inputs.linear || R > 0 else { return nil }
+    let k = inputs.linear ? (E - R) / 2 : E - (E - R) / log(E / R)
+    guard k > 0 else { return nil }
+    // Minimize (px·(T − t))² + (py·(cash − k·T − balance))² over T.
+    let nearest = (px * px * t + k * py * py * (cash - balance)) / (px * px + k * k * py * py)
+    let zeroLine = cash / k
+    let T = min(max(nearest, 0.5), maxMonths, zeroLine)
+    let growth = inputs.linear ? (E - R) / T : expm1(log(E / R) / T)
+    return ProfitDrag(monthlyGrowth: growth, monthsToProfitability: T, balance: cash - k * T, pinned: T == zeroLine)
+}
+
+/// Monthly revenue `t` months from now. Shrinking linear revenue stops at zero.
+public func revenueAt(_ inputs: Inputs, months t: Double) -> Double {
+    inputs.linear
+        ? max(0, inputs.monthlyRevenue + inputs.monthlyGrowth * t)
+        : inputs.monthlyRevenue * exp(log1p(inputs.monthlyGrowth) * t)
+}

@@ -77,15 +77,30 @@ public func formatPercentBound(_ fraction: Double, roundUp: Bool) -> String {
     return trimZeros(String(format: "%.\(places)f", directed(v * f, up: roundUp) / f)) + "%"
 }
 
-/// The calendar month `months` from `start`, e.g. "Apr 2028".
-public func formatMonthYear(months: Double, from start: Date) -> String {
+/// `months` from `start`: whole months on the calendar (so Jan 31 + 1 is Feb 28), the
+/// rest as days of 30.436875.
+private func date(months: Double, from start: Date) -> (Date, Calendar) {
     let whole = Int(months.rounded(.down))
     let calendar = Calendar.current
     let base = calendar.date(byAdding: .month, value: whole, to: start) ?? start
-    let date = base.addingTimeInterval((months - Double(whole)) * 30.436875 * 86_400)
+    return (base.addingTimeInterval((months - Double(whole)) * 30.436875 * 86_400), calendar)
+}
+
+private func format(_ months: Double, from start: Date, _ pattern: String) -> String {
+    let (when, calendar) = date(months: months, from: start)
     let formatter = DateFormatter()
     formatter.locale = Locale(identifier: "en_US_POSIX")
     formatter.calendar = calendar
-    formatter.dateFormat = "MMM yyyy"
-    return formatter.string(from: date)
+    formatter.dateFormat = pattern
+    return formatter.string(from: when)
+}
+
+/// The calendar month `months` from `start`, e.g. "Apr 2028".
+public func formatMonthYear(months: Double, from start: Date) -> String {
+    format(months, from: start, "MMM yyyy")
+}
+
+/// The day `months` from `start`, e.g. "Jul 10, 2027".
+public func formatDate(months: Double, from start: Date) -> String {
+    format(months, from: start, "MMM d, yyyy")
 }

@@ -134,28 +134,17 @@ public func readout(_ inputs: Inputs?, filledIn: Bool, units: Units, taxes: TaxA
                 : "≥ " + formatPercentBound(growthToUnit($0, units.growth), roundUp: true)
         })
 
+    // One line under the verdict: when, as a duration and a day. (What it costs and what's
+    // left are in the "alive if" column and the chart's tooltip.)
     if p.verdict == .alive {
         let T = p.monthsToProfitability ?? 0
-        if T == 0 {
-            return Readout(tone: .alive, headline: "DEFAULT ALIVE", line1: "Already profitable", line2: "Revenue covers expenses", hints: hints)
-        }
-        return Readout(
-            tone: .alive, headline: "DEFAULT ALIVE",
-            line1: "Profitable in \(formatMonths(T)) · \(formatMonthYear(months: T, from: now))",
-            line2: "Needs \(formatMoney(p.capitalNeeded ?? 0)) · \(formatMoney(p.cushion ?? 0)) to spare",
-            hints: hints)
+        let line1 = T == 0 ? "Already profitable" : "Profitable in \(formatMonths(T)) · \(formatDate(months: T, from: now))"
+        return Readout(tone: .alive, headline: "DEFAULT ALIVE", line1: line1, line2: "", hints: hints)
     }
-
     let runway = p.runwayMonths ?? 0
-    let line1 = runway == 0
-        ? "Out of cash now"
-        : "Out of cash in \(formatMonths(runway)) · \(formatMonthYear(months: runway, from: now))"
-    let line2 = if let needed = p.capitalNeeded, let cushion = p.cushion {
-        "Needs \(formatMoney(needed)) · \(formatMoney(-cushion)) short"
-    } else {
-        "Never profitable at this growth"
-    }
-    return Readout(tone: .dead, headline: "DEFAULT DEAD", line1: line1, line2: line2, hints: hints)
+    return Readout(
+        tone: .dead, headline: "DEFAULT DEAD",
+        line1: "Out of cash in \(formatMonths(runway)) · \(formatDate(months: runway, from: now))", line2: "", hints: hints)
 }
 
 /// The same, straight from the typed strings.

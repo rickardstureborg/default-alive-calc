@@ -113,3 +113,29 @@ test("formatting, including ties", () => {
   assert.equal(m.formatMonthYear(3, new Date(2026, 0, 15)), "Apr 2026");
   assert.equal(m.formatMonthYear(1, new Date(2026, 0, 31)), "Feb 2026"); // clamps like Calendar, no Mar 3 overflow
 });
+
+test("readout date, drag math and revenue over time (same cases as Swift)", () => {
+  assert.equal(m.formatDate(0, new Date(2026, 0, 10)), "Jan 10, 2026");
+  assert.equal(m.formatDate(18.0129, new Date(2026, 0, 10)), "Jul 10, 2027");
+  assert.equal(m.formatDate(7.567, new Date(2026, 0, 10)), "Aug 27, 2026");
+  assert.equal(m.formatDate(1, new Date(2026, 0, 31)), "Feb 28, 2026");
+
+  const alive = { cash: 1_200_000, expenses: 80_000, revenue: 20_000, growth: 0.08 };
+  const k = 80_000 - 60_000 / Math.log(4);
+  const on = m.dragProfitPoint(12, 1_200_000 - k * 12, alive, 10, 1e-4);
+  assert.ok(Math.abs(on.monthsToProfitability - 12) < 1e-9 && Math.abs(on.monthlyGrowth - (4 ** (1 / 12) - 1)) < 1e-12 && !on.pinned);
+  const off = m.dragProfitPoint(12, 1_200_000, alive, 10, 1e-4);
+  assert.ok(Math.abs(off.monthsToProfitability - 100 * 12 / (100 + k * k * 1e-8)) < 1e-9);
+  const pinned = m.dragProfitPoint(60, -500_000, alive, 10, 1e-4);
+  assert.ok(pinned.pinned && Math.abs(pinned.monthlyGrowth - 0.043332) < 1e-6 && Math.abs(pinned.balance) < 1e-6);
+  assert.equal(m.dragProfitPoint(0, 1_200_000, alive, 10, 1e-4).monthsToProfitability, 0.5);
+  assert.equal(m.dragProfitPoint(25, 1_200_000 - k * 25, alive, 10, 1e-4, 20).monthsToProfitability, 20);
+  const linear = { cash: 400_000, expenses: 80_000, revenue: 20_000, growth: 5_000, linear: true };
+  assert.ok(Math.abs(m.dragProfitPoint(10, 100_000, linear, 10, 1e-4).monthlyGrowth - 6_000) < 1e-9);
+  assert.equal(m.dragProfitPoint(5, 0, { ...alive, revenue: 90_000 }, 10, 1e-4), null);
+  assert.equal(m.dragProfitPoint(5, 0, { ...alive, revenue: 0 }, 10, 1e-4), null);
+
+  assert.ok(Math.abs(m.revenueAt({ revenue: 20_000, growth: 0.08 }, 12) - 20_000 * 1.08 ** 12) < 1e-6);
+  assert.equal(m.revenueAt({ revenue: 20_000, growth: 5_000, linear: true }, 12), 80_000);
+  assert.equal(m.revenueAt({ revenue: 20_000, growth: -2_000, linear: true }, 15), 0);
+});

@@ -6,7 +6,7 @@
       "name": "alive",
       "input": { "cash": "$1.2M", "expenses": "80k", "revenue": "20k", "growth": "8%" },
       "expect": {
-        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $539k to spare",
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 10, 2027", "line2": "",
         "hints": { "cash": "≥ $661.5k", "expenses": "≤ $106.9k", "revenue": "≥ $10.6k", "growth": "≥ 4.34%" }
       }
     },
@@ -14,7 +14,7 @@
       "name": "commas",
       "input": { "cash": "1630000", "expenses": "80000", "revenue": "20000", "growth": "8" },
       "expect": {
-        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $969k to spare",
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 10, 2027", "line2": "",
         "hints": { "cash": "≥ $661.5k", "expenses": "≤ $125.7k", "revenue": "≥ $6.67k", "growth": "≥ 3.18%" }
       }
     },
@@ -22,7 +22,7 @@
       "name": "expressions",
       "input": { "cash": "$1M+200k", "expenses": "60k+20k", "revenue": "(15k+25k)/2", "growth": "4+4" },
       "expect": {
-        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 2027", "line2": "Needs $661k · $539k to spare",
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 18.0 months · Jul 10, 2027", "line2": "",
         "hints": { "cash": "≥ $661.5k", "expenses": "≤ $106.9k", "revenue": "≥ $10.6k", "growth": "≥ 4.34%" }
       }
     },
@@ -30,7 +30,7 @@
       "name": "dead",
       "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "8%" },
       "expect": {
-        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.6 months · Aug 2026", "line2": "Needs $661k · $261k short",
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.6 months · Aug 27, 2026", "line2": "",
         "hints": { "cash": "≥ $661.5k", "expenses": "≤ $64.2k", "revenue": "≥ $28.7k", "growth": "≥ 13.6%" }
       }
     },
@@ -40,7 +40,7 @@
       "taxes": { "oaklandShare": 1, "washingtonShare": 0.1 },
       "assumptionsOpen": true,
       "expect": {
-        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.5 months · Aug 2026", "line2": "Needs $665k · $265k short",
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 7.5 months · Aug 26, 2026", "line2": "",
         "hints": { "cash": "≥ $665k", "expenses": "≤ $64.1k", "revenue": "≥ $28.8k", "growth": "≥ 13.7%" }
       }
     },
@@ -48,7 +48,7 @@
       "name": "never",
       "input": { "cash": "$600k", "expenses": "80k", "revenue": "20k", "growth": "0%" },
       "expect": {
-        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 10.0 months · Nov 2026", "line2": "Never profitable at this growth",
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 10.0 months · Nov 10, 2026", "line2": "",
         "hints": { "cash": "never", "expenses": "≤ $20k", "revenue": "≥ $80k", "growth": "≥ 8.86%" }
       }
     },
@@ -56,7 +56,7 @@
       "name": "broke",
       "input": { "cash": "0", "expenses": "80k", "revenue": "20k", "growth": "8%" },
       "expect": {
-        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash now", "line2": "Needs $661k · $661k short",
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 0.0 months · Jan 10, 2026", "line2": "",
         "hints": { "cash": "≥ $661.5k", "expenses": "≤ $20k", "revenue": "≥ $80k", "growth": "never" }
       }
     },
@@ -64,17 +64,17 @@
       "name": "profitable",
       "input": { "cash": "$50k", "expenses": "40k", "revenue": "45k", "growth": "5%" },
       "expect": {
-        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Already profitable", "line2": "Revenue covers expenses",
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Already profitable", "line2": "",
         "hints": { "cash": "≥ $0", "expenses": "≤ $60.6k", "revenue": "≥ $27.7k", "growth": "any" }
       }
     },
     {
       "name": "weekly (TLB)",
-      "input": { "cash": "$90k", "expenses": "1.6k", "revenue": "100", "growth": "2.5%" },
+      "input": { "cash": "$85k", "expenses": "1.6k", "revenue": "100", "growth": "2.5%" },
       "units": { "expenses": "week", "revenue": "week", "growth": "week" },
       "expect": {
-        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 15.4 months · Apr 2027", "line2": "Needs $119k · $28.9k short",
-        "hints": { "cash": "≥ $119k", "expenses": "≤ $1.33k", "revenue": "≥ $163", "growth": "≥ 3.32%" }
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 14.4 months · Mar 20, 2027", "line2": "",
+        "hints": { "cash": "≥ $119k", "expenses": "≤ $1.28k", "revenue": "≥ $178", "growth": "≥ 3.52%" }
       }
     },
     {
@@ -82,7 +82,7 @@
       "input": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "$5k" },
       "linear": true,
       "expect": {
-        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 12.0 months · Jan 2027", "line2": "Needs $360k · $40k to spare",
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 12.0 months · Jan 10, 2027", "line2": "",
         "hints": { "cash": "≥ $360k", "expenses": "≤ $83.2k", "revenue": "≥ $16.8k", "growth": "≥ $4.5k" }
       }
     },
@@ -91,7 +91,7 @@
       "input": { "cash": "251k", "expenses": "11k", "revenue": "0", "growth": "$240" },
       "linear": true,
       "expect": {
-        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 42.8 months · Aug 2029", "line2": "Needs $252k · $1.1k short",
+        "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 42.8 months · Aug 4, 2029", "line2": "",
         "hints": { "cash": "≥ $252.1k", "expenses": "≤ $10.9k", "revenue": "≥ $24", "growth": "≥ $242" }
       }
     },

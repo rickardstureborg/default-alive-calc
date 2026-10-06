@@ -50,7 +50,7 @@ struct TaxTests {
         #expect(s.taxSummary == "")
         s.taxesOn = true
         #expect(s.taxAssumptions == TaxAssumptions(oaklandShare: 1, washingtonShare: 0.1))
-        #expect(s.readout(now: now).line2 == "Needs $665k · $265k short")
+        #expect(s.readout(now: now).hints.cash == "≥ $665k")
         #expect(s.taxSummary == "≈ 0.36% + $450/yr")
         s.oaklandShare = "abc"
         #expect(s.taxAssumptions == nil)

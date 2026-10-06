@@ -194,4 +194,14 @@ struct FormattingTests {
         let endOfJanuary = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 31)))
         #expect(formatMonthYear(months: 1, from: endOfJanuary) == "Feb 2026")
     }
+
+    // The readout's date: "Jul 10, 2027". Whole months on the calendar, the rest as days.
+    @Test func fullDate() throws {
+        let start = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 10)))
+        #expect(formatDate(months: 0, from: start) == "Jan 10, 2026")
+        #expect(formatDate(months: 18.0129, from: start) == "Jul 10, 2027")
+        #expect(formatDate(months: 7.567, from: start) == "Aug 27, 2026")
+        let endOfJanuary = try #require(Calendar.current.date(from: DateComponents(year: 2026, month: 1, day: 31)))
+        #expect(formatDate(months: 1, from: endOfJanuary) == "Feb 28, 2026")
+    }
 }

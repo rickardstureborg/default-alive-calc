@@ -319,7 +319,8 @@ export function formatMoney(value) {
 
 export const formatMonths = (months) => `${oneDecimal(months)} months`;
 
-export function formatMonthYear(months, start) {
+// `months` from `start`: whole months on the calendar, the rest as days of 30.436875.
+function dateAfter(months, start) {
   const whole = Math.floor(months);
   // Calendar.date(byAdding: .month) clamps to the month's last day (Jan 31 + 1 → Feb 28);
   // Date.setMonth would overflow into March.
@@ -328,8 +329,18 @@ export function formatMonthYear(months, start) {
   const lastDay = new Date(y, m + 1, 0).getDate();
   const base = new Date(y, m, Math.min(start.getDate(), lastDay),
     start.getHours(), start.getMinutes(), start.getSeconds(), start.getMilliseconds());
-  const date = new Date(base.getTime() + (months - whole) * 30.436875 * 86_400_000);
+  return new Date(base.getTime() + (months - whole) * 30.436875 * 86_400_000);
+}
+
+export function formatMonthYear(months, start) {
+  const date = dateAfter(months, start);
   return `${MONTHS[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+// "Jul 10, 2027"
+export function formatDate(months, start) {
+  const date = dateAfter(months, start);
+  return `${MONTHS[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()}`;
 }
 
 // 0.0179 → "1.79%", 0.105 → "10.5%", 1.52 → "152%": three significant digits.
@@ -438,27 +449,14 @@ export function readoutFor(inputs, filledIn, units, now, taxes = null) {
   const b = taxed ? taxed.gross(breakevens(taxed.inputs)) : breakevens(inputs);
   const hints = Object.fromEntries(KEYS.map((k) => [k, hint(k, b[k], units, inputs.linear)]));
 
+  // One line under the verdict: when, as a duration and a day.
   if (p.verdict === "alive") {
     const T = p.monthsToProfitability ?? 0;
-    if (T === 0) {
-      return { tone: "alive", headline: "DEFAULT ALIVE", line1: "Already profitable", line2: "Revenue covers expenses", hints };
-    }
-    return {
-      tone: "alive", headline: "DEFAULT ALIVE",
-      line1: `Profitable in ${formatMonths(T)} · ${formatMonthYear(T, now)}`,
-      line2: `Needs ${formatMoney(p.capitalNeeded ?? 0)} · ${formatMoney(p.cushion ?? 0)} to spare`,
-      hints,
-    };
+    if (T === 0) return { tone: "alive", headline: "DEFAULT ALIVE", line1: "Already profitable", line2: "", hints };
+    return { tone: "alive", headline: "DEFAULT ALIVE", line1: `Profitable in ${formatMonths(T)} · ${formatDate(T, now)}`, line2: "", hints };
   }
-
   const runway = p.runwayMonths ?? 0;
-  const line1 = runway === 0
-    ? "Out of cash now"
-    : `Out of cash in ${formatMonths(runway)} · ${formatMonthYear(runway, now)}`;
-  const line2 = p.capitalNeeded !== null && p.cushion !== null
-    ? `Needs ${formatMoney(p.capitalNeeded)} · ${formatMoney(-p.cushion)} short`
-    : "Never profitable at this growth";
-  return { tone: "dead", headline: "DEFAULT DEAD", line1, line2, hints };
+  return { tone: "dead", headline: "DEFAULT DEAD", line1: `Out of cash in ${formatMonths(runway)} · ${formatDate(runway, now)}`, line2: "", hints };
 }
 
 /// readoutFor, straight from the typed strings.
@@ -545,4 +543,28 @@ export function withTaxes(inputs, { oaklandShare, washingtonShare }) {
     };
   };
   return { inputs: after, gross, revenueRate, fixedMonthly };
+}
+
+// Dragging the profitability dot changes growth only. As growth varies, the dot
+// (T, cash − C) moves along a straight line, since C = k·T with k = E − (E−R)/ln(E/R)
+// (compounding) or (E−R)/2 (linear). Project the pointer onto it in screen space, stop at
+// the zero line (the default-alive minimum), half a month, and maxMonths. Twin of
+// dragProfitPoint in BalanceCurve.swift.
+export function dragProfitPoint(t, balance, inputs, px, py, maxMonths = Infinity) {
+  const { expenses: E, revenue: R, cash } = inputs;
+  if (!(E > R) || !(inputs.linear || R > 0)) return null;
+  const k = inputs.linear ? (E - R) / 2 : E - (E - R) / Math.log(E / R);
+  if (!(k > 0)) return null;
+  const nearest = (px * px * t + k * py * py * (cash - balance)) / (px * px + k * k * py * py);
+  const zeroLine = cash / k;
+  const T = Math.min(Math.max(nearest, 0.5), maxMonths, zeroLine);
+  const growth = inputs.linear ? (E - R) / T : Math.expm1(Math.log(E / R) / T);
+  return { monthlyGrowth: growth, monthsToProfitability: T, balance: cash - k * T, pinned: T === zeroLine };
+}
+
+// Monthly revenue `t` months from now. Shrinking linear revenue stops at zero.
+export function revenueAt(inputs, t) {
+  return inputs.linear
+    ? Math.max(0, inputs.revenue + inputs.growth * t)
+    : inputs.revenue * Math.exp(Math.log1p(inputs.growth) * t);
 }

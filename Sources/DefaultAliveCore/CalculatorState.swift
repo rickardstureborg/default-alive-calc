@@ -163,6 +163,15 @@ public struct CalculatorState: Equatable, Sendable {
         self[.growth] = to
     }
 
+    /// Growth set from the chart: the box shows it in its own unit and kind, and the math
+    /// keeps the exact value (no rounding through the display).
+    public mutating func setGrowth(monthly: Double) {
+        let unit = self[.growth].unit
+        var field = Field(text: fieldText(.growth, monthly: monthly, unit: unit, linear: linear), unit: unit)
+        field.exact = monthly
+        self[.growth] = field
+    }
+
     /// Return: rewrite an expression in the box to its result. Tab doesn't, so "163+5"
     /// stays visible until you say you're done with it.
     public mutating func commit(_ row: Row) {
