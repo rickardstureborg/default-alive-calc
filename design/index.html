@@ -16,7 +16,6 @@
     --field-radius: 6px;
     --hint-width: 72px;
     --hint-size: 12px;
-    --control-size: 12px;
     --divider-spacing: 16px;
     --verdict-size: 22px;
     --detail-size: 12px;
@@ -36,7 +35,6 @@
     --fill: rgba(0, 0, 0, .1);
     --separator: rgba(0, 0, 0, .1);
     --axis: rgba(0, 0, 0, .3);
-    --raised: #fff;
     --alive: rgb(40, 205, 65);
     --dead: rgb(255, 59, 48);
   }
@@ -50,7 +48,6 @@
     --fill: rgba(255, 255, 255, .1);
     --separator: rgba(255, 255, 255, .1);
     --axis: rgba(255, 255, 255, .3);
-    --raised: rgba(255, 255, 255, .28);
     --alive: rgb(50, 215, 75);
     --dead: rgb(255, 69, 58);
   }
@@ -69,20 +66,20 @@
     user-select: none;
   }
 
-  /* Period picker + column header. In SwiftUI: Picker(.segmented), which renders natively;
-     this only approximates it. */
-  .controls { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-  .segmented { display: inline-flex; padding: 2px; gap: 2px; border-radius: 7px; background: var(--fill); }
-  .segmented button {
-    border: 0; border-radius: 5px; padding: 2px 12px; background: transparent; color: var(--label);
-    font: inherit; font-size: var(--control-size);
-  }
-  .segmented button[aria-pressed="true"] { background: var(--raised); box-shadow: 0 .5px 1.5px rgba(0, 0, 0, .25); }
+  .head { display: flex; justify-content: flex-end; margin-bottom: 6px; }
   .column-head { width: var(--hint-width); text-align: right; font-size: 11px; color: var(--secondary); }
+  /* Clickable words inside labels: the period ("week" → "month" → "year") and the growth
+     kind ("%" ↔ "$"). In SwiftUI: plain Buttons with a dotted underline. */
+  .toggle {
+    border: 0; padding: 0 2px; margin: 0 -2px; border-radius: 4px; background: none;
+    color: inherit; font: inherit; cursor: pointer;
+    text-decoration: underline dotted var(--placeholder); text-underline-offset: 3px;
+  }
+  .toggle:hover { background: var(--fill); }
 
   .rows { display: flex; flex-direction: column; gap: var(--row-spacing); }
   .row { display: flex; align-items: center; gap: 10px; }
-  .row label { flex: 1; font-size: var(--label-size); }
+  .row .label { flex: 1; font-size: var(--label-size); }
   .row input {
     width: var(--field-width);
     height: 28px;
@@ -224,6 +221,7 @@
       </p>
       <div class="keys">
         <kbd>Esc</kbd> <kbd>C</kbd> <kbd>⌘⌫</kbd> clear all · <kbd>Return</kbd> next field<br>
+        Click a unit (<u>week</u>/<u>month</u>/<u>year</u>) to cycle it; click <u>%</u> in growth for $ (linear) growth.<br>
         Live window follows the system appearance; inputs persist in this browser.<br>
         <b>Alive if</b>: what that one value would need to be for default alive, the other three unchanged.
       </div>
@@ -237,17 +235,13 @@
 
 <script type="module">
 import {
-  readout, amountValue, growthValue, monthlyInputs, breakevens, balanceCurve, UNITS,
-  amountToUnit, amountFromUnit, growthToUnit, growthFromUnit, formatMoney, formatPercent,
-  formatMonthYear, formatDuration,
+  amountValue, growthValue, parseAmount, describe, projectAny, breakevens, balanceCurve,
+  NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, amountToUnit, growthToUnit, linearToUnit,
+  formatMoney, formatPercent, formatMonths, formatMonthYear,
 } from "./model.js";
 
-const FIELDS = [
-  { key: "cash", label: () => "Cash in bank", prompt: "$1.2M", valid: amountValue, op: "≥" },
-  { key: "expenses", label: (u) => `${UNITS[u].adjective} expenses`, prompt: "80k", valid: amountValue, op: "≤" },
-  { key: "revenue", label: (u) => `${UNITS[u].adjective} revenue`, prompt: "20k", valid: amountValue, op: "≥" },
-  { key: "growth", label: (u) => `${UNITS[u].adjective} growth`, prompt: "8%", valid: growthValue, op: "≥" },
-];
+const KEYS = ["cash", "expenses", "revenue", "growth"];
+const PROMPTS = { cash: "$1.2M", expenses: "80k", revenue: "20k", growth: "8%" };
 const HINT_HELP = {
   cash: "Default alive with at least this much cash, everything else unchanged",
   expenses: "Default alive with expenses at or below this, everything else unchanged",
@@ -260,24 +254,18 @@ const svg = (tag, attrs = {}) => {
   for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
   return el;
 };
+const el = (tag, props = {}, ...children) => {
+  const e = Object.assign(document.createElement(tag), props);
+  e.append(...children);
+  return e;
+};
 
-// Rewrites typed flows from one period to another. Cash is a stock and never converts.
-function convertValues(values, from, to) {
-  const out = { ...values };
-  for (const key of ["expenses", "revenue"]) {
-    const v = amountValue(values[key]);
-    if (v !== null) out[key] = formatMoney(amountToUnit(amountFromUnit(v, from), to)).replace("$", "");
-  }
-  const g = growthValue(values.growth);
-  if (g !== null) out.growth = formatPercent(growthToUnit(growthFromUnit(g, from), to));
-  return out;
-}
-
-function hintText(key, value, unit) {
+function hintText(key, value, unit, linear) {
   if (value === "never" || value === "any") return value;
-  if (key === "growth") return `≥ ${formatPercent(growthToUnit(value, unit))}`;
-  const op = FIELDS.find((f) => f.key === key).op;
-  return `${op} ${formatMoney(key === "cash" ? value : amountToUnit(value, unit))}`;
+  if (key === "cash") return `≥ ${formatMoney(value)}`;
+  if (key === "expenses") return `≤ ${formatMoney(amountToUnit(value, unit))}`;
+  if (key === "revenue") return `≥ ${formatMoney(amountToUnit(value, unit))}`;
+  return linear ? `≥ ${formatMoney(linearToUnit(value, unit))}` : `≥ ${formatPercent(growthToUnit(value, unit))}`;
 }
 
 const niceStep = (range, count) => {
@@ -287,12 +275,12 @@ const niceStep = (range, count) => {
   return mag * (n <= 1 ? 1 : n <= 2 ? 2 : n <= 2.5 ? 2.5 : n <= 5 ? 5 : 10);
 };
 
-// Cash in bank over time. Single series in the verdict color (a status: the headline
-// says ALIVE/DEAD in words), zero line slightly stronger than the grid because crossing
-// it is the whole question.
-function drawChart(host, inputs, unit, now) {
+// Cash balance over time, in months. Single series in the verdict color (a status: the
+// headline says ALIVE/DEAD in words), zero line slightly stronger than the grid because
+// crossing it is the whole question.
+function drawChart(host, inputs, now) {
   host.replaceChildren();
-  const caption = Object.assign(document.createElement("div"), { className: "chart-caption", textContent: "Cash in bank" });
+  const caption = el("div", { className: "chart-caption", textContent: "Cash balance" });
   host.append(caption);
   const css = getComputedStyle(host);
   const W = parseFloat(css.getPropertyValue("--width")) - 2 * parseFloat(css.getPropertyValue("--padding"));
@@ -300,10 +288,9 @@ function drawChart(host, inputs, unit, now) {
   const left = 44, right = 8, top = 6, axisH = 18;
   const root = svg("svg", { width: W, height: plotH + axisH + top, viewBox: `0 0 ${W} ${plotH + axisH + top}` });
   host.append(root);
-  const curve = inputs && balanceCurve(inputs);
+  const curve = balanceCurve(inputs);
   if (!curve) return;
 
-  const unitMonths = UNITS[unit].months;
   const balances = curve.points.map((p) => p.balance);
   const lo0 = Math.min(0, ...balances), hi0 = Math.max(...balances, 1);
   const yStep = niceStep(hi0 - lo0, 3);
@@ -317,11 +304,10 @@ function drawChart(host, inputs, unit, now) {
     label.textContent = formatMoney(v);
     root.append(label);
   }
-  const span = curve.horizon / unitMonths;
-  const xStep = niceStep(span, 4);
-  for (let v = 0; v <= span + 1e-9; v += xStep) {
-    const label = svg("text", { class: "tick", x: x(v * unitMonths), y: top + plotH + 14, "text-anchor": v === 0 ? "start" : "middle" });
-    label.textContent = v + xStep > span + 1e-9 ? `${+v.toFixed(2)} ${UNITS[unit].short}` : `${+v.toFixed(2)}`;
+  const xStep = niceStep(curve.horizon, 4);
+  for (let v = 0; v <= curve.horizon + 1e-9; v += xStep) {
+    const label = svg("text", { class: "tick", x: x(v), y: top + plotH + 14, "text-anchor": v === 0 ? "start" : "middle" });
+    label.textContent = v + xStep > curve.horizon + 1e-9 ? `${+v.toFixed(2)} mo` : `${+v.toFixed(2)}`;
     root.append(label);
   }
 
@@ -356,7 +342,7 @@ function drawChart(host, inputs, unit, now) {
   const dot = svg("circle", { class: "marker", r: 4, fill: color, visibility: "hidden" });
   const hit = svg("rect", { x: left, y: 0, width: W - left - right, height: top + plotH, fill: "transparent" });
   root.append(cross, dot, hit);
-  const tip = Object.assign(document.createElement("div"), { className: "tooltip" });
+  const tip = el("div", { className: "tooltip" });
   tip.style.visibility = "hidden";
   host.append(tip);
   hit.addEventListener("pointermove", (e) => {
@@ -365,124 +351,178 @@ function drawChart(host, inputs, unit, now) {
     const p = curve.points.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a));
     cross.setAttribute("x1", x(p.t)); cross.setAttribute("x2", x(p.t));
     dot.setAttribute("cx", x(p.t)); dot.setAttribute("cy", y(p.balance));
-    tip.replaceChildren(Object.assign(document.createElement("b"), { textContent: formatMoney(p.balance) }),
-      document.createTextNode(`${formatMonthYear(p.t, now)} · ${formatDuration(p.t, unit)}`));
+    tip.replaceChildren(el("b", { textContent: formatMoney(p.balance) }),
+      document.createTextNode(`${formatMonthYear(p.t, now)} · ${formatMonths(p.t)}`));
     tip.style.left = `${Math.min(x(p.t) + 8, W - tip.offsetWidth)}px`;
     tip.style.top = `${caption.offsetHeight + y(p.balance) - 40}px`;
-    for (const el of [cross, dot]) el.setAttribute("visibility", "visible");
+    for (const m of [cross, dot]) m.setAttribute("visibility", "visible");
     tip.style.visibility = "visible";
   });
   hit.addEventListener("pointerleave", () => {
-    for (const el of [cross, dot]) el.setAttribute("visibility", "hidden");
+    for (const m of [cross, dot]) m.setAttribute("visibility", "hidden");
     tip.style.visibility = "hidden";
   });
 }
 
-// Builds one calculator into `host` and returns its controller. Mirrors CalculatorForm.
-// state: { values, unit, chart, origin }. `origin` remembers what was actually typed
-// (and in which unit) until the next edit, so flipping week → month → week restores the
-// exact strings and the answer never drifts from rounding the converted display values.
+// One calculator in `host`. Mirrors CalculatorForm.
+//
+// state: { values, units: { expenses, revenue, growth }, linear, chart, origin, exact }.
+// Until a field is next edited:
+// - origin[key] is what was actually typed (text, unit, kind), so cycling back to it
+//   restores the exact string;
+// - exact[key] is the field's precise monthly value in the kind now showing, so the math
+//   never sees the rounded display. Unit cycles only re-express exact; % ↔ $ is a
+//   one-time conversion into a new exact. Re-deriving $ from the original % on every
+//   unit click instead moves the answer, because the % → $ step depends on the period.
 function calculator(host, state, { editable, onChange = () => {} }) {
-  host.innerHTML = `
-    <div class="calc">
-      <div class="controls">
-        <div class="segmented">${Object.keys(UNITS).map((u) => `<button data-unit="${u}">${u[0].toUpperCase() + u.slice(1)}</button>`).join("")}</div>
-        <div class="column-head">alive if</div>
-      </div>
-      <div class="rows">
-        ${FIELDS.map((f) => `
-          <div class="row">
-            <label for="${f.key}"></label>
-            <input name="${f.key}" placeholder="${f.prompt}" autocomplete="off" spellcheck="false" ${editable ? "" : "readonly tabindex=-1"}>
-            <div class="hint" data-hint="${f.key}" title="${HINT_HELP[f.key]}"></div>
-          </div>`).join("")}
-      </div>
-      <hr>
-      <div class="result">
-        <div class="headline"></div><div class="line1"></div><div class="line2"></div>
-      </div>
-      <button class="disclosure">Chart</button>
-      <div class="chart"></div>
-    </div>`;
-  const inputs = FIELDS.map((f) => host.querySelector(`input[name=${f.key}]`));
-  const labels = FIELDS.map((f) => host.querySelector(`label[for=${f.key}]`));
-  const segments = [...host.querySelectorAll(".segmented button")];
-  const disclosure = host.querySelector(".disclosure");
-  const chart = host.querySelector(".chart");
+  const calc = el("div", { className: "calc" });
+  host.replaceChildren(calc);
+  calc.append(el("div", { className: "head" }, el("div", { className: "column-head", textContent: "alive if" })));
+  const rows = el("div", { className: "rows" });
+  calc.append(rows);
+  const labels = {}, inputs = {}, hints = {};
+  for (const key of KEYS) {
+    labels[key] = el("div", { className: "label" });
+    inputs[key] = el("input", { name: key, placeholder: PROMPTS[key], autocomplete: "off", spellcheck: false, readOnly: !editable, tabIndex: editable ? 0 : -1 });
+    hints[key] = el("div", { className: "hint", title: HINT_HELP[key] });
+    rows.append(el("div", { className: "row" }, labels[key], inputs[key], hints[key]));
+  }
+  calc.append(el("hr"));
+  const headline = el("div", { className: "headline" }), line1 = el("div"), line2 = el("div");
+  calc.append(el("div", { className: "result" }, headline, line1, line2));
+  const disclosure = el("button", { className: "disclosure" });
+  const chart = el("div", { className: "chart" });
+  calc.append(disclosure, chart);
+
+  const toggle = (text, title, onClick) => {
+    const b = el("button", { className: "toggle", textContent: text, title, tabIndex: editable ? 0 : -1 });
+    b.addEventListener("click", onClick);
+    return b;
+  };
+  const unitToggle = (key) => toggle(state.units[key], `Switch to per ${NEXT_UNIT[state.units[key]]}`, () => cycleUnit(key));
+  const renderLabels = () => {
+    labels.cash.replaceChildren("Cash balance");
+    labels.expenses.replaceChildren("Expenses / ", unitToggle("expenses"));
+    labels.revenue.replaceChildren("Revenue / ", unitToggle("revenue"));
+    labels.growth.replaceChildren(
+      toggle(state.linear ? "$" : "%", state.linear ? "Switch to % (compounding) growth" : "Switch to $ (linear) growth", toggleKind),
+      " Growth / ", unitToggle("growth"));
+  };
+
+  const typed = (key) => ({ text: state.values[key], unit: state.units[key], linear: state.linear });
+  const monthly = (key) => state.exact[key] ?? fieldValue(key, state.values[key], state.units[key], state.linear);
+  const valid = (key) => {
+    const t = state.values[key];
+    if (key === "growth") return (state.linear ? parseAmount(t) : growthValue(t)) !== null;
+    return amountValue(t) !== null;
+  };
+  // Show exact[key] in the current unit/kind, or the typed text if that's where we are.
+  const show = (key) => {
+    const o = state.origin[key];
+    if (o && o.unit === state.units[key] && (key !== "growth" || o.linear === state.linear)) {
+      state.values[key] = o.text;
+      state.origin[key] = state.exact[key] = null;
+    } else {
+      state.values[key] = state.exact[key] === null ? "" : fieldText(key, state.exact[key], state.units[key], state.linear);
+    }
+  };
+  function cycleUnit(key) {
+    if (!state.origin[key]) {
+      const v = monthly(key);
+      if (v === null) { state.units[key] = NEXT_UNIT[state.units[key]]; return sync(); }
+      state.origin[key] = typed(key);
+      state.exact[key] = v;
+    }
+    state.units[key] = NEXT_UNIT[state.units[key]];
+    show(key);
+    sync();
+  }
+  function toggleKind() {
+    const current = monthly("growth");
+    state.origin.growth ??= typed("growth");
+    state.linear = !state.linear;
+    const o = state.origin.growth;
+    if (o.linear === state.linear) {
+      state.exact.growth = fieldValue("growth", o.text, o.unit, o.linear);
+    } else {
+      const revenue = monthly("revenue");
+      state.exact.growth = current === null || revenue === null ? null
+        : switchGrowthKind(current, state.linear, revenue, state.units.growth);
+    }
+    show("growth");
+    sync();
+  }
 
   const update = () => {
-    FIELDS.forEach((f, i) => (labels[i].textContent = f.label(state.unit)));
-    segments.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.unit === state.unit)));
-    inputs.forEach((el, i) => el.classList.toggle("invalid", el.value.trim() !== "" && FIELDS[i].valid(el.value) === null));
+    renderLabels();
+    for (const key of KEYS) inputs[key].classList.toggle("invalid", state.values[key].trim() !== "" && !valid(key));
 
-    const source = state.origin ?? { values: state.values, unit: state.unit };
-    const r = readout(source.values, new Date(), source.unit, state.unit);
-    const headline = host.querySelector(".headline");
+    const m = Object.fromEntries(KEYS.map((k) => [k, monthly(k)]));
+    const modelInputs = Object.values(m).includes(null) ? null : { ...m, linear: state.linear };
+    const filledIn = KEYS.every((k) => state.values[k].trim() !== "");
+    const r = describe(modelInputs && projectAny(modelInputs), filledIn, new Date());
     headline.textContent = r.headline;
     headline.className = `headline tone-${r.tone}`;
     // " " holds an empty line open, like the app, so the height never changes.
-    host.querySelector(".line1").textContent = r.line1 || " ";
-    host.querySelector(".line2").textContent = r.line2 || " ";
+    line1.textContent = r.line1 || " ";
+    line2.textContent = r.line2 || " ";
 
-    const monthly = monthlyInputs(source.values, source.unit);
-    const b = monthly && breakevens(monthly);
-    for (const f of FIELDS) host.querySelector(`[data-hint=${f.key}]`).textContent = b ? hintText(f.key, b[f.key], state.unit) : "";
+    const b = modelInputs && projectAny(modelInputs) && breakevens(modelInputs);
+    for (const key of KEYS) hints[key].textContent = b ? hintText(key, b[key], state.units[key], state.linear) : "";
 
-    disclosure.setAttribute("aria-expanded", String(state.chart));
     disclosure.textContent = state.chart ? "Hide chart" : "Show chart";
+    disclosure.hidden = !b;
     // Nothing to plot until all four numbers are usable; an empty frame reads as broken.
     chart.hidden = !(state.chart && b);
-    if (!chart.hidden) drawChart(chart, monthly, state.unit, new Date());
+    if (!chart.hidden) drawChart(chart, modelInputs, new Date());
     onChange(state);
   };
+  const sync = () => {
+    for (const key of KEYS) inputs[key].value = state.values[key];
+    update();
+  };
 
-  inputs.forEach((el, i) => (el.value = state.values[FIELDS[i].key] ?? ""));
   if (editable) {
-    inputs.forEach((el, i) => {
-      el.addEventListener("input", () => {
-        state.values = { ...state.values, [FIELDS[i].key]: el.value };
-        state.origin = null;
+    KEYS.forEach((key, i) => {
+      inputs[key].addEventListener("input", () => {
+        state.values[key] = inputs[key].value;
+        state.origin[key] = state.exact[key] = null;
         update();
       });
-      el.addEventListener("keydown", (e) => { if (e.key === "Enter") inputs[i + 1]?.focus(); });
+      inputs[key].addEventListener("keydown", (e) => { if (e.key === "Enter") inputs[KEYS[i + 1]]?.focus(); });
     });
-    segments.forEach((btn) => btn.addEventListener("click", () => {
-      const to = btn.dataset.unit;
-      if (to === state.unit) return;
-      state.origin ??= { values: state.values, unit: state.unit };
-      state.values = to === state.origin.unit ? state.origin.values : convertValues(state.origin.values, state.origin.unit, to);
-      if (to === state.origin.unit) state.origin = null;
-      state.unit = to;
-      inputs.forEach((el, i) => (el.value = state.values[FIELDS[i].key] ?? ""));
-      update();
-    }));
     disclosure.addEventListener("click", () => { state.chart = !state.chart; update(); });
   }
-  update();
+  sync();
   return {
-    inputs,
+    inputs: KEYS.map((k) => inputs[k]),
     clear() {
-      state.values = { cash: "", expenses: "", revenue: "", growth: "" };
-      state.origin = null;
-      inputs.forEach((el) => (el.value = ""));
-      update();
-      inputs[0].focus();
+      for (const key of KEYS) { state.values[key] = ""; state.origin[key] = state.exact[key] = null; }
+      sync();
+      inputs.cash.focus();
     },
   };
 }
 
+const freshState = (values = { cash: "", expenses: "", revenue: "", growth: "" }, units = {}, linear = false, chart = true) => ({
+  values: { ...values },
+  units: { expenses: "month", revenue: "month", growth: "month", ...units },
+  linear,
+  chart,
+  origin: { cash: null, expenses: null, revenue: null, growth: null },
+  exact: { cash: null, expenses: null, revenue: null, growth: null },
+});
+
 // ── Live window: editable, follows system appearance, persists like @AppStorage ──
 
-const STORE = "default-alive-state";
+const STORE = "default-alive-state-v3";
 const liveWindow = document.getElementById("live-window");
 const scheme = matchMedia("(prefers-color-scheme: dark)");
 const applyScheme = () => (liveWindow.className = `window ${scheme.matches ? "dark" : "light"}`);
 scheme.addEventListener("change", applyScheme);
 applyScheme();
 
-const saved = JSON.parse(localStorage.getItem(STORE) || "null");
-const live = calculator(document.getElementById("live"),
-  saved ?? { values: { cash: "", expenses: "", revenue: "", growth: "" }, unit: "month", chart: true, origin: null },
+const live = calculator(document.getElementById("live"), JSON.parse(localStorage.getItem(STORE) || "null") ?? freshState(),
   { editable: true, onChange: (s) => localStorage.setItem(STORE, JSON.stringify(s)) });
 live.inputs[0].focus();
 
@@ -510,26 +550,29 @@ async function appTiles(count) {
   const tileH = (img.naturalHeight - (count + 1) * gap) / count;
   if (!Number.isInteger(tileW) || !Number.isInteger(tileH)) return null;
   return (row, col) => {
-    const c = Object.assign(document.createElement("canvas"), { width: tileW, height: tileH });
+    const c = el("canvas", { width: tileW, height: tileH });
     c.style.width = `${tileW / 2}px`;
     c.getContext("2d").drawImage(img, gap + col * (tileW + gap), gap + row * (tileH + gap), tileW, tileH, 0, 0, tileW, tileH);
     return c;
   };
 }
 
-const { presets } = await (await fetch("presets.json", { cache: "no-store" })).json();
-const appTile = await appTiles(presets.length);
+const spec = await (await fetch("presets.json", { cache: "no-store" })).json();
+const appTile = await appTiles(spec.presets.length);
 const gallery = document.getElementById("gallery");
-presets.forEach((p, row) => {
-  gallery.append(Object.assign(document.createElement("div"), { className: "name", textContent: p.name }));
+const rows = [
+  ...spec.presets.map((p, i) => ({ name: p.name, state: freshState(p.input), app: (col) => appTile?.(i, col) })),
+  ...(spec.prototypes ?? []).map((p) => ({ name: p.name, state: freshState(p.values, p.units, p.linear), app: () => null, proto: true })),
+];
+for (const row of rows) {
+  gallery.append(el("div", { className: "name", textContent: row.name }));
   ["light", "dark"].forEach((theme, col) => {
-    const tile = Object.assign(document.createElement("div"), { className: theme });
+    const tile = el("div", { className: theme });
     gallery.append(tile);
-    calculator(tile, { values: p.input, unit: p.unit ?? "month", chart: true, origin: null }, { editable: false });
-    gallery.append(appTile?.(row, col) ??
-      Object.assign(document.createElement("div"), { className: "missing", textContent: "run make snapshot" }));
+    calculator(tile, structuredClone(row.state), { editable: false });
+    gallery.append(row.app(col) ?? el("div", { className: "missing", textContent: row.proto ? "not in app yet" : "run make snapshot" }));
   });
-});
+}
 
 // ── Live reload: poll the served files; any change reloads the page ──
 

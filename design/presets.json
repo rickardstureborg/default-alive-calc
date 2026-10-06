@@ -37,5 +37,20 @@
       "input": { "cash": "", "expenses": "", "revenue": "", "growth": "" },
       "expect": { "tone": "neutral", "headline": "—", "line1": "Enter all four numbers", "line2": "" }
     }
+  ],
+  "prototypes_about": "Browser-only gallery rows for designs not yet in the app: per-field units and $ (linear) growth. No `expect` until ported.",
+  "prototypes": [
+    {
+      "name": "weekly (TLB defaults)",
+      "values": { "cash": "$100k", "expenses": "1.6k", "revenue": "100", "growth": "2.5%" },
+      "units": { "expenses": "week", "revenue": "week", "growth": "week" },
+      "linear": false
+    },
+    {
+      "name": "linear",
+      "values": { "cash": "$400k", "expenses": "80k", "revenue": "20k", "growth": "5k" },
+      "units": { "expenses": "month", "revenue": "month", "growth": "month" },
+      "linear": true
+    }
   ]
 }
