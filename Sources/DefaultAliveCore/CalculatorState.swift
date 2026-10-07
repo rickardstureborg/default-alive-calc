@@ -162,9 +162,14 @@ public struct CalculatorState: Equatable, Sendable {
         Units(expenses: expenses.unit, revenue: revenue.unit, growth: self[.growth].unit)
     }
 
+    /// The line under the growth row; nil in % mode, whose one period the label already says.
+    public var growthNote: String? {
+        linear ? DefaultAliveCore.growthNote(growthDollar.text, unit: growthDollar.unit, revenueUnit: revenue.unit) : nil
+    }
+
     private func monthly(_ row: Row) -> Double? {
         let f = self[row]
-        return f.exact ?? fieldValue(row, text: f.text, unit: f.unit, linear: linear)
+        return f.exact ?? fieldValue(row, text: f.text, unit: f.unit, linear: linear, revenueUnit: revenue.unit)
     }
 
     public mutating func edit(_ row: Row, text: String) {
@@ -172,9 +177,26 @@ public struct CalculatorState: Equatable, Sendable {
         self[row] = Field(text: normalizeField(text), unit: self[row].unit)
     }
 
-    /// Re-expresses this box in its next unit and touches no other box: every box's value
-    /// depends on its own unit alone (see Units.swift for why $ growth isn't tied to Revenue's).
     public mutating func cycleUnit(_ row: Row) {
+        // $ growth adds to the Revenue box's figure, so a new revenue unit means re-expressing
+        // the $ growth box to keep the same business (+1.6k of MRR a month is +19.2k of
+        // annual revenue a month).
+        if row == .revenue, !growthDollar.text.trimmingCharacters(in: .whitespaces).isEmpty,
+           let dollars = growthDollar.exact ?? fieldValue(.growth, text: growthDollar.text, unit: growthDollar.unit,
+                                                           linear: true, revenueUnit: revenue.unit) {
+            defer {
+                var g = Field(text: fieldText(.growth, monthly: dollars, unit: growthDollar.unit, linear: true, revenueUnit: revenue.unit),
+                              unit: growthDollar.unit)
+                g.exact = dollars
+                growthDollar = g
+            }
+            cycleUnitOnly(row)
+            return
+        }
+        cycleUnitOnly(row)
+    }
+
+    private mutating func cycleUnitOnly(_ row: Row) {
         var f = self[row]
         if f.origin == nil {
             guard let v = monthly(row) else {
@@ -189,7 +211,7 @@ public struct CalculatorState: Equatable, Sendable {
         if let origin = f.origin, origin.unit == f.unit {
             f = Field(text: origin.text, unit: origin.unit)
         } else if let exact = f.exact {
-            f.text = fieldText(row, monthly: exact, unit: f.unit, linear: linear)
+            f.text = fieldText(row, monthly: exact, unit: f.unit, linear: linear, revenueUnit: revenue.unit)
         }
         self[row] = f
     }
@@ -202,9 +224,9 @@ public struct CalculatorState: Equatable, Sendable {
         // Convenience only: seed an empty box from the other kind, in the same period.
         guard self[.growth].text.trimmingCharacters(in: .whitespaces).isEmpty,
               let seed, let revenue,
-              let v = switchGrowthKind(seed, toLinear: linear, monthlyRevenue: revenue, unit: from.unit)
+              let v = switchGrowthKind(seed, toLinear: linear, monthlyRevenue: revenue, unit: from.unit, revenueUnit: self.revenue.unit)
         else { return }
-        var to = Field(text: fieldText(.growth, monthly: v, unit: from.unit, linear: linear), unit: from.unit)
+        var to = Field(text: fieldText(.growth, monthly: v, unit: from.unit, linear: linear, revenueUnit: self.revenue.unit), unit: from.unit)
         to.exact = v
         self[.growth] = to
     }
@@ -213,7 +235,7 @@ public struct CalculatorState: Equatable, Sendable {
     /// keeps the exact value (no rounding through the display).
     public mutating func setGrowth(monthly: Double) {
         let unit = self[.growth].unit
-        var field = Field(text: fieldText(.growth, monthly: monthly, unit: unit, linear: linear), unit: unit)
+        var field = Field(text: fieldText(.growth, monthly: monthly, unit: unit, linear: linear, revenueUnit: revenue.unit), unit: unit)
         field.exact = monthly
         self[.growth] = field
     }

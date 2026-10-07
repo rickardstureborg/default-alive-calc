@@ -251,9 +251,15 @@ enum SelfTest {
                 check("profitability dot on the chart", false, "not found")
             }
 
-            // Each week/month/year toggle changes its own box and no other, including the
-            // growth kind that isn't showing. Clicked in the real window, so a toggle wired to
-            // the wrong row, or hit areas that overlap, fail here too.
+            // Each week/month/year toggle re-expresses its own box and never moves the answer.
+            // Revenue's also re-expresses $ growth (shown or hidden), which is measured on the
+            // Revenue box's figure; no other box changes. Clicked in the real window, so a
+            // toggle wired to the wrong row, or hit areas that overlap, fail here too.
+            func dollarGrowth(_ s: CalculatorState) -> Double? {
+                var s = s
+                s.linear = true
+                return s.inputs?.monthlyGrowth
+            }
             var toggling = state
             toggling.toggleGrowthKind()
             for linear in [true, false] {
@@ -275,10 +281,19 @@ enum SelfTest {
                         ("revenue", before.revenue, after.revenue), ("growthPercent", before.growthPercent, after.growthPercent),
                         ("growthDollar", before.growthDollar, after.growthDollar),
                     ]
-                    let changed = boxes.filter { $0.0 != own && $0.1 != $0.2 }.map(\.0)
-                    check("clicking \(row)'s unit changes only that box (\(linear ? "$" : "%") growth)",
-                          after.field(row).unit == before.field(row).unit.next && changed.isEmpty,
-                          "\(before.field(row).unit.rawValue) → \(after.field(row).unit.rawValue), also changed: \(changed)")
+                    let mayChange = row == .revenue ? [own, "growthDollar"] : [own]
+                    let changed = boxes.filter { !mayChange.contains($0.0) && $0.1 != $0.2 }.map(\.0)
+                    let sameInputs = after.inputs == before.inputs
+                    let sameDollars = dollarGrowth(after) == dollarGrowth(before)
+                    // Its own toggle changes the $ box's unit; nothing else may.
+                    let sameDollarUnit = own == "growthDollar" || after.growthDollar.unit == before.growthDollar.unit
+                    let sameAnswer = after.readout(now: .now).line1 == before.readout(now: .now).line1
+                    check("clicking \(row)'s unit changes only \(row == .revenue ? "it and $ growth" : "that box") (\(linear ? "$" : "%") growth)",
+                          after.field(row).unit == before.field(row).unit.next && changed.isEmpty
+                              && sameInputs && sameDollars && sameDollarUnit && sameAnswer,
+                          "\(before.field(row).unit.rawValue) → \(after.field(row).unit.rawValue), also changed: \(changed), "
+                              + "inputs same \(sameInputs), $ value same \(sameDollars), $ unit same \(sameDollarUnit), "
+                              + "same answer \(sameAnswer)")
                 }
             }
 

@@ -12,8 +12,20 @@ const now = new Date(y, mo - 1, d); // local midnight, as in PresetTests.swift
 for (const p of spec.presets) {
   test(`preset ${p.name}`, () => {
     assert.deepEqual(m.readout(p.input, now, { ...m.MONTHLY, ...p.units }, p.linear ?? false, p.taxes ?? null), p.expect);
+    // Every $ growth preset has a note, and % presets have none (as in PresetTests.swift).
+    assert.equal(p.note !== undefined, p.linear ?? false);
+    if (p.note !== undefined) {
+      const units = { ...m.MONTHLY, ...p.units };
+      assert.equal(m.growthNote(p.input.growth, units.growth, units.revenue), p.note);
+    }
   });
 }
+
+test("growth note (same cases as TextTests.swift)", () => {
+  for (const [text, unit, revenueUnit, out] of [["1k", "year", "week", "Weekly revenue grows by $1k each year"],
+    ["-2k", "month", "month", "Monthly revenue shrinks by $2k each month"], ["", "month", "year", "How much yearly revenue grows each month"],
+    ["abc", "week", "month", "How much monthly revenue grows each week"]]) assert.equal(m.growthNote(text, unit, revenueUnit), out, text);
+});
 
 test("arithmetic in boxes (same cases as TextTests.swift)", () => {
   const amounts = [["163+5", 168], ["80k + 5k", 85_000], ["$1.2M-200k", 1_000_000], ["(20k+5k)*2", 50_000],
@@ -55,9 +67,10 @@ test("units", () => {
   assert.ok(Math.abs(m.growthToUnit(0.08, "year") - (1.08 ** 12 - 1)) < 1e-12);
   assert.ok(Math.abs(m.growthFromUnit(m.growthToUnit(0.08, "week"), "week") - 0.08) < 1e-12);
   assert.equal(m.amountToUnit(80_000, "year"), 960_000);
-  // $ growth adds to MRR each growth period: linear in that period.
-  assert.equal(m.linearToUnit(5_000, "year"), 60_000);
-  assert.ok(Math.abs(m.linearToUnit(m.linearFromUnit(50, "week"), "year") - 50 * 365.2425 / 7) < 1e-9);
+  // $ growth adds to the Revenue box's figure each growth period: linear in that period.
+  assert.equal(m.linearToUnit(5_000, "year", "month"), 60_000);
+  assert.equal(m.linearToUnit(5_000, "year", "year"), 720_000);
+  assert.ok(Math.abs(m.linearToUnit(m.linearFromUnit(50, "week", "month"), "year", "month") - 50 * 365.2425 / 7) < 1e-9);
 });
 
 test("breakeven bounds round toward the safe side", () => {

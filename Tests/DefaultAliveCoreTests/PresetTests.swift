@@ -12,6 +12,8 @@ struct PresetFile: Decodable {
         var linear: Bool?
         var taxes: TaxAssumptions?
         var expect: Readout
+        /// The line under $ growth. A sibling of `expect` because that's compared whole against `Readout`.
+        var note: String?
 
         var state: CalculatorState {
             CalculatorState(input: input, units: units ?? .monthly, linear: linear ?? false, taxes: taxes)
@@ -54,6 +56,19 @@ struct PresetTests {
         let now = try file.nowDate
         for p in file.presets {
             #expect(p.state.readout(now: now) == p.expect, "preset \(p.name)")
+        }
+    }
+
+    /// Every $ growth preset has a `note`, and % presets have none, the same as the form shows.
+    @Test func growthNotesReadAsSpecified() throws {
+        let file = try PresetFile.load()
+        #expect(file.presets.contains { $0.note != nil })
+        for p in file.presets {
+            let units = p.units ?? .monthly
+            if let note = p.note {
+                #expect(growthNote(p.input.growth, unit: units.growth, revenueUnit: units.revenue) == note, "preset \(p.name)")
+            }
+            #expect(p.state.growthNote == p.note, "preset \(p.name)")
         }
     }
 

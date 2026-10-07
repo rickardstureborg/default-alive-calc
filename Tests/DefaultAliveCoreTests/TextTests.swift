@@ -182,6 +182,17 @@ struct FormattingTests {
         #expect(formatMoney(value) == expected)
     }
 
+    // The label shows only the growth period; the line under $ growth names the revenue one too.
+    @Test(arguments: [
+        ("1k", Period.year, Period.week, "Weekly revenue grows by $1k each year"),
+        ("-2k", .month, .month, "Monthly revenue shrinks by $2k each month"),
+        ("", .month, .year, "How much yearly revenue grows each month"),
+        ("abc", .week, .month, "How much monthly revenue grows each week"),
+    ])
+    func growthNotes(text: String, unit: Period, revenueUnit: Period, expected: String) {
+        #expect(growthNote(text, unit: unit, revenueUnit: revenueUnit) == expected)
+    }
+
     @Test(arguments: [(18.0, "18.0 months"), (11.23, "11.2 months"), (0.04, "0.0 months"), (12.25, "12.3 months")])
     func months(value: Double, expected: String) {
         #expect(formatMonths(value) == expected)

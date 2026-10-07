@@ -664,7 +664,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     drag.pinned = moved.pinned;
     const g = fields[fieldKey("growth")];
     const growth = growthFromChart(moved.monthlyGrowth);
-    Object.assign(g, { text: fieldText("growth", growth, g.unit, state.linear), origin: null, exact: growth });
+    Object.assign(g, { text: fieldText("growth", growth, g.unit, state.linear, fields.revenue.unit), origin: null, exact: growth });
     sync();
   });
   const endDrag = () => {
@@ -682,7 +682,7 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
   const field = (key) => fields[fieldKey(key)];
   const monthly = (fk) => {
     const f = fields[fk];
-    return f.exact ?? fieldValue(fk.startsWith("growth") ? "growth" : fk, f.text, f.unit, fk === "growthDollar");
+    return f.exact ?? fieldValue(fk.startsWith("growth") ? "growth" : fk, f.text, f.unit, fk === "growthDollar", fields.revenue.unit);
   };
   const valid = (key) => {
     const t = field(key).text;
@@ -705,13 +705,21 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
       " Growth / ", unitToggle("growth"));
   };
 
-  // Re-expresses this box in its next unit and touches no other box: every box's value
-  // depends on its own unit alone ($ growth is MRR, not tied to the Revenue box's unit).
   function cycleUnit(key) {
+    // $ growth adds to the Revenue box's figure, so a new revenue unit re-expresses it.
+    const dollars = key === "revenue" && fields.growthDollar.text.trim() !== "" ? monthly("growthDollar") : null;
+    cycleOnly(key);
+    if (dollars !== null) {
+      const g = fields.growthDollar;
+      Object.assign(g, { text: fieldText("growth", dollars, g.unit, true, fields.revenue.unit), origin: null, exact: dollars });
+    }
+    sync();
+  }
+  function cycleOnly(key) {
     const fk = fieldKey(key), f = fields[fk];
     if (!f.origin) {
       const v = monthly(fk);
-      if (v === null) { f.unit = NEXT_UNIT[f.unit]; sync(); return; }
+      if (v === null) { f.unit = NEXT_UNIT[f.unit]; return; }
       f.origin = { text: f.text, unit: f.unit };
       f.exact = v;
     }
@@ -720,9 +728,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
       f.text = f.origin.text;
       f.origin = f.exact = null;
     } else {
-      f.text = fieldText(key, f.exact, f.unit, fk === "growthDollar");
+      f.text = fieldText(key, f.exact, f.unit, fk === "growthDollar", fields.revenue.unit);
     }
-    sync();
   }
   function toggleKind() {
     const from = fieldKey("growth");
@@ -731,8 +738,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     // Convenience only: seed an empty box from the other kind, in the same period.
     const seed = monthly(from), revenue = monthly("revenue");
     if (fields[to].text.trim() === "" && seed !== null && revenue !== null) {
-      const v = switchGrowthKind(seed, state.linear, revenue, fields[from].unit);
-      if (v !== null) Object.assign(fields[to], { unit: fields[from].unit, text: fieldText("growth", v, fields[from].unit, state.linear), origin: null, exact: v });
+      const v = switchGrowthKind(seed, state.linear, revenue, fields[from].unit, fields.revenue.unit);
+      if (v !== null) Object.assign(fields[to], { unit: fields[from].unit, text: fieldText("growth", v, fields[from].unit, state.linear, fields.revenue.unit), origin: null, exact: v });
     }
     sync();
   }
