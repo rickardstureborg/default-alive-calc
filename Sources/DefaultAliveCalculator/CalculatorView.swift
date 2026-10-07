@@ -79,6 +79,15 @@ struct CalculatorForm: View {
                             .help(Self.help[row] ?? "")
                     }
                 }
+                // $ growth only: spells out both periods, which "$ Growth / week" alone doesn't.
+                // Tucked up toward the growth row; the rows' spacing would float it free.
+                if let note = model.state.growthNote {
+                    Text(note)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, -6)
+                }
             }
             taxes.padding(.top, 12)
             Divider().padding(.vertical, Style.dividerSpacing)
