@@ -87,6 +87,16 @@
       }
     },
     {
+      "name": "linear, yearly revenue",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "240k", "growth": "$5k" },
+      "units": { "expenses": "month", "revenue": "year", "growth": "month" },
+      "linear": true,
+      "expect": {
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 12.0 months · Jan 10, 2027", "line2": "",
+        "hints": { "cash": "≥ $360k", "expenses": "≤ $83.2k", "revenue": "≥ $201.1k", "growth": "≥ $4.5k" }
+      }
+    },
+    {
       "name": "linear, $1.1k short",
       "input": { "cash": "251k", "expenses": "11k", "revenue": "0", "growth": "$240" },
       "linear": true,

@@ -250,4 +250,6 @@ struct BalanceChart: View {
 enum SelfTestProbe {
     static var profitDot: CGPoint?
     static var growthOutline: String?
+    /// Each row's week/month/year toggle, in SwiftUI's global space.
+    static var unitToggles: [Row: CGRect] = [:]
 }

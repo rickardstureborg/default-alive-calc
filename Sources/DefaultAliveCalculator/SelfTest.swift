@@ -251,6 +251,37 @@ enum SelfTest {
                 check("profitability dot on the chart", false, "not found")
             }
 
+            // Each week/month/year toggle changes its own box and no other, including the
+            // growth kind that isn't showing. Clicked in the real window, so a toggle wired to
+            // the wrong row, or hit areas that overlap, fail here too.
+            var toggling = state
+            toggling.toggleGrowthKind()
+            for linear in [true, false] {
+                if toggling.linear != linear { toggling.toggleGrowthKind() }
+                model.state = toggling
+                try? await Task.sleep(for: .milliseconds(300))
+                for row in [Row.expenses, .revenue, .growth] {
+                    guard let frame = SelfTestProbe.unitToggles[row] else {
+                        check("\(row) unit toggle on screen", false, "not found")
+                        continue
+                    }
+                    let before = model.state
+                    // Global space runs top-down from the window's top edge; see the dot above.
+                    await click(NSPoint(x: frame.midX, y: window.frame.height - frame.midY))
+                    let after = model.state
+                    let own = row == .growth ? (linear ? "growthDollar" : "growthPercent") : "\(row)"
+                    let boxes: [(String, Field, Field)] = [
+                        ("cash", before.cash, after.cash), ("expenses", before.expenses, after.expenses),
+                        ("revenue", before.revenue, after.revenue), ("growthPercent", before.growthPercent, after.growthPercent),
+                        ("growthDollar", before.growthDollar, after.growthDollar),
+                    ]
+                    let changed = boxes.filter { $0.0 != own && $0.1 != $0.2 }.map(\.0)
+                    check("clicking \(row)'s unit changes only that box (\(linear ? "$" : "%") growth)",
+                          after.field(row).unit == before.field(row).unit.next && changed.isEmpty,
+                          "\(before.field(row).unit.rawValue) → \(after.field(row).unit.rawValue), also changed: \(changed)")
+                }
+            }
+
             if let interrupted {
                 lines.append("INTERRUPTED at \"\(interrupted)\": the window lost keyboard focus (someone used the Mac). Rerun when it is idle.")
             } else {

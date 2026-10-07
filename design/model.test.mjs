@@ -55,10 +55,9 @@ test("units", () => {
   assert.ok(Math.abs(m.growthToUnit(0.08, "year") - (1.08 ** 12 - 1)) < 1e-12);
   assert.ok(Math.abs(m.growthFromUnit(m.growthToUnit(0.08, "week"), "week") - 0.08) < 1e-12);
   assert.equal(m.amountToUnit(80_000, "year"), 960_000);
-  // $ growth adds to the Revenue box's figure each growth period: linear in that period.
-  assert.equal(m.linearToUnit(5_000, "year", "month"), 60_000);
-  assert.equal(m.linearToUnit(5_000, "year", "year"), 720_000);
-  assert.ok(Math.abs(m.linearToUnit(m.linearFromUnit(50, "week", "month"), "year", "month") - 50 * 365.2425 / 7) < 1e-9);
+  // $ growth adds to MRR each growth period: linear in that period.
+  assert.equal(m.linearToUnit(5_000, "year"), 60_000);
+  assert.ok(Math.abs(m.linearToUnit(m.linearFromUnit(50, "week"), "year") - 50 * 365.2425 / 7) < 1e-9);
 });
 
 test("breakeven bounds round toward the safe side", () => {

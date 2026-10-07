@@ -26,11 +26,11 @@ public func growthValue(_ text: String) -> Double? {
 }
 
 /// One typed field → its monthly model value, or nil if unusable. $ growth may be negative.
-/// `revenueUnit` matters only for $ growth, which adds to the Revenue box's figure.
-public func fieldValue(_ row: Row, text: String, unit: Period, linear: Bool, revenueUnit: Period = .month) -> Double? {
+/// Depends on this box's own unit only, never another box's (see Units.swift).
+public func fieldValue(_ row: Row, text: String, unit: Period, linear: Bool) -> Double? {
     switch row {
     case .cash: amountValue(text)
-    case .growth where linear: parseAmount(text).map { linearFromUnit($0, unit, revenue: revenueUnit) }
+    case .growth where linear: parseAmount(text).map { linearFromUnit($0, unit) }
     case .growth: growthValue(text).map { growthFromUnit($0, unit) }
     case .expenses, .revenue: amountValue(text).map { amountFromUnit($0, unit) }
     }
@@ -38,25 +38,22 @@ public func fieldValue(_ row: Row, text: String, unit: Period, linear: Bool, rev
 
 /// A monthly model value → what the field shows in `unit`. Inverse of fieldValue.
 /// No "$" or "%": the box draws the unit.
-public func fieldText(_ row: Row, monthly: Double, unit: Period, linear: Bool, revenueUnit: Period = .month) -> String {
+public func fieldText(_ row: Row, monthly: Double, unit: Period, linear: Bool) -> String {
     switch row {
-    case .growth where linear: normalizeField(formatMoney(linearToUnit(monthly, unit, revenue: revenueUnit)))
+    case .growth where linear: normalizeField(formatMoney(linearToUnit(monthly, unit)))
     case .growth: normalizeField(formatPercent(growthToUnit(monthly, unit)))
     case .cash: normalizeField(formatMoney(monthly))
     case .expenses, .revenue: normalizeField(formatMoney(amountToUnit(monthly, unit)))
     }
 }
 
-/// % ↔ $ growth at the same first-period step on the Revenue box's figure, in the growth
-/// box's period,
+/// % ↔ $ growth at the same first-period step on MRR, in the growth box's period,
 /// so 8%/mo on $20k/mo revenue becomes +$1.6k/mo (8% of 20k), and back.
-public func switchGrowthKind(_ monthlyGrowth: Double, toLinear: Bool, monthlyRevenue: Double, unit: Period,
-                             revenueUnit: Period = .month) -> Double? {
-    let revenue = amountToUnit(monthlyRevenue, revenueUnit)
-    guard revenue > 0 else { return nil }
+public func switchGrowthKind(_ monthlyGrowth: Double, toLinear: Bool, monthlyRevenue: Double, unit: Period) -> Double? {
+    guard monthlyRevenue > 0 else { return nil }
     return toLinear
-        ? linearFromUnit(growthToUnit(monthlyGrowth, unit) * revenue, unit, revenue: revenueUnit)
-        : growthFromUnit(linearToUnit(monthlyGrowth, unit, revenue: revenueUnit) / revenue, unit)
+        ? linearFromUnit(growthToUnit(monthlyGrowth, unit) * monthlyRevenue, unit)
+        : growthFromUnit(linearToUnit(monthlyGrowth, unit) / monthlyRevenue, unit)
 }
 
 public enum Tone: String, Sendable, Codable {
@@ -146,7 +143,7 @@ public func readout(_ inputs: Inputs?, empty: [Row], units: Units, taxes: TaxAss
         revenue: hint(b.revenue) { "≥ " + formatMoneyBound(amountToUnit($0, units.revenue), roundUp: true) },
         growth: hint(b.growth) {
             inputs.linear
-                ? "≥ " + formatMoneyBound(linearToUnit($0, units.growth, revenue: units.revenue), roundUp: true)
+                ? "≥ " + formatMoneyBound(linearToUnit($0, units.growth), roundUp: true)
                 : "≥ " + formatPercentBound(growthToUnit($0, units.growth), roundUp: true)
         })
 
@@ -199,7 +196,7 @@ public func readout(_ raw: RawInputs, units: Units = .monthly, linear: Bool = fa
         (.revenue, raw.revenue, units.revenue), (.growth, raw.growth, units.growth),
     ]
     let empty = texts.filter { $0.1.trimmingCharacters(in: .whitespaces).isEmpty }.map(\.0)
-    let values = texts.map { empty.contains($0.0) ? 0 : fieldValue($0.0, text: $0.1, unit: $0.2, linear: linear, revenueUnit: units.revenue) }
+    let values = texts.map { empty.contains($0.0) ? 0 : fieldValue($0.0, text: $0.1, unit: $0.2, linear: linear) }
     guard let c = values[0], let e = values[1], let r = values[2], let g = values[3] else {
         return readout(nil, empty: empty, units: units, taxes: taxes, now: now)
     }
