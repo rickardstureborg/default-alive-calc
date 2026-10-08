@@ -162,6 +162,11 @@ public struct CalculatorState: Equatable, Sendable {
         Units(expenses: expenses.unit, revenue: revenue.unit, growth: self[.growth].unit)
     }
 
+    /// The line under the growth row; nil in % mode, whose one period the label already says.
+    public var growthNote: String? {
+        linear ? DefaultAliveCore.growthNote(growthDollar.text, unit: growthDollar.unit, revenueUnit: revenue.unit) : nil
+    }
+
     private func monthly(_ row: Row) -> Double? {
         let f = self[row]
         return f.exact ?? fieldValue(row, text: f.text, unit: f.unit, linear: linear, revenueUnit: revenue.unit)

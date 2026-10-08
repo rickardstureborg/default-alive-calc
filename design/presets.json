@@ -1,5 +1,5 @@
 {
-  "about": "Gallery states for design/index.html and `make snapshot`, and the shared spec: Swift (PresetTests) and JS (model.test.mjs) must both produce `expect` from `input` (+ optional `units`, default month, and `linear`, default false) at `now`. Change `expect` when the design changes on purpose.",
+  "about": "Gallery states for design/index.html and `make snapshot`, and the shared spec: Swift (PresetTests) and JS (model.test.mjs) must both produce `expect` from `input` (+ optional `units`, default month, and `linear`, default false) at `now`. `note`, on every $ growth preset, is the line under the growth row (a sibling of `expect`, which is compared whole against the readout). Change `expect` and `note` when the design changes on purpose.",
   "now": "2026-01-10",
   "presets": [
     {
@@ -84,7 +84,19 @@
       "expect": {
         "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 12.0 months · Jan 10, 2027", "line2": "",
         "hints": { "cash": "≥ $360k", "expenses": "≤ $83.2k", "revenue": "≥ $16.8k", "growth": "≥ $4.5k" }
-      }
+      },
+      "note": "Monthly revenue grows by $5k each month"
+    },
+    {
+      "name": "linear, yearly revenue",
+      "input": { "cash": "$400k", "expenses": "80k", "revenue": "240k", "growth": "$60k" },
+      "units": { "expenses": "month", "revenue": "year", "growth": "month" },
+      "linear": true,
+      "expect": {
+        "tone": "alive", "headline": "DEFAULT ALIVE", "line1": "Profitable in 12.0 months · Jan 10, 2027", "line2": "",
+        "hints": { "cash": "≥ $360k", "expenses": "≤ $83.2k", "revenue": "≥ $201.1k", "growth": "≥ $54k" }
+      },
+      "note": "Yearly revenue grows by $60k each month"
     },
     {
       "name": "linear, $1.1k short",
@@ -93,7 +105,8 @@
       "expect": {
         "tone": "dead", "headline": "DEFAULT DEAD", "line1": "Out of cash in 42.8 months · Aug 4, 2029", "line2": "",
         "hints": { "cash": "≥ $252.1k", "expenses": "≤ $10.9k", "revenue": "≥ $24", "growth": "≥ $242" }
-      }
+      },
+      "note": "Monthly revenue grows by $240 each month"
     },
     {
       "name": "solve cash",
@@ -135,7 +148,8 @@
       "expect": {
         "tone": "neutral", "headline": "—", "line1": "Default alive with growth ≥ $4.5k / month", "line2": "",
         "hints": { "cash": "", "expenses": "", "revenue": "", "growth": "≥ $4.5k" }
-      }
+      },
+      "note": "How much monthly revenue grows each month"
     },
     {
       "name": "solve, never",

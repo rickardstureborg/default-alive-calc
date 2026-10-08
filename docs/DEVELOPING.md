@@ -47,6 +47,6 @@ To refresh it: rerun `docs/tax-research/workflow.js` (a Claude Code workflow), s
 - **Taxes** only include what's owed before profit: taxes on revenue, and fixed yearly fees. Income taxes are zero until breakeven, so they can't change the answer. Thresholds are checked against current revenue. Hints under taxes are converted back to the pre-tax numbers you'd type.
 - **The tax checklist is a popover,** a separate window, so the key monitor never sees its keys: "c" types in the filter, and Esc closes it.
 - **Dragging the profit dot** sets growth. As growth varies, the dot moves along a straight line, so the pointer is projected onto that line and stops at the zero line (the default-alive minimum).
-- **$ growth** adds a fixed amount to the Revenue box's figure each period. Changing the Revenue box's unit re-expresses it.
+- **$ growth** adds a fixed amount to the Revenue box's figure each period. Changing the Revenue box's unit re-expresses it. The line under the growth row spells out both periods ("Yearly revenue grows by $60k each month"), since the label shows only one.
 - **Swift Charts** resolves `.secondary` against the accent color (blue gridlines), so the chart uses explicit `Color.primary.opacity(...)`. Edge axis labels must hang inward or Charts drops them.
 - **Screenshots and snapshots** render offscreen at 2x, so they need no Screen Recording permission and never touch saved input. The README screenshots draw their own title bar, since AppKit draws an offscreen window's title bar as inactive.

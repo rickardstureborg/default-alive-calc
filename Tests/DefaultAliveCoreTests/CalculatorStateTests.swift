@@ -75,6 +75,61 @@ struct CalculatorStateTests {
         #expect(s.readout(now: now) == before)
     }
 
+    // Each week/month/year toggle re-expresses its own box and never moves the answer. The one
+    // reach across rows is Revenue's toggle rewriting the $ growth box (shown or hidden), which
+    // is measured on the Revenue box's figure, so the same business needs a new number there.
+    @Test(arguments: [false, true], Period.allCases)
+    func unitTogglesTouchOnlyTheirOwnBox(linear: Bool, revenueUnit: Period) {
+        var start = CalculatorState(input: RawInputs(cash: "$400k", expenses: "80k", revenue: "20k", growth: "8"),
+                                    units: Units(revenue: revenueUnit))
+        start.growthDollar = Field(text: "1.6k", unit: .month)
+        start.linear = linear
+        let boxes: [(String, KeyPath<CalculatorState, Field>)] = [
+            ("cash", \.cash), ("expenses", \.expenses), ("revenue", \.revenue),
+            ("growthPercent", \.growthPercent), ("growthDollar", \.growthDollar),
+        ]
+        func monthlyDollars(_ s: CalculatorState) -> Double? {
+            s.growthDollar.exact ?? fieldValue(.growth, text: s.growthDollar.text, unit: s.growthDollar.unit,
+                                               linear: true, revenueUnit: s.revenue.unit)
+        }
+        for row in [Row.expenses, .revenue, .growth] {
+            var s = start
+            let own = row == .growth ? (linear ? "growthDollar" : "growthPercent") : "\(row)"
+            // Three clicks: each one, and the wrap back to where it started.
+            for _ in 0..<3 {
+                let before = s
+                let readout = s.readout(now: now)
+                s.cycleUnit(row)
+                #expect(s.field(row).unit == before.field(row).unit.next, "\(row) unit")
+                for (name, box) in boxes where name != own {
+                    if row == .revenue && name == "growthDollar" {
+                        #expect(s.growthDollar.unit == before.growthDollar.unit, "cycling revenue changed the $ growth unit")
+                        let was = monthlyDollars(before), got = monthlyDollars(s)
+                        #expect(was != nil && got != nil && abs(got! - was!) <= 1e-9 * abs(was!),
+                                "cycling revenue changed $ growth's monthly value \(String(describing: was)) → \(String(describing: got)), linear \(linear)")
+                    } else {
+                        #expect(s[keyPath: box] == before[keyPath: box], "cycling \(row) changed \(name), linear \(linear)")
+                    }
+                }
+                let after = s.readout(now: now)
+                #expect(after.line1 == readout.line1, "cycling \(row) moved the answer, linear \(linear)")
+                for other in Row.allCases where other != row {
+                    if other == .growth && row == .revenue && linear { continue }
+                    #expect(after.hints[other] == readout.hints[other], "cycling \(row) changed the \(other) hint, linear \(linear)")
+                }
+            }
+        }
+    }
+
+    @Test func growthNoteOnlyInDollarMode() {
+        var s = filled()
+        #expect(s.growthNote == nil)
+        s.toggleGrowthKind()
+        #expect(s.growthNote == "Monthly revenue grows by $1.6k each month")
+        s.cycleUnit(.revenue)
+        #expect(s.growthNote == "Yearly revenue grows by $19.2k each month")
+    }
+
     @Test func editingDropsTheRememberedOrigin() {
         var s = filled()
         s.cycleUnit(.expenses)

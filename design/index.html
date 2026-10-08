@@ -109,6 +109,9 @@
     text-align: right;
     outline: none;
   }
+  /* Under the $ growth row, tucked up to it (the rows' gap would float it free). */
+  .growth-note { margin-top: -6px; font-size: 11px; color: var(--secondary); }
+  .growth-note[hidden] { display: none; }
   .numbox:empty::before { content: attr(data-placeholder); color: var(--placeholder); }
   .numbox .comma::before { content: ","; color: var(--secondary); }
   .numbox.invalid { color: var(--dead); }
@@ -315,7 +318,7 @@ import {
   TAX_PLACES, TAX_NOTHING_OWED, DEFAULT_TAX_PLACES, taxPlace, placeSummary, matchingPlaces, shareValue,
   NEXT_UNIT, fieldValue, fieldText, switchGrowthKind, compactField, normalizeField, caretAfterNormalizing, groupBreaks,
   formatMoney, formatMonths, formatMonthYear, formatDate, cumulativeBurn, project, revenueAt, amountToUnit,
-  dragProfitPoint,
+  dragProfitPoint, growthNote,
 } from "./model.js";
 
 // No units in prompts: the box draws "$" or "%" itself.
@@ -558,6 +561,9 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     units[key] = el("span", { className: "unit" });
     rows.append(el("div", { className: "row" }, labels[key], el("div", { className: "box" }, units[key], inputs[key]), hints[key]));
   }
+  // $ growth only: spells out both periods, which "$ Growth / week" alone doesn't.
+  const note = el("div", { className: "growth-note" });
+  rows.append(note);
 
   // Taxes: the checkbox, a one-line size of the effect, and when checked the assumptions
   // behind it: a row per place you're in, with your share of revenue there when it taxes
@@ -773,6 +779,8 @@ function calculator(host, state, { editable, onChange = () => {}, assumptionsOpe
     // " " holds an empty line open, like the app, so the height never changes.
     line1.textContent = r.line1 || " ";
     for (const key of KEYS) hints[key].textContent = r.hints[key];
+    note.hidden = !state.linear;
+    note.textContent = growthNote(field("growth").text, field("growth").unit, fields.revenue.unit);
     inputs.growth.classList.toggle("drag-alive", drag.active && !drag.pinned);
     inputs.growth.classList.toggle("drag-pinned", drag.active && drag.pinned);
 

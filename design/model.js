@@ -435,6 +435,19 @@ export function switchGrowthKind(monthlyGrowth, toLinear, monthlyRevenue, unit, 
     : growthFromUnit(linearToUnit(monthlyGrowth, unit, revenueUnit) / revenue, unit);
 }
 
+// The line under $ growth. It has two periods and the label only shows one: "$ Growth /
+// week" at 4.8k with revenue per year means yearly revenue grows by $4.8k each week, not
+// $4.8k/wk each week. The revenue period is whatever the Revenue box is set to.
+const PERIOD_ADJECTIVE = { week: "Weekly", month: "Monthly", year: "Yearly" };
+export function growthNote(text, unit, revenueUnit) {
+  const revenue = `${PERIOD_ADJECTIVE[revenueUnit]} revenue`;
+  const n = text.trim() === "" ? null : parseAmount(text);
+  if (n === null) return `How much ${revenue.toLowerCase()} grows each ${unit}`;
+  return n < 0
+    ? `${revenue} shrinks by ${formatMoney(-n)} each ${unit}`
+    : `${revenue} grows by ${formatMoney(n)} each ${unit}`;
+}
+
 function hint(key, threshold, units, linear) {
   if (threshold === "never" || threshold === "any") return threshold;
   switch (key) {

@@ -59,6 +59,29 @@ public func switchGrowthKind(_ monthlyGrowth: Double, toLinear: Bool, monthlyRev
         : growthFromUnit(linearToUnit(monthlyGrowth, unit, revenue: revenueUnit) / revenue, unit)
 }
 
+/// The line under $ growth. It has two periods and the label only shows one: "$ Growth /
+/// week" at 4.8k with revenue per year means yearly revenue grows by $4.8k each week, not
+/// $4.8k/wk each week. The revenue period is whatever the Revenue box is set to.
+public func growthNote(_ text: String, unit: Period, revenueUnit: Period) -> String {
+    let revenue = "\(revenueUnit.adjective) revenue"
+    guard !text.trimmingCharacters(in: .whitespaces).isEmpty, let n = parseAmount(text) else {
+        return "How much \(revenue.lowercased()) grows each \(unit.rawValue)"
+    }
+    return n < 0
+        ? "\(revenue) shrinks by \(formatMoney(-n)) each \(unit.rawValue)"
+        : "\(revenue) grows by \(formatMoney(n)) each \(unit.rawValue)"
+}
+
+private extension Period {
+    var adjective: String {
+        switch self {
+        case .week: "Weekly"
+        case .month: "Monthly"
+        case .year: "Yearly"
+        }
+    }
+}
+
 public enum Tone: String, Sendable, Codable {
     case alive, dead, neutral
 }
